@@ -1,0 +1,16 @@
+node_modules/
+dist/
+build/win-unpacked/
+.ops/
+.env
+.env.*
+*.log
+*.exe
+*.blockmap
+*.pfx
+*.p12
+*.private.pem
+*.key
+!src/main/license/public-key.pem
+.DS_Store
+Thumbs.db

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>方块仔</title>
+    <link rel="stylesheet" href="pet.css" />
+    <link rel="stylesheet" href="pet-v2.css" />
+  </head>
+  <body>
+    <div id="stage">
+      <!-- 对话气泡 -->
+      <div id="bubble" class="bubble hidden" aria-live="polite">
+        <div class="bubble-emoji" id="bubbleEmoji"></div>
+        <div class="bubble-text" id="bubbleText" data-no-i18n></div>
+        <div class="bubble-tail"></div>
+      </div>
+
+      <!-- 专注计时胶囊 -->
+      <div id="focusPill" class="focus-pill hidden">
+        <span class="focus-dot"></span>
+        <span class="focus-time" id="focusTime">25:00</span>
+        <span class="focus-label" id="focusLabel"></span>
+      </div>
+
+      <!-- 宠物舞台 -->
+      <div id="pets" class="pet-row"></div>
+
+      <!-- 体验版角标 -->
+      <button id="trialBadge" class="trial-badge hidden" title="升级 Pro 解锁全部功能">体验版<i id="trialDays"></i></button>
+
+      <!-- 等级角标 -->
+      <div id="levelChip" class="level-chip hidden"><span class="lvl">Lv.1</span></div>
+
+      <!-- 粒子层 -->
+      <div id="fx" class="fx"></div>
+
+      <!-- 新手提示 -->
+      <div id="hint" class="hint hidden">拖动我试试 · 右键有菜单</div>
+
+      <!-- 悬停拖动提示 -->
+      <div id="dragHint" class="drag-hint">按住我拖动 · 双击打开设置</div>
+    </div>
+    <script src="../../shared/pet-dom.js"></script>
+    <script src="../../shared/i18n-dict.js"></script>
+    <script src="../../shared/i18n.js"></script>
+    <script src="../../shared/expressions.js"></script>
+    <script src="pet.js"></script>
+  </body>
+</html>

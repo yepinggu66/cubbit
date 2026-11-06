@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../src/renderer/pet/pet.css" />
+    <link rel="stylesheet" href="../src/renderer/pet/pet-v2.css" />
+    <style>
+      * { box-sizing: border-box; }
+      html, body { margin: 0; width: 1280px; height: 720px; overflow: hidden; background: #0b0d13; }
+      .halo { position: absolute; left: 50%; top: 66%; width: 720px; height: 520px; transform: translate(-50%, -50%); background: radial-gradient(closest-side, rgba(255,120,60,.30), rgba(255,120,60,.08) 55%, transparent 72%); filter: blur(6px); z-index: 0; }\n      .stage { position: absolute; inset: 0; background:
+        radial-gradient(760px 460px at 50% 12%, rgba(255,140,90,.16), transparent 68%),
+        radial-gradient(680px 420px at 12% 96%, rgba(240,112,138,.14), transparent 66%),
+        linear-gradient(160deg, #171a26 0%, #0e1017 55%, #0a0b11 100%); }
+      .grain { position: absolute; inset: 0; opacity: .35; background-image: radial-gradient(rgba(255,255,255,.045) 1px, transparent 1px); background-size: 3px 3px; }
+
+      .petwrap { position: absolute; left: 50%; top: 70%; transform: translate(-50%, -50%); z-index: 1; }
+      .petwrap .pet { cursor: default; transform: scale(1.62); transform-origin: 50% 100%; transition: none !important; animation: none !important; }
+      .petwrap .pet * { animation: none !important; transition: none !important; }
+      #pet { transition: none; }
+
+      .txt { position: absolute; left: 0; right: 0; z-index: 5; text-align: center; color: #f4eff3; font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; opacity: 0; will-change: opacity, transform; }
+      .kicker { font-size: 15px; letter-spacing: .3em; color: #ff8a50; font-weight: 700; }
+      .h1 { font-size: 74px; font-weight: 800; letter-spacing: -.02em; margin-top: 10px; }
+      .tag { font-size: 22px; color: #b9b2bd; margin-top: 12px; letter-spacing: .02em; }
+      .small { font-size: 15px; letter-spacing: .22em; color: #8e8798; font-weight: 700; }
+
+      #title { top: 64px; }
+      #tagline { top: 186px; }
+      #exprLabel { top: 64px; }
+      #exprAction { top: 116px; font-size: 34px; font-weight: 700; color: #ffe1d1; }
+      #exprName { top: 176px; font-size: 56px; font-weight: 800; color: #fff; }
+      #skinLabel { top: 64px; }
+      #skinName { top: 132px; font-size: 30px; font-weight: 700; color: #ffe1d1; }
+      #feat { top: 60px; }
+      #feat .row { font-size: 34px; font-weight: 700; margin: 14px 0; color: #f4eff3; }
+      #feat .row span { color: #ff8a50; }
+      #cta { top: 56px; }
+      #cta .big { font-size: 46px; font-weight: 800; }
+      #cta .url { font-size: 26px; color: #ffb37a; margin-top: 14px; letter-spacing: .02em; }
+      #cta .note { font-size: 16px; color: #9a93a2; margin-top: 10px; }
+
+      .cursor { position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; background: rgba(255,255,255,.92); box-shadow: 0 6px 18px rgba(0,0,0,.45); opacity: 0; }
+      .ring { position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; border: 3px solid rgba(255,255,255,.8); opacity: 0; }
+      .heart { position: absolute; font-size: 26px; opacity: 0; }
+      .floor { position: absolute; left: 50%; bottom: 26px; z-index: 0; transform: translateX(-50%); width: 320px; height: 22px; border-radius: 50%; background: radial-gradient(closest-side, rgba(0,0,0,.55), transparent 72%); filter: blur(3px); opacity: .8; }
+      @media (max-aspect-ratio: 3/4) {
+        #title { top: 300px; }
+        #tagline { top: 432px; }
+        #exprLabel { top: 286px; }
+        #exprAction { top: 350px; font-size: 40px; }
+        #exprName { top: 420px; font-size: 68px; }
+        #skinLabel { top: 286px; }
+        #skinName { top: 370px; font-size: 40px; }
+        #feat { top: 290px; }
+        #feat .row { font-size: 40px; }
+        #cta { top: 286px; }
+        #cta .big { font-size: 54px; }
+        #cta .url { font-size: 30px; }
+        .petwrap { top: 66%; }
+        .halo { top: 64%; }
+        .floor { bottom: 120px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage"><div class="grain"></div></div>
+    <div class="halo"></div>
+    <div class="floor"></div>
+    <div class="petwrap" id="host"></div>
+
+    <div class="txt" id="title"><div class="kicker">DESKTOP PET</div><div class="h1">方块仔</div></div>
+    <div class="txt" id="tagline"><div class="tag">一只住在桌面上的小方块</div></div>
+
+    <div class="txt" id="exprLabel"><div class="small">它有 42 种表情</div></div>
+    <div class="txt" id="exprAction"></div>
+    <div class="txt" id="exprName"></div>
+
+    <div class="txt" id="skinLabel"><div class="small">20+ 套皮肤</div></div>
+    <div class="txt" id="skinName"></div>
+
+    <div class="txt" id="feat">
+      <div class="row">右键，<span>全部玩法</span></div>
+      <div class="row">会自己走、自己睡、<span>自己找你说话</span></div>
+      <div class="row">Windows 10 / 11 · <span>免费内测</span></div>
+    </div>
+
+    <div class="txt" id="cta">
+      <div class="big">免费内测，来戳一下</div>
+      <div class="url">pingguye.cn/cubbit</div>
+      <div class="note">Windows · 117MB · 不用注册 · 不绑卡</div>
+    </div>
+
+    <div class="cursor" id="cursor"></div>
+    <div class="ring" id="ring"></div>
+    <div class="heart" id="heart1">💗</div>
+    <div class="heart" id="heart2">✨</div>
+
+    <script src="../src/shared/expressions.js"></script>
+    <script src="../src/shared/pet-dom.js"></script>
+    <script>
+      const PAL = { body1: '#ff8a50', body2: '#ff5a1f', body3: '#e8440c', eye: '#2a1610', pupil: '#120805', blush: '#ffb199', rim: '#ffd2bd', glow: 'rgba(255,110,50,.45)' };
+      const SKINS = [
+        ['橙红经典', { body1: '#ff8a50', body2: '#ff5a1f', body3: '#e8440c', eye: '#2a1610', pupil: '#120805', blush: '#ffb199', rim: '#ffd2bd' }],
+        ['蜜橘', { body1: '#ffd9bf', body2: '#ef7a52', body3: '#c9482a', eye: '#2b1a14', pupil: '#140c08', blush: '#ff8d78', rim: '#ffe6d4' }],
+        ['薄荷', { body1: '#e8fff6', body2: '#7fd9bb', body3: '#3f9e83', eye: '#123028', pupil: '#081a15', blush: '#ffb3c2', rim: '#f4fffb' }],
+        ['樱花', { body1: '#ffe1ec', body2: '#f497b6', body3: '#c85f83', eye: '#3a1622', pupil: '#1c0a10', blush: '#ff6f9c', rim: '#fff2f7' }],
+        ['极光', { body1: '#c8f8ff', body2: '#5b8cff', body3: '#4356c9', eye: '#0b1233', pupil: '#050914', blush: '#a37bff', rim: '#e8f6ff' }],
+        ['夜光', { body1: '#5a5aa0', body2: '#2a2a55', body3: '#14142c', eye: '#9ff2ff', pupil: '#e6feff', blush: '#7c5cff', rim: '#c9c9ff' }],
+      ];
+      const EXPR = window.CUBBIT_EXPR.EXPRESSIONS;
+      const host = document.getElementById('host');
+      const pet = window.CubbitPetDom.build(PAL, {});
+      host.appendChild(pet);
+      const PREFIX = { eyes: 'eyes--', mouth: 'mouth--', body: 'body--', fx: 'fx--' };
+      const KEYS = ['eyes', 'mouth', 'body', 'fx'];
+      let curExpr = '';
+      function setExpr(name) {
+        if (curExpr === name) return;
+        curExpr = name;
+        for (const k of KEYS) {
+          for (const c of Array.from(pet.classList)) if (c.startsWith(PREFIX[k])) pet.classList.remove(c);
+          const v = (EXPR[name] || {})[k];
+          if (v) pet.classList.add(PREFIX[k] + v);
+        }
+      }
+      function setSkin(p) {
+        for (const [k, v] of Object.entries(p)) pet.style.setProperty('--' + k, v);
+      }
+
+      const $ = (id) => document.getElementById(id);
+      const clamp01 = (x) => Math.max(0, Math.min(1, x));
+      /** 窗口内淡入淡出 + 轻微上浮 */
+      function show(el, t, t0, t1, inS = 0.45, outS = 0.4, rise = 14) {
+        if (!el) return;
+        if (t < t0 || t > t1) { el.style.opacity = 0; return; }
+        const a = clamp01((t - t0) / inS);
+        const b = clamp01((t1 - t) / outS);
+        const k = Math.min(a, b);
+        el.style.opacity = k;
+        el.style.transform = 'translateY(' + ((1 - a) * rise).toFixed(2) + 'px)';
+      }
+      const easeOutBack = (x) => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+
+      const T = {
+        drop0: 0.7, drop1: 1.65,
+        expr0: 3.9, exprStep: 1.84, exprCount: 5,
+        skin0: 13.1, skinStep: 0.92,
+        feat0: 18.7, feat1: 23.0,
+        cta0: 23.2, cta1: 26.6,
+      };
+      const EXPRS = [
+        ['戳一下', '害羞', 'shy'],
+        ['摸一摸', '满足', 'content'],
+        ['夸它一句', '开心', 'joy'],
+        ['甩飞它', '晕了', 'shocked'],
+        ['喂点吃的', '超开心', 'excited'],
+      ];
+      window.DURATION = 27;
+
+      window.renderAt = function (t) {
+        // ---- 宠物入场：掉落 + 回弹 + 呼吸
+        const p = clamp01((t - T.drop0) / (T.drop1 - T.drop0));
+        const dropY = p <= 0 ? -420 : (1 - easeOutBack(p)) * -420;
+        const bob = Math.sin(t * 3.1) * 4 + Math.sin(t * 1.7) * 2;
+        const squash = p > 0 && p < 1 ? 1 + Math.sin(p * Math.PI) * 0.06 : 1 + Math.sin(t * 3.1) * 0.012;
+        pet.style.transform = 'scale(' + (1.62 * (2 - squash)).toFixed(3) + ',' + (1.62 * squash).toFixed(3) + ')';
+        host.style.transform = 'translate(-50%, calc(-50% + ' + (dropY + bob).toFixed(1) + 'px))';
+        host.style.opacity = t < T.drop0 ? 0 : 1;
+
+        // ---- 表情时间线
+        let expr = 'happy';
+        let action = '', name = '';
+        const ei = Math.floor((t - T.expr0) / T.exprStep);
+        if (t >= T.expr0 && ei >= 0 && ei < T.exprCount) {
+          action = EXPRS[ei][0];
+          name = EXPRS[ei][1];
+          expr = EXPRS[ei][2];
+        } else if (t >= T.expr0 + T.exprCount * T.exprStep) {
+          expr = 'happy';
+        }
+        // 皮肤段：保持开心
+        if (t >= T.skin0) expr = 'joy';
+        if (t >= T.feat0) expr = 'happy';
+        if (t >= T.cta0) expr = 'love';
+        setExpr(expr);
+
+        // ---- 皮肤循环
+        const si = Math.floor((t - T.skin0) / T.skinStep);
+        if (t >= T.skin0 && si >= 0 && si < SKINS.length) {
+          setSkin(SKINS[si][1]);
+          $('skinName').textContent = SKINS[si][0];
+        } else if (t >= T.skin0 + SKINS.length * T.skinStep) {
+          setSkin(SKINS[0][1]);
+          $('skinName').textContent = '';
+        } else if (t < T.skin0) {
+          setSkin(SKINS[0][1]);
+        }
+
+        // ---- 文字
+        show($('title'), t, 1.1, 3.9, 0.6, 0.5);
+        show($('tagline'), t, 2.1, 3.9, 0.5, 0.5);
+        show($('exprLabel'), t, T.expr0 - 0.3, T.expr0 + T.exprCount * T.exprStep + 0.2, 0.4, 0.5);
+        const winA = T.expr0 + Math.max(0, ei) * T.exprStep;
+        show($('exprAction'), t, winA + 0.05, winA + T.exprStep - 0.05, 0.28, 0.28, 10);
+        show($('exprName'), t, winA + 0.15, winA + T.exprStep - 0.05, 0.3, 0.26, 8);
+        $('exprAction').textContent = action;
+        $('exprName').textContent = name;
+        if (t < T.expr0 || ei >= T.exprCount) { $('exprAction').style.opacity = 0; $('exprName').style.opacity = 0; }
+
+        show($('skinLabel'), t, T.skin0 - 0.2, T.skin0 + SKINS.length * T.skinStep + 0.3, 0.4, 0.5);
+        show($('skinName'), t, T.skin0 + 0.05, T.skin0 + SKINS.length * T.skinStep + 0.1, 0.25, 0.3, 6);
+
+        // 功能三点：逐条出现
+        const feat = $('feat');
+        const rows = feat.querySelectorAll('.row');
+        if (t >= T.feat0 && t <= T.feat1) {
+          feat.style.opacity = 1; feat.style.transform = 'none';
+          rows.forEach((r, i) => {
+            const a = clamp01((t - (T.feat0 + i * 0.55)) / 0.4);
+            r.style.opacity = a;
+            r.style.transform = 'translateY(' + ((1 - a) * 16).toFixed(1) + 'px)';
+          });
+        } else if (t > T.feat1) {
+          const b = clamp01((T.feat1 + 0.45 - t) / 0.45);
+          feat.style.opacity = b;
+        } else {
+          feat.style.opacity = 0;
+        }
+
+        show($('cta'), t, T.cta0, 26.9, 0.6, 0.5);
+
+        // ---- 光标与点击（第一次「戳一下」）
+        const c = $('cursor'), ring = $('ring');
+        const pokeT0 = T.expr0 - 0.55;
+        const cp = clamp01((t - pokeT0) / 0.55);
+        if (t >= pokeT0 && t <= T.expr0 + 0.7) {
+          const x = 900 + (640 - 900) * cp;
+          const y = 560 + (420 - 560) * cp;
+          c.style.opacity = Math.min(1, cp * 2);
+          c.style.left = x + 'px'; c.style.top = y + 'px';
+        } else { c.style.opacity = 0; }
+        const rp = clamp01((t - T.expr0 + 0.06) / 0.5);
+        if (t >= T.expr0 - 0.06 && t <= T.expr0 + 0.5) {
+          ring.style.opacity = (1 - rp) * 0.9;
+          ring.style.left = '640px'; ring.style.top = '420px';
+          ring.style.transform = 'scale(' + (1 + rp * 2.6).toFixed(2) + ')';
+        } else { ring.style.opacity = 0; }
+
+        // ---- 爱心 / 星星（开心与 CTA 时）
+        const h1 = $('heart1'), h2 = $('heart2');
+        const heartOn = (t > T.cta0 && t < 26.8) || (t > T.expr0 + 3 * T.exprStep && t < T.expr0 + 4 * T.exprStep);
+        if (heartOn) {
+          const k = (t * 0.9) % 1;
+          h1.style.opacity = (1 - k) * 0.95;
+          h1.style.left = (760 + Math.sin(t * 2) * 20) + 'px';
+          h1.style.top = (300 - k * 120) + 'px';
+          h2.style.opacity = (1 - ((k + 0.5) % 1)) * 0.9;
+          h2.style.left = (500 + Math.cos(t * 2.3) * 18) + 'px';
+          h2.style.top = (320 - ((k + 0.5) % 1) * 130) + 'px';
+        } else { h1.style.opacity = 0; h2.style.opacity = 0; }
+
+        // ---- 整体淡入淡出
+        document.querySelector('.stage').style.opacity = Math.min(clamp01(t / 0.5), clamp01((window.DURATION - t) / 0.45));
+      };
+      window.renderAt(0);
+    </script>
+  </body>
+</html>

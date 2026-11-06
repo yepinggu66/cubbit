@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>方块仔 · Cubbit</title>
+    <link rel="stylesheet" href="../ui/ui.css" />
+    <link rel="stylesheet" href="onboarding.css" />
+    <style>
+      /* v2.4 Lite：中英双语按 <html lang> 切换，不依赖 1MB 的机翻词典 */
+      html:not([lang^="zh"]) .i18n-zh { display: none !important; }
+      html[lang^="zh"] .i18n-en { display: none !important; }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div id="titlebar-host"></div>
+
+      <div class="onb">
+        <aside class="onb-art" aria-hidden="true">
+          <div class="onb-art__glow"></div>
+          <div class="onb-art__stage">
+            <div class="cube" id="artCube">
+              <div class="cube__face">
+                <span class="cube__eye cube__eye--l"></span>
+                <span class="cube__eye cube__eye--r"></span>
+                <span class="cube__blush cube__blush--l"></span>
+                <span class="cube__blush cube__blush--r"></span>
+              </div>
+              <div class="cube__shadow"></div>
+            </div>
+            <span class="float-chip float-chip--a" id="artChipA"></span>
+            <span class="float-chip float-chip--b" id="artChipB"></span>
+            <span class="float-chip float-chip--c" id="artChipC"></span>
+          </div>
+          <div class="onb-art__caption">
+            <div class="onb-art__name">方块仔</div>
+            <div class="onb-art__tagline">
+              <span class="i18n-zh">住你们俩桌面上的同一只小方块</span>
+              <span class="i18n-en">One tiny cube, living on both your desktops</span>
+            </div>
+          </div>
+        </aside>
+
+        <main class="onb-main">
+          <div class="onb-steps" id="onbSteps"></div>
+
+          <div class="onb-body">
+            <!-- 1 / 欢迎 -->
+            <section class="onb-slide" data-step="0">
+              <div class="eyebrow">WELCOME</div>
+              <h1 class="onb-title">
+                <span class="i18n-zh">你们俩，同一只方块仔</span>
+                <span class="i18n-en">One cube. Two desktops.</span>
+              </h1>
+              <p class="onb-desc">
+                <span class="i18n-zh">它住在你的桌面上。你戳一下，TA 那边会跳一下；TA 说的话、留的语音，会从它头顶冒出来。</span>
+                <span class="i18n-en">It lives on your desktop. Poke it — your partner's cube jumps. Their notes and voice messages pop out of its head.</span>
+              </p>
+              <div class="onb-feats">
+                <div class="onb-feat">
+                  <div class="ico-tile"><span data-icon="heart"></span></div>
+                  <div>
+                    <div class="onb-feat__title">
+                      <span class="i18n-zh">42 种表情</span>
+                      <span class="i18n-en">42 expressions</span>
+                    </div>
+                    <div class="onb-feat__desc">
+                      <span class="i18n-zh">害羞、犯困、生气、被戳了会脸红——它写在脸上</span>
+                      <span class="i18n-en">Shy, sleepy, grumpy, blushing when poked — it shows on its face</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="onb-feat">
+                  <div class="ico-tile ico-tile--teal"><span data-icon="users"></span></div>
+                  <div>
+                    <div class="onb-feat__title">
+                      <span class="i18n-zh">戳一下，TA 会感觉到</span>
+                      <span class="i18n-en">Poke it. They feel it.</span>
+                    </div>
+                    <div class="onb-feat__desc">
+                      <span class="i18n-zh">比心、抱抱、晚安，一秒就发出去，不用打字</span>
+                      <span class="i18n-en">Hearts, hugs, goodnight — one tap, no typing</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="onb-feat">
+                  <div class="ico-tile ico-tile--gold"><span data-icon="chat"></span></div>
+                  <div>
+                    <div class="onb-feat__title">
+                      <span class="i18n-zh">传一句话，留一段语音</span>
+                      <span class="i18n-en">Send a note, leave a voice message</span>
+                    </div>
+                    <div class="onb-feat__desc">
+                      <span class="i18n-zh">从它头顶冒出来，桌面就是你们俩的小信箱</span>
+                      <span class="i18n-en">It pops out of its head — your desktop becomes a tiny mailbox</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="onb-compat">
+                <span><span data-icon="monitor"></span>Windows 10 / 11</span>
+                <span><span data-icon="shield"></span><span class="i18n-zh">不采集屏幕与按键</span><span class="i18n-en">No screen or keystroke capture</span></span>
+                <span><span data-icon="wifi-off"></span><span class="i18n-zh">断网也能陪伴</span><span class="i18n-en">Works offline</span></span>
+              </div>
+            </section>
+
+            <!-- 2 / 配对 -->
+            <section class="onb-slide hidden" data-step="1">
+              <div class="eyebrow">PAIR UP</div>
+              <h1 class="onb-title">
+                <span class="i18n-zh">先和 TA 配对</span>
+                <span class="i18n-en">Pair with your person</span>
+              </h1>
+              <p class="onb-desc">
+                <span class="i18n-zh">两个人各装一份。一个人点「邀请 TA」，把 6 位邀请码发给对方；对方填进去，就配上了。</span>
+                <span class="i18n-en">Install it on both computers. One of you taps “Invite” and sends the 6-character code; the other enters it. Done.</span>
+              </p>
+              <div class="trial-banner" id="trialBanner">
+                <div class="trial-banner__left">
+                  <span class="trial-banner__label" id="trialLabel"><span class="i18n-zh">体验期</span><span class="i18n-en">Free trial</span></span>
+                  <span class="trial-banner__days"><strong id="trialDays">30</strong>
+                    <span class="i18n-zh">天</span><span class="i18n-en">days</span>
+                  </span>
+                </div>
+                <div class="trial-banner__right" id="trialNote"></div>
+              </div>
+              <ul class="onb-list">
+                <li><span data-icon="users"></span><span class="i18n-zh">免费内测：两个人各装一份，都不用付钱</span><span class="i18n-en">Free test build: install it on both computers, no payment</span></li>
+                <li><span data-icon="heart"></span><span class="i18n-zh">戳一戳、比心、抱抱、晚安、击掌、牵手、亲亲</span><span class="i18n-en">Poke, heart, hug, goodnight, high-five, hold hands, kiss</span></li>
+                <li><span data-icon="chat"></span><span class="i18n-zh">文字传话 + 60 秒语音</span><span class="i18n-en">Text notes + 60-second voice</span></li>
+              </ul>
+              <div class="onb-hint">
+                <span data-icon="info"></span>
+                <span class="i18n-zh">现在是一个人装也完全能玩；想配对时右键它 →「我们俩」。不需要注册、不绑卡、不付费。</span>
+                <span class="i18n-en">It works fine on your own; pair any time from the right-click menu. No sign-up, no card, no payment.</span>
+              </div>
+            </section>
+
+            <!-- 3 / 玩法 -->
+            <section class="onb-slide hidden" data-step="2">
+              <div class="eyebrow">PLAY</div>
+              <h1 class="onb-title">
+                <span class="i18n-zh">三件事就够玩了</span>
+                <span class="i18n-en">Three things and you're in</span>
+              </h1>
+              <p class="onb-desc">
+                <span class="i18n-zh">它的全部玩法都在右键菜单里，不用记快捷键。</span>
+                <span class="i18n-en">Everything lives in the right-click menu. Nothing to memorize.</span>
+              </p>
+              <div class="onb-tips">
+                <div class="onb-tip">
+                  <div class="onb-tip__num">1</div>
+                  <div>
+                    <div class="onb-tip__title">
+                      <span class="i18n-zh">点它、摸它、甩它</span>
+                      <span class="i18n-en">Click it, pet it, fling it</span>
+                    </div>
+                    <div class="onb-tip__desc">
+                      <span class="i18n-zh">每种操作都有不同表情——这是它最好玩的地方</span>
+                      <span class="i18n-en">Each one gets a different expression — the best part</span>
+                    </div>
+                  </div>
+                  <span data-icon="heart"></span>
+                </div>
+                <div class="onb-tip">
+                  <div class="onb-tip__num">2</div>
+                  <div>
+                    <div class="onb-tip__title">
+                      <span class="i18n-zh">右键 → 和 TA 互动</span>
+                      <span class="i18n-en">Right-click → Play with them</span>
+                    </div>
+                    <div class="onb-tip__desc">
+                      <span class="i18n-zh">戳一下 / 比心 / 抱抱 / 晚安，TA 桌面上会立刻有反应</span>
+                      <span class="i18n-en">Poke / heart / hug / goodnight — their cube reacts instantly</span>
+                    </div>
+                  </div>
+                  <span data-icon="users"></span>
+                </div>
+                <div class="onb-tip">
+                  <div class="onb-tip__num">3</div>
+                  <div>
+                    <div class="onb-tip__title">
+                      <span class="i18n-zh">打开「我们俩」传句话</span>
+                      <span class="i18n-en">Open “Us two” and leave a note</span>
+                    </div>
+                    <div class="onb-tip__desc">
+                      <span class="i18n-zh">文字和语音都会从它头顶冒出来，还能每天一起打卡</span>
+                      <span class="i18n-en">Notes and voice pop out of its head, plus a daily check-in together</span>
+                    </div>
+                  </div>
+                  <span data-icon="chat"></span>
+                </div>
+              </div>
+              <div class="onb-shortcut" id="shortcutTip"></div>
+            </section>
+          </div>
+
+          <footer class="onb-foot">
+            <button class="btn btn--link" type="button" id="skipBtn">跳过引导</button>
+            <div class="onb-foot__spacer"></div>
+            <button class="btn" type="button" id="backBtn">上一步</button>
+            <button class="btn btn--primary" type="button" id="nextBtn">继续</button>
+          </footer>
+        </main>
+      </div>
+    </div>
+
+    <script src="../ui/mock.js"></script>
+    <script src="../../shared/i18n-dict.js"></script>
+    <script src="../../shared/i18n.js"></script>
+    <script src="../../shared/offer-config.js"></script>
+    <script src="../../shared/pricing.js"></script>
+    <script src="../ui/ui.js"></script>
+    <script src="onboarding.js"></script>
+  </body>
+</html>

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../src/renderer/pet/pet.css" />
+    <link rel="stylesheet" href="../src/renderer/pet/pet-v2.css" />
+    <style>
+      * { box-sizing: border-box; }
+      html, body { margin: 0; width: 630px; height: 500px; overflow: hidden; }
+      body {
+        background:
+          radial-gradient(420px 300px at 78% 18%, rgba(255,140,90,.30), transparent 65%),
+          radial-gradient(380px 320px at 14% 92%, rgba(240,112,138,.22), transparent 65%),
+          linear-gradient(150deg, #241a22 0%, #14161f 55%, #0c0e14 100%);
+        font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+        color: #f3eef2;
+      }
+      .wrap { position: absolute; inset: 0; padding: 34px 34px 30px; display: flex; flex-direction: column; }
+      .kicker { font-size: 12px; letter-spacing: .22em; color: #ff8a50; font-weight: 700; }
+      h1 { margin: 8px 0 6px; font-size: 40px; line-height: 1.1; letter-spacing: -.02em; }
+      p { margin: 0; color: #b9b2bd; font-size: 15px; line-height: 1.55; max-width: 300px; }
+      .tags { margin-top: auto; display: flex; gap: 8px; font-size: 12px; color: #8f8798; }
+      .tag { border: 1px solid #343040; border-radius: 999px; padding: 4px 10px; }
+      .art { position: absolute; right: 58px; bottom: 40px; }
+      .art .pet { transform: scale(1.12); transform-origin: 50% 100%; cursor: default; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="kicker">WINDOWS DESKTOP PET</div>
+      <h1>Cube.<br />But alive.</h1>
+      <p>A tiny companion that wanders your desktop, napping, sulking, and reacting to every poke.</p>
+      <div class="tags"><span class="tag">Free beta</span><span class="tag">Windows 10/11</span><span class="tag">42 expressions</span></div>
+    </div>
+    <div class="art" id="host"></div>
+    <script src="../src/shared/expressions.js"></script>
+    <script src="../src/shared/pet-dom.js"></script>
+    <script>
+      const PAL = { body1: '#ff8a50', body2: '#ff5a1f', body3: '#e8440c', eye: '#2a1610', pupil: '#120805', blush: '#ffb199', rim: '#ffd2bd', glow: 'rgba(255,110,50,.45)' };
+      const pet = window.CubbitPetDom.build(PAL, {});
+      const e = window.CUBBIT_EXPR.EXPRESSIONS.happy;
+      for (const k of ['eyes', 'mouth', 'body', 'fx']) if (e[k]) pet.classList.add(k + '--' + e[k]);
+      document.getElementById('host').appendChild(pet);
+    </script>
+  </body>
+</html>

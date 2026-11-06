@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>方块仔 情侣模式</title>
+    <link rel="stylesheet" href="../ui/ui.css" />
+    <link rel="stylesheet" href="couple.css" />
+  </head>
+  <body>
+    <div class="app">
+      <div id="titlebar-host"></div>
+
+      <div class="couple-shell">
+        <!-- 服务不可用 / 提示条 -->
+        <div class="couple-notice" id="coupleNotice"></div>
+
+        <!-- 实时联机：配对 / 互动 / 传话 / 一起专注（couple-rt.js） -->
+        <section class="card couple-rt" id="coupleRt" aria-label="实时情侣联机"></section>
+
+        <!-- 未配对：双栏邀请 -->
+        <section class="couple-view" id="viewUnpaired">
+          <header class="unpair-hero">
+            <div class="eyebrow">CUBBIT TOGETHER</div>
+            <h1 class="unpair-title">把方块仔，介绍给 TA</h1>
+            <p class="unpair-sub">
+              两台电脑配对之后，两只方块仔会互相串门：说情话、聊天、结婚，还会记得你们的纪念日。
+            </p>
+          </header>
+
+          <div class="invite-grid">
+            <div class="card invite-card" id="cardCreate">
+              <div class="invite-card__head">
+                <div class="ico-tile ico-tile--sm" id="createIconTile"></div>
+                <div>
+                  <div class="invite-card__title">我生成邀请码</div>
+                  <div class="invite-card__desc">让 TA 在另一台电脑上输入这串数字</div>
+                </div>
+              </div>
+              <div class="invite-card__body" id="createBody"></div>
+            </div>
+
+            <div class="card invite-card" id="cardJoin">
+              <div class="invite-card__head">
+                <div class="ico-tile ico-tile--sm ico-tile--teal" id="joinIconTile"></div>
+                <div>
+                  <div class="invite-card__title">我输入 TA 的邀请码</div>
+                  <div class="invite-card__desc">向 TA 要那 6 位数字，填进来</div>
+                </div>
+              </div>
+              <div class="invite-card__body" id="createJoin"></div>
+            </div>
+          </div>
+
+          <footer class="unpair-note">
+            <span class="dot dot--ok"></span>
+            <span>双方都需安装 方块仔 并登录 Pro · 一次配对最多绑定 2 个账号 · 可随时解绑</span>
+          </footer>
+
+          <div class="invite-tips">
+            <div class="invite-tip">
+              <span class="invite-tip__icon" data-icon="monitor"></span>
+              <div>
+                <div class="invite-tip__title">两台电脑，一次配对</div>
+                <div class="invite-tip__desc">一人生成邀请码，另一人输入即可，双方都会收到配对确认</div>
+              </div>
+            </div>
+            <div class="invite-tip">
+              <span class="invite-tip__icon" data-icon="shield"></span>
+              <div>
+                <div class="invite-tip__title">只有你们两个人</div>
+                <div class="invite-tip__desc">情侣空间独立于商店与授权，随时可以解除配对并清空记录</div>
+              </div>
+            </div>
+            <div class="invite-tip">
+              <span class="invite-tip__icon" data-icon="ring"></span>
+              <div>
+                <div class="invite-tip__title">从悄悄话到婚礼</div>
+                <div class="invite-tip__desc">互道早晚安、说情话、结婚，并一起数纪念日</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 已配对 -->
+        <section class="couple-view hidden" id="viewPaired">
+          <header class="partner-bar" id="partnerBar"></header>
+
+          <div class="couple-main">
+            <section class="chat-col card">
+              <div class="chat-head" id="chatHead"></div>
+              <div class="chat-list scroll" id="chatList"></div>
+              <div class="chat-quick" id="chatQuick"></div>
+              <div class="chat-composer" id="chatComposer"></div>
+            </section>
+
+            <aside class="side-col" id="sideCol"></aside>
+          </div>
+        </section>
+
+        <!-- 未解锁 Pro -->
+        <section class="couple-view hidden" id="viewLocked"></section>
+      </div>
+    </div>
+
+    <script src="../ui/mock.js"></script>
+    <script src="../../shared/i18n-dict.js"></script>
+    <script src="../../shared/i18n.js"></script>
+    <script src="../../shared/offer-config.js"></script>
+    <script src="../../shared/pricing.js"></script>
+    <script src="../../shared/lite-config.js"></script>
+    <script src="../vendor/qrcode.js"></script>
+    <script src="../ui/ui.js"></script>
+    <script src="pair-qr.js"></script>
+    <script src="couple.js"></script>
+    <script src="couple-rt.js"></script>
+  </body>
+</html>

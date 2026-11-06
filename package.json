@@ -1,0 +1,90 @@
+﻿{
+    "name":  "cubbit",
+    "productName":  "Cubbit",
+    "version":  "2.6.3-soft",
+    "description":  "Cubbit — a tiny cube on both your desktops. Poke it, your partner feels it. (open-source soft-launch snapshot)",
+    "main":  "src/main/main.js",
+    "author":  {
+                   "name":  "Cubbit Studio",
+                   "email":  "support@cubbit.app"
+               },
+    "license":  "MIT",
+    "private":  false,
+    "scripts":  {
+                    "start":  "electron .",
+                    "dist":  "electron-builder --win",
+                    "dist:portable":  "electron-builder --win portable",
+                    "lint":  "eslint . --ext .js"
+                },
+    "devDependencies":  {
+                            "electron":  "45.2.1",
+                            "electron-builder":  "^26.18.0",
+                            "eslint":  "^9.9.0",
+                            "javascript-obfuscator":  "^5.9.1"
+                        },
+    "build":  {
+                  "publish":  [
+                                  {
+                                      "provider":  "generic",
+                                      "url":  "https://api.cubbit.app/updates"
+                                  }
+                              ],
+                  "appId":  "com.cubbit.desktop",
+                  "productName":  "Cubbit",
+                  "copyright":  "Copyright © 2026 Cubbit Studio",
+                  "asar":  true,
+                  "electronDist":  "node_modules/electron/dist",
+                  "directories":  {
+                                      "output":  "dist",
+                                      "buildResources":  "build"
+                                  },
+                  "files":  [
+                                "src/**/*",
+                                "resources/**/*",
+                                "package.json"
+                            ],
+                  "win":  {
+                              "icon":  "build/icon.ico",
+                              "signAndEditExecutable":  true,
+                              "target":  [
+                                             {
+                                                 "target":  "nsis",
+                                                 "arch":  [
+                                                              "x64"
+                                                          ]
+                                             },
+                                             {
+                                                 "target":  "portable",
+                                                 "arch":  [
+                                                              "x64"
+                                                          ]
+                                             }
+                                         ],
+                              "artifactName":  "Cubbit-Setup-${version}-${arch}.${ext}"
+                          },
+                  "nsis":  {
+                               "unicode":  true,
+                               "oneClick":  true,
+                               "perMachine":  false,
+                               "allowElevation":  false,
+                               "allowToChangeInstallationDirectory":  false,
+                               "createDesktopShortcut":  true,
+                               "createStartMenuShortcut":  true,
+                               "shortcutName":  "方块仔",
+                               "deleteAppDataOnUninstall":  false,
+                               "artifactName":  "Cubbit-Setup-${version}.${ext}",
+                               "installerIcon":  "build/icon.ico",
+                               "uninstallerIcon":  "build/icon.ico"
+                           },
+                  "portable":  {
+                                   "artifactName":  "Cubbit-Portable-${version}.${ext}"
+                               }
+              },
+    "allowScripts":  {
+                         "electron@45.2.1":  true
+                     },
+    "dependencies":  {
+                         "electron-updater":  "^6.8.11",
+                         "pubnub":  "^13.1.3"
+                     }
+}

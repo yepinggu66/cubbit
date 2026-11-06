@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../src/renderer/pet/pet.css" />
+    <link rel="stylesheet" href="../src/renderer/pet/pet-v2.css" />
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 28px;
+        background: radial-gradient(circle at 20% 0%, #2a1c22 0%, #0c0e14 60%);
+        font-family: "Microsoft YaHei", system-ui, sans-serif;
+        color: #f3eef2;
+      }
+      .grid { display: grid; grid-template-columns: repeat(4, 190px); gap: 26px 30px; justify-content: start; }
+      .cell { width: 190px; text-align: center; }
+      .stage { width: 190px; height: 196px; display: grid; place-items: center; }
+      .label { margin-top: 6px; font-size: 13px; color: #b9b2bd; letter-spacing: .04em; }
+      .pet { cursor: default; }
+    </style>
+  </head>
+  <body>
+    <div class="grid" id="grid"></div>
+    <script src="../src/shared/expressions.js"></script>
+    <script src="../src/shared/pet-dom.js"></script>
+    <script>
+      const PALETTE = {
+        body1: '#ff8a50', body2: '#ff5a1f', body3: '#e8440c',
+        eye: '#2a1610', pupil: '#120805', blush: '#ffb199', rim: '#ffd2bd', glow: 'rgba(255,110,50,.45)',
+      };
+      const ITEMS = [
+        ['happy', '开心'],
+        ['love', '爱你'],
+        ['shy', '害羞'],
+        ['kiss', '亲亲'],
+        ['joy', '大笑'],
+        ['wink', '眨眼'],
+        ['proud', '得意'],
+        ['playful', '调皮'],
+        ['surprised', '惊讶'],
+        ['confused', '困惑'],
+        ['curious', '好奇'],
+        ['content', '满足'],
+      ];
+      const grid = document.getElementById('grid');
+      for (const [name, label] of ITEMS) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        const stage = document.createElement('div');
+        stage.className = 'stage';
+        const pet = window.CubbitPetDom.build(PALETTE, {});
+        const expr = (window.CUBBIT_EXPR.EXPRESSIONS || {})[name] || {};
+        for (const [k, prefix] of [['eyes', 'eyes--'], ['mouth', 'mouth--'], ['body', 'body--'], ['fx', 'fx--']]) {
+          if (expr[k]) pet.classList.add(prefix + expr[k]);
+        }
+        stage.appendChild(pet);
+        const cap = document.createElement('div');
+        cap.className = 'label';
+        cap.textContent = label;
+        cell.append(stage, cap);
+        grid.appendChild(cell);
+      }
+      // 截图时等字体与布局稳定
+      document.fonts && document.fonts.ready.then(() => { window.__ready = true; });
+    </script>
+  </body>
+</html>

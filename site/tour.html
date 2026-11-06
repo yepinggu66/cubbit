@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      * { box-sizing: border-box; }
+      html, body { margin: 0; width: 1280px; height: 720px; overflow: hidden; background: #0b0d13;
+        font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; color: #f4eff3; }
+      .stage { position: absolute; inset: 0;
+        background: radial-gradient(760px 460px at 50% 8%, rgba(255,140,90,.16), transparent 66%),
+                    radial-gradient(680px 420px at 8% 96%, rgba(240,112,138,.14), transparent 64%),
+                    linear-gradient(160deg, #171a26 0%, #0e1017 55%, #0a0b11 100%); }
+      .grain { position: absolute; inset: 0; opacity: .3; background-image: radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px); background-size: 3px 3px; }
+      .brand { position: absolute; left: 40px; top: 30px; display: flex; align-items: center; gap: 10px; z-index: 20; opacity: .92; }
+      .brand .cube { width: 26px; height: 26px; border-radius: 9px; background: linear-gradient(155deg,#ffd0a8,#f08a5d 56%,#b4532f); position: relative; box-shadow: inset 0 2px 0 rgba(255,255,255,.5); }
+      .brand .cube::before, .brand .cube::after { content: ""; position: absolute; top: 9px; width: 4px; height: 5px; border-radius: 50%; background: #2a160e; }
+      .brand .cube::before { left: 7px; } .brand .cube::after { right: 7px; }
+      .brand b { font-size: 15px; letter-spacing: .04em; }
+
+      .scene { position: absolute; inset: 0; display: grid; place-items: center; opacity: 0; }
+      .scene .inner { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+      .kicker { font-size: 13px; letter-spacing: .3em; color: #ff8a50; font-weight: 700; }
+      h1 { font-size: 54px; margin: 0; letter-spacing: -.01em; text-align: center; }
+      h2 { font-size: 40px; margin: 0; text-align: center; }
+      .sub { color: #b9b2bd; font-size: 19px; text-align: center; max-width: 760px; line-height: 1.7; }
+      .shot { width: 860px; border-radius: 18px; border: 1px solid #262b38; display: block; }
+      .wide { width: 980px; }
+      .hero { width: 300px; filter: drop-shadow(0 24px 50px rgba(255,110,50,.3)); }
+
+      /* 手机框 */
+      .phone { width: 236px; height: 480px; border-radius: 30px; border: 7px solid #2a2f3d; overflow: hidden; background: #0c0e14; box-shadow: 0 24px 60px rgba(0,0,0,.6); }
+      .phone img { width: 100%; display: block; }
+      .row2 { display: flex; align-items: center; gap: 44px; }
+
+      /* 聊天气泡 */
+      .bubble { max-width: 520px; padding: 14px 20px; border-radius: 18px; font-size: 19px; line-height: 1.6; opacity: 0; transform: translateY(10px); }
+      .bubble.me { align-self: flex-end; background: linear-gradient(135deg,#ff9a6b,#f0708a); color: #fff; border-bottom-right-radius: 6px; }
+      .bubble.they { align-self: flex-start; background: #232838; border-bottom-left-radius: 6px; }
+      .chatcol { width: 620px; display: flex; flex-direction: column; gap: 12px; }
+
+      /* 波形 */
+      .wave { display: flex; align-items: flex-end; gap: 4px; height: 34px; opacity: 0; }
+      .wave i { display: block; width: 5px; background: #ff8a50; border-radius: 3px; }
+
+      .progress { position: absolute; left: 0; bottom: 0; height: 3px; background: #ff8a50; width: 0; z-index: 30; }
+      .cta { font-size: 15px; color: #8d8794; }
+    </style>
+  </head>
+  <body>
+    <div class="stage"></div><div class="grain"></div>
+    <div class="brand"><div class="cube"></div><b>方块仔 Cubbit</b></div>
+
+    <div class="scene" id="s0"><div class="inner">
+      <div class="kicker">WINDOWS · ANDROID</div>
+      <img class="hero" src="hero.png" />
+      <h1>方块仔</h1>
+      <div class="sub">一只住在你桌面上的小方块 · 也会跳到你手机上</div>
+    </div></div>
+
+    <div class="scene" id="s1"><div class="inner">
+      <div class="kicker">EXPRESSIONS</div>
+      <h2>42 种表情，全写在脸上</h2>
+      <img class="shot" src="expr-grid.png" />
+    </div></div>
+
+    <div class="scene" id="s2"><div class="inner">
+      <div class="kicker">SKINS</div>
+      <h2>20+ 套皮肤，换个颜色换种性格</h2>
+      <img class="shot wide" src="skins.png" />
+    </div></div>
+
+    <div class="scene" id="s3"><div class="inner">
+      <div class="kicker">LIVES ON YOUR DESKTOP</div>
+      <h2>它会自己溜达、犯困、贴边发呆</h2>
+      <img class="shot wide" src="shot-desktop.png" />
+    </div></div>
+
+    <div class="scene" id="s4"><div class="inner">
+      <div class="kicker">TOGETHER</div>
+      <div class="row2">
+        <div class="phone"><img src="tour-assets/mobile-gestures.png" /></div>
+        <div style="max-width:520px">
+          <h2 style="text-align:left">你戳一下，TA 那边会跳一下</h2>
+          <div class="sub" style="text-align:left;margin-top:14px">7 种手势 · 传话 · 60 秒语音 · 每天一起打卡<br/>两台电脑、一台手机，同一只方块仔</div>
+        </div>
+      </div>
+    </div></div>
+
+    <div class="scene" id="s5"><div class="inner">
+      <div class="kicker">TALKS BACK</div>
+      <h2 style="margin-bottom:8px">内置 AI，会说话，声音像真人</h2>
+      <div class="chatcol">
+        <div class="bubble me" id="b1">今天好累啊</div>
+        <div class="bubble they" id="b2">唔…那要好好休息呀，我陪你待着。</div>
+        <div class="wave" id="w1"></div>
+      </div>
+      <div class="sub">DeepSeek 大模型 + 微软神经语音（4 个音色，男女可选）· 每天 5 句免费</div>
+    </div></div>
+
+    <div class="scene" id="s6"><div class="inner">
+      <div class="kicker">ON YOUR PHONE</div>
+      <div class="row2">
+        <div class="phone"><img src="tour-assets/mobile-chat.png" /></div>
+        <div style="max-width:520px">
+          <h2 style="text-align:left">手机上也能浮在桌面</h2>
+          <div class="sub" style="text-align:left;margin-top:14px">戳一下弹出 6 个快捷入口：手电筒 / 相机 / 微信 / 支付宝 / 设置 / <b style="color:#ffb37a">一键导航</b><br/>复制一个地址，戳它就能直接开始导航</div>
+        </div>
+      </div>
+    </div></div>
+
+    <div class="scene" id="s7"><div class="inner">
+      <div class="kicker">NEW · TRY-ON</div>
+      <div class="row2">
+        <div class="phone"><img src="tour-assets/tryon.png" /></div>
+        <div style="max-width:520px">
+          <h2 style="text-align:left">给 TA 挑衣服，先看穿上的样子</h2>
+          <div class="sub" style="text-align:left;margin-top:14px">拍一张人像 + 一张衣服，20 秒生成上身预览<br/>已收录对方的尺码与偏好，买之前先确认</div>
+        </div>
+      </div>
+    </div></div>
+
+    <div class="scene" id="s8"><div class="inner">
+      <h1>免费内测中</h1>
+      <div class="sub">Windows 10/11 · 安卓<br/>不用注册 · 不绑卡 · 内测结束前全功能可用</div>
+      <div class="cta">pingguye.cn/cubbit</div>
+    </div></div>
+
+    <div class="progress" id="bar"></div>
+
+    <script>
+      const DUR = 74;
+      window.DURATION = DUR;
+      const SCENES = [
+        { el: 's0', t0: 0.2, t1: 6.0 },
+        { el: 's1', t0: 6.0, t1: 14.0 },
+        { el: 's2', t0: 14.0, t1: 22.0 },
+        { el: 's3', t0: 22.0, t1: 30.0 },
+        { el: 's4', t0: 30.0, t1: 39.0 },
+        { el: 's5', t0: 39.0, t1: 48.0 },
+        { el: 's6', t0: 48.0, t1: 57.0 },
+        { el: 's7', t0: 57.0, t1: 66.0 },
+        { el: 's8', t0: 66.0, t1: 74.0 },
+      ];
+      const clamp01 = (x) => Math.max(0, Math.min(1, x));
+      const ease = (x) => x * x * (3 - 2 * x);
+
+      // 波形条
+      const wave = document.getElementById('w1');
+      for (let i = 0; i < 22; i += 1) wave.appendChild(document.createElement('i'));
+
+      window.renderAt = function (t) {
+        for (const s of SCENES) {
+          const el = document.getElementById(s.el);
+          const a = clamp01((t - s.t0) / 0.7);
+          const b = clamp01((s.t1 - t) / 0.7);
+          const k = Math.min(a, b);
+          el.style.opacity = k;
+          // 图片缓慢推近
+          const img = el.querySelector('img.shot, img.hero');
+          if (img) {
+            const p = clamp01((t - s.t0) / (s.t1 - s.t0));
+            img.style.transform = 'scale(' + (1 + 0.05 * ease(p)) + ')';
+            img.style.transition = 'none';
+          }
+          el.style.transform = 'translateY(' + ((1 - a) * 12).toFixed(1) + 'px)';
+        }
+
+        // AI 场景：气泡逐条出现 + 波形跳动
+        const b1 = document.getElementById('b1'), b2 = document.getElementById('b2');
+        const p1 = clamp01((t - 40.0) / 0.5);
+        const p2 = clamp01((t - 41.6) / 0.5);
+        b1.style.opacity = p1; b1.style.transform = 'translateY(' + ((1 - p1) * 12) + 'px)';
+        b2.style.opacity = p2; b2.style.transform = 'translateY(' + ((1 - p2) * 12) + 'px)';
+        const wOn = t > 41.4 && t < 46.6;
+        wave.style.opacity = wOn ? 1 : 0;
+        if (wOn) {
+          const bars = wave.children;
+          for (let i = 0; i < bars.length; i += 1) {
+            const h = 8 + Math.abs(Math.sin(t * 6 + i * 0.7)) * 22;
+            bars[i].style.height = h.toFixed(1) + 'px';
+          }
+        }
+
+        document.getElementById('bar').style.width = (clamp01(t / DUR) * 100) + '%';
+        document.querySelector('.stage').style.opacity = Math.min(clamp01(t / 0.4), clamp01((DUR - t) / 0.4));
+      };
+      window.renderAt(0);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>方块仔 小农场</title>
+    <link rel="stylesheet" href="../ui/ui.css" />
+    <link rel="stylesheet" href="farm.css" />
+  </head>
+  <body>
+    <div class="app">
+      <div id="titlebar-host"></div>
+      <div class="farm-shell">
+        <section class="farm-stage">
+          <div class="farm-hud">
+            <span class="farm-chip" title="金币">🪙 <b id="hudCoins">0</b></span>
+            <span class="farm-chip" title="农场点数">💎 <b id="hudPoints">0</b></span>
+            <span class="farm-chip" title="皮肤碎片">🧩 <b id="hudShards">0</b></span>
+            <span class="farm-chip farm-chip--work hidden" id="hudWork">⛏️ 方块仔在农场打工中</span>
+          </div>
+          <div class="farm-tools" id="tools"></div>
+          <canvas id="farmCanvas" width="720" height="560"></canvas>
+          <div class="farm-tip" id="tip"></div>
+        </section>
+        <aside class="farm-side">
+          <nav class="farm-tabs" id="tabs"></nav>
+          <div class="farm-panel scroll" id="panel"></div>
+        </aside>
+      </div>
+    </div>
+    <script src="../ui/mock.js"></script>
+    <script src="../../shared/pet-dom.js"></script>
+    <script src="../../shared/expressions.js"></script>
+    <script src="../../shared/i18n-dict.js"></script>
+    <script src="../../shared/i18n.js"></script>
+    <script src="../../shared/offer-config.js"></script>
+    <script src="../../shared/pricing.js"></script>
+    <script src="../ui/ui.js"></script>
+    <script src="farm.js"></script>
+  </body>
+</html>

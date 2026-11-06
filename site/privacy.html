@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>隐私政策 · 方块仔 Cubbit</title>
+<style>
+  body{margin:0;background:#0c0e14;color:#e9e3e8;font:15px/1.8 "PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+  .wrap{max-width:760px;margin:0 auto;padding:48px 22px 80px}
+  h1{font-size:26px;margin:0 0 6px}
+  .meta{color:#8d8794;font-size:13px;margin-bottom:28px}
+  h2{font-size:17px;margin:30px 0 8px;color:#ffb37a}
+  p,li{color:#c9c2cd}
+  table{border-collapse:collapse;width:100%;margin:10px 0}
+  th,td{border:1px solid #2a2f3d;padding:8px 10px;font-size:13.5px;text-align:left;vertical-align:top}
+  th{background:#161a24;color:#a9a2b0}
+  a{color:#ffb37a}
+  .note{background:#1a1d27;border:1px solid #2a2f3d;border-radius:12px;padding:14px 16px;margin:16px 0;font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>隐私政策</h1>
+  <div class="meta">方块仔 / Cubbit ｜ 版本 1.0 ｜ 生效日期 2026-11-04</div>
+
+  <div class="note">
+    一句话版本：我们只收集让方块仔能工作所必需的数据（设备编号、配对关系、你主动发的消息与语音、你主动输入的 AI 对话），
+    不读取你的通讯录、短信、相册、位置；你随时可以导出或删除全部数据。
+  </div>
+
+  <h2>一、我们收集什么</h2>
+  <table>
+    <tr><th>数据</th><th>用途</th><th>保存位置 / 期限</th></tr>
+    <tr><td>设备编号（安装时随机生成）</td><td>识别同一个安装，用于每日 AI 免费额度</td><td>本机 + 服务器，卸载不自动删除</td></tr>
+    <tr><td>匿名账号 ID</td><td>让两台设备能配上对</td><td>服务器，注销时删除</td></tr>
+    <tr><td>配对关系（情侣 ID、对方 UID）</td><td>消息与互动只在你们两人之间转发</td><td>服务器，解除配对即失效</td></tr>
+    <tr><td>文字悄悄话、语音留言（≤60 秒）</td><td>对方离线时暂存，上线后补发</td><td>服务器 30 天 / 每对最多 300 条</td></tr>
+    <tr><td>AI 对话文本</td><td>转给大模型生成回复</td><td>服务器不落盘；本机保存最近 12 轮</td></tr>
+    <tr><td>语音播报文本</td><td>转成语音（TTS）</td><td>服务器缓存音频片段，7 天</td></tr>
+    <tr><td>崩溃与运行日志</td><td>排查问题</td><td><b>只在本机</b>，需你手动导出才会发给我们</td></tr>
+  </table>
+
+  <h2>二、我们不收集什么</h2>
+  <ul>
+    <li>通讯录、通话记录、短信</li>
+    <li>相册与文件（手机端“整理”类功能会单独向你申请权限，且只在你选择的目录内工作）</li>
+    <li>精确位置（导航功能是把地址交给高德/百度，由它们处理）</li>
+    <li>剪贴板内容（只在你在方块仔界面里主动点“导航”时读取一次）</li>
+  </ul>
+
+  <h2>三、第三方服务</h2>
+  <table>
+    <tr><th>服务</th><th>用途</th><th>会收到什么</th></tr>
+    <tr><td>DeepSeek（深度求索）</td><td>AI 对话</td><td>你输入的那句话 + 最近几轮上下文</td></tr>
+    <tr><td>Microsoft Edge 语音合成</td><td>把文字读出来</td><td>要朗读的那一句文本</td></tr>
+    <tr><td>PubNub</td><td>实时互动（戳一下、比心）</td><td>互动类型与双方 UID</td></tr>
+    <tr><td>腾讯云</td><td>服务器托管</td><td>不接触具体内容，仅提供机器</td></tr>
+  </table>
+
+  <h2>四、你的权利</h2>
+  <ul>
+    <li><b>导出</b>：托盘右键「导出内测数据」，可拿到本机运行记录；</li>
+    <li><b>删除</b>：手机端「重新配对 → 注销账号」或发邮件给我们，会删除账号、配对关系、消息与语音；</li>
+    <li><b>撤回</b>：关闭语音播报 / 关闭 AI / 移除悬浮窗权限，随时生效；</li>
+    <li><b>投诉</b>：support@cubbit.app，7 个工作日内回复。</li>
+  </ul>
+
+  <h2>五、未成年人</h2>
+  <p>本软件不面向 14 周岁以下未成年人。若你是未成年人，请在监护人同意后使用。</p>
+
+  <h2>六、变更</h2>
+  <p>本政策更新会在本页发布并标注版本号；重大变更会在软件内提示。</p>
+
+  <p style="margin-top:34px"><a href="/cubbit/eula">用户协议（EULA）</a> ｜ <a href="/cubbit/">返回首页</a></p>
+</div>
+</body>
+</html>
