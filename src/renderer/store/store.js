@@ -1465,7 +1465,8 @@
       await onOrderPaid(order);
       return;
     }
-    if (order.status === 'cancelled') {
+    // 测试结账的取消页不会把仍可支付的会话写成终态。即便账本里暂时是 cancelled，也继续向 Stripe 核对。
+    if (order.status === 'cancelled' && !(order.testMode || (S.order && S.order.testMode))) {
       failPay('订单已取消');
       return;
     }

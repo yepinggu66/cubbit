@@ -263,6 +263,8 @@ function registerIpc(rt) {
     const license = rt.license.getStatus();
     if (rt.stripeTest) {
       const gate = rt.stripeTest.gate();
+      // blockCheckout 只在 CUBBIT_STRIPE_TEST=1 且密钥不合格时为真。
+      // 开关关闭时，即便环境里留着 sk_live_，也落到下面的许可服务下单。
       if (gate.blockCheckout) return { ok: false, code: gate.code, message: gate.message };
       if (gate.enabled) {
         const testOrder = await rt.stripeTest.createCheckout({

@@ -11,7 +11,7 @@
 | 变量 | 作用 |
 | --- | --- |
 | `CUBBIT_STRIPE_TEST` | 必须是 `1` 才启用测试结账 |
-| `STRIPE_SECRET_KEY` | 必须是 `sk_test_...`。出现 `sk_live_` 时结账直接拒绝 |
+| `STRIPE_SECRET_KEY` | 测试开关打开时必须是 `sk_test_...`。此时若是 `sk_live_`，这次测试结账会拒绝，不会拿 live 密钥去下单。开关关闭时，残留的 live 密钥会被忽略，商店仍走原来的许可服务 |
 | `STRIPE_PUBLISHABLE_KEY` | 可选，`pk_test_...`。托管 Checkout 不需要把它打进客户端 |
 | `STRIPE_WEBHOOK_SECRET` | 可选，`whsec_...`。不配置时忽略未签名 webhook，订单仍靠向 Stripe 查询会话来入账 |
 | `CUBBIT_STRIPE_RETURN_PORT` | 可选，本机回跳端口，默认 `8788`，只监听 `127.0.0.1` |
@@ -104,4 +104,4 @@ stripe listen --forward-to http://127.0.0.1:8788/stripe-test/webhook
 - 确认 Google Pay 在测试结账页上出现；若暂时不出现，用测试卡付同一张 Checkout，证明订单链路，再回头查 Dashboard 开关和浏览器条件。
 - 决定正式价用哪一套（`catalog.price` 人民币、`catalog.priceUsd`、`offer-config` 地区价目前并不相同），再单独开正式模式。
 - 正式激活码仍要许可服务用私钥签发。这次只记录测试订单，不解锁 Pro。
-- 明确说可以上线之后，才允许 `sk_live_` / `pk_live_`，并另做正式 webhook 与授权写入。在那之前，代码会拒绝 live 密钥。
+- 明确说可以上线之后，才允许 `sk_live_` / `pk_live_`，并另做正式 webhook 与授权写入。在那之前，只要测试开关是开的，代码就会拒绝 live 密钥。开关关闭时不会用残留的 live 密钥挡住原来的结账。

@@ -30,7 +30,7 @@ test('test checkout stays off unless the flag and an sk_test key are both set', 
   assert.equal(on.blockCheckout, false);
 });
 
-test('live keys are rejected and block checkout', () => {
+test('live keys are rejected only when test mode is explicitly on', () => {
   const secret = stripe.classifyStripeEnv(env({ CUBBIT_STRIPE_TEST: '1', STRIPE_SECRET_KEY: 'sk_live_nope' }));
   assert.equal(secret.enabled, false);
   assert.equal(secret.blockCheckout, true);
@@ -42,6 +42,51 @@ test('live keys are rejected and block checkout', () => {
   }));
   assert.equal(pub.code, 'LIVE_KEY_REJECTED');
   assert.equal(pub.blockCheckout, true);
+});
+
+test('leftover live keys are ignored when test mode is off', () => {
+  for (const leftover of [
+    { STRIPE_SECRET_KEY: 'sk_live_leftover' },
+    { STRIPE_PUBLISHABLE_KEY: 'pk_live_leftover' },
+    { STRIPE_SECRET_KEY: 'sk_live_leftover', STRIPE_PUBLISHABLE_KEY: 'pk_live_leftover' },
+  ]) {
+    const gate = stripe.classifyStripeEnv(env(leftover));
+    assert.equal(gate.enabled, false);
+    assert.equal(gate.blockCheckout, false);
+    assert.equal(gate.code, 'TEST_MODE_OFF');
+    assert.equal(gate.secret, '');
+    assert.equal(gate.publishable, '');
+  }
+});
+
+test('create and sync do not send a live key to Stripe', async () => {
+  let calls = 0;
+  const fetchImpl = async () => {
+    calls += 1;
+    throw new Error('should not call Stripe');
+  };
+  const blocked = new stripe.StripeTestCheckout({
+    env: env({ CUBBIT_STRIPE_TEST: '1', STRIPE_SECRET_KEY: 'sk_live_nope' }),
+    orderFile: path.join(os.tmpdir(), `cubbit-live-${process.pid}.json`),
+    now: () => LAUNCH,
+    fetchImpl,
+  });
+  const created = await blocked.createCheckout({ planId: 'base' });
+  assert.equal(created.ok, false);
+  assert.equal(created.code, 'LIVE_KEY_REJECTED');
+  assert.equal(calls, 0);
+
+  const dormant = new stripe.StripeTestCheckout({
+    env: env({ STRIPE_SECRET_KEY: 'sk_live_leftover' }),
+    orderFile: path.join(os.tmpdir(), `cubbit-dormant-${process.pid}.json`),
+    now: () => LAUNCH,
+    fetchImpl,
+  });
+  const off = await dormant.createCheckout({ planId: 'base' });
+  assert.equal(off.ok, false);
+  assert.equal(off.code, 'TEST_MODE_OFF');
+  assert.equal(dormant.gate().blockCheckout, false);
+  assert.equal(calls, 0);
 });
 
 test('a test flag without an sk_test key blocks checkout instead of falling through', () => {
@@ -332,6 +377,57 @@ test('localhost return page records a paid test session', async () => {
     assert.match(html, /pi_return/);
     assert.equal(checkout.getOrder(created.order.id).status, 'paid');
     assert.equal(checkout.getOrder(created.order.id).licenseKey, undefined);
+  } finally {
+    await checkout.stopReturnServer();
+  }
+});
+
+test('cancel url keeps an open Checkout session payable', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cubbit-stripe-'));
+  let paymentStatus = 'unpaid';
+  let sessionStatus = 'open';
+  const checkout = new stripe.StripeTestCheckout({
+    env: env({ CUBBIT_STRIPE_TEST: '1', STRIPE_SECRET_KEY: 'sk_test_abc' }),
+    orderFile: path.join(dir, 'orders.json'),
+    now: () => LAUNCH,
+    fetchImpl: async (url, options) => {
+      if (options && options.method === 'POST') return { ok: true, status: 200, json: async () => sessionBody() };
+      assert.match(url, /\/v1\/checkout\/sessions\/cs_test_123$/);
+      return {
+        ok: true,
+        status: 200,
+        json: async () => sessionBody({ payment_status: paymentStatus, status: sessionStatus, payment_intent: paymentStatus === 'paid' ? 'pi_after_cancel' : null }),
+      };
+    },
+  });
+  const started = await checkout.startReturnServer({ port: 0 });
+  assert.equal(started.ok, true);
+  try {
+    const created = await checkout.createCheckout({ planId: 'base' });
+    const cancelPage = await fetch(`${started.base}/stripe-test/cancel?order_id=${encodeURIComponent(created.order.id)}`);
+    const html = await cancelPage.text();
+    assert.equal(cancelPage.status, 200);
+    assert.match(html, /仍可支付/);
+    assert.equal(checkout.getOrder(created.order.id).status, 'pending');
+
+    paymentStatus = 'paid';
+    sessionStatus = 'complete';
+    const synced = await checkout.syncOrder(created.order.id);
+    assert.equal(synced.ok, true);
+    assert.equal(synced.order.status, 'paid');
+    assert.equal(synced.order.stripePaymentIntentId, 'pi_after_cancel');
+    assert.equal(checkout.getOrder(created.order.id).licenseKey, undefined);
+
+    checkout.getOrder(created.order.id).status = 'cancelled';
+    checkout.ledger.upsert(checkout.getOrder(created.order.id));
+    paymentStatus = 'unpaid';
+    sessionStatus = 'open';
+    const reopened = await checkout.syncOrder(created.order.id);
+    assert.equal(reopened.order.status, 'pending');
+    paymentStatus = 'paid';
+    sessionStatus = 'complete';
+    const paidAgain = await checkout.syncOrder(created.order.id);
+    assert.equal(paidAgain.order.status, 'paid');
   } finally {
     await checkout.stopReturnServer();
   }

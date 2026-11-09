@@ -31,9 +31,23 @@ function classifyStripeEnv(env) {
   const publishable = String(source.STRIPE_PUBLISHABLE_KEY || '').trim();
   const webhookSecret = String(source.STRIPE_WEBHOOK_SECRET || '').trim();
   const flagOn = String(source.CUBBIT_STRIPE_TEST || '').trim() === '1';
+
+  // 测试开关关闭时，环境里残留的 live / test 密钥都不介入商店。
+  // 原来的许可服务下单继续走，不能因为 sk_live_ 把整条结账挡住。
+  if (!flagOn) {
+    return {
+      enabled: false,
+      blockCheckout: false,
+      code: 'TEST_MODE_OFF',
+      secret: '',
+      publishable: '',
+      webhookSecret: '',
+      message: '',
+    };
+  }
+
   const liveSecret = secret.startsWith('sk_live_');
   const livePublishable = publishable.startsWith('pk_live_');
-
   if (liveSecret || livePublishable) {
     return {
       enabled: false,
@@ -104,6 +118,17 @@ function formatMinor(amount, currency) {
 
 function fail(code, message) {
   return { ok: false, code, message };
+}
+
+/** 真正要调用 Stripe 之前的最后一道闸：live 密钥不能被发出去。 */
+function liveCredentialError(env) {
+  const source = env || {};
+  const secret = String(source.STRIPE_SECRET_KEY || '').trim();
+  const publishable = String(source.STRIPE_PUBLISHABLE_KEY || '').trim();
+  if (secret.startsWith('sk_live_') || publishable.startsWith('pk_live_')) {
+    return fail('LIVE_KEY_REJECTED', '检测到 live 密钥。测试结账不会使用它，也不会发起真实扣款。');
+  }
+  return null;
 }
 
 function resolveSku(planId, now) {
@@ -442,6 +467,9 @@ class StripeTestCheckout {
       deviceId,
     });
 
+    const liveKey = liveCredentialError(this.env);
+    if (liveKey) return liveKey;
+
     let response;
     try {
       response = await this.fetchImpl(STRIPE_API, {
@@ -499,6 +527,8 @@ class StripeTestCheckout {
     if (!order) return fail('ORDER_NOT_FOUND', '订单不存在或已过期');
     const gate = this.gate();
     if (!gate.enabled || !order.stripeCheckoutSessionId) return { ok: true, order: publicOrder(order) };
+    const liveKey = liveCredentialError(this.env);
+    if (liveKey) return liveKey;
 
     let response;
     try {
@@ -532,7 +562,12 @@ class StripeTestCheckout {
       order.paidAt = Math.floor(this.now() / 1000);
       return;
     }
-    if (session.status === 'expired' && order.status !== 'paid') order.status = 'expired';
+    if (session.status === 'expired' && order.status !== 'paid') {
+      order.status = 'expired';
+      return;
+    }
+    // 用户打开过取消页，但 Stripe 会话仍可支付。本地不能停在 cancelled。
+    if (order.status === 'cancelled') order.status = 'pending';
   }
 
   handleWebhook(rawBody, header, nowMs) {
@@ -623,12 +658,24 @@ class StripeTestCheckout {
       return;
     }
     if (req.method === 'GET' && url.pathname === '/stripe-test/cancel') {
-      const order = this.ledger.get(url.searchParams.get('order_id') || '');
-      if (order && order.status === 'pending') {
-        order.status = 'cancelled';
-        this.ledger.upsert(order);
+      const orderId = url.searchParams.get('order_id') || '';
+      const existing = this.ledger.get(orderId);
+      if (!existing) {
+        writePage(res, '没有找到这张测试订单。', null);
+        return;
       }
-      writePage(res, order ? `订单 ${order.id} 已取消。测试模式没有扣款。` : '没有找到这张测试订单。', order);
+      // 取消页只是离开托管结账。会话在过期前仍可支付，不能记成终态取消。
+      const synced = await this.syncOrder(orderId);
+      const order = this.ledger.get(orderId) || existing;
+      if (synced.ok && order.status === 'paid') {
+        writePage(res, '这张测试订单已经支付，已入账。这是 Stripe 测试模式，没有真实扣款，也没有签发正式激活码。', order);
+        return;
+      }
+      if (synced.ok && order.status === 'expired') {
+        writePage(res, '这张 Stripe 结账会话已经过期，不能再支付。', order);
+        return;
+      }
+      writePage(res, '结账页已关闭。这张订单仍可支付，商店会继续等待。', order);
       return;
     }
     if (req.method === 'GET' && url.pathname === '/stripe-test/return') {
