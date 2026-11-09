@@ -31,7 +31,8 @@
     freeTier: null,
     skins: [],
     license: null,
-    server: { online: null, base: '', error: null },
+    server: { online: null, base: '', error: null, stripeTest: null },
+    stripeTest: null,
     selectedPlanId: null,
     coupon: null,
     couponBusy: false,
@@ -58,6 +59,7 @@
   ];
 
   const PAY_WAIT_LIMIT_MS = 5 * 60 * 1000;
+  const TEST_PAY_WAIT_LIMIT_MS = 30 * 60 * 1000;
   const POLL_INTERVAL_MS = 2000;
 
   // ============================================================== 三档售卖条
@@ -89,6 +91,7 @@
       if (Array.isArray(state.plans) && state.plans.length) S.plans = state.plans;
       if (Array.isArray(state.skins) && state.skins.length) S.skins = state.skins;
       if (Array.isArray(state.offers)) renderOffers(state.offers);
+      if (state.stripeTest) S.stripeTest = state.stripeTest;
       if (!S.selectedPlanId) pickDefaultPlan();
       renderTitlebarBadge();
       renderHead();
@@ -329,7 +332,7 @@
       'div',
       { class: 'checkout-bar__total' },
       el('span', { class: 'checkout-bar__total-label', text: '合计' }),
-      el('div', { class: 'checkout-bar__total-value' }, el('span', { class: 'currency', text: UI.currency() }), R.sumTotal),
+      el('div', { class: 'checkout-bar__total-value' }, (R.sumCurrency = el('span', { class: 'currency', text: UI.currency() })), R.sumTotal),
       R.sumOriginal,
     );
 
@@ -348,11 +351,11 @@
       el(
         'div',
         { class: 'checkout-guarantees' },
-        el('div', { class: 'checkout-guarantees__item' }, icon('check'), el('span', { text: '支付成功后自动激活' })),
+        el('div', { class: 'checkout-guarantees__item' }, icon('check'), (R.activateGuarantee = el('span', { text: '支付成功后自动激活' }))),
         el('div', { class: 'checkout-guarantees__item' }, icon('shield'), el('span', { text: '7 天无理由退款' })),
         el('div', { class: 'checkout-guarantees__item' }, icon('monitor'), el('span', { text: '授权最多绑定 2 台设备' })),
         el('div', { class: 'checkout-guarantees__item' }, icon('wifi-off'), el('span', { text: '离线可用 30 天' })),
-        el('div', { class: 'checkout-guarantees__item' }, icon('card'), el('span', { text: '支付宝 / 微信 / 银行卡' })),
+        el('div', { class: 'checkout-guarantees__item' }, icon('card'), (R.payMethodsText = el('span', { text: '支付宝 / 微信 / 银行卡' }))),
       ),
     );
 
@@ -1145,8 +1148,35 @@
     if (!R.offlineNotice) return;
     const state = S.server;
     clear(R.offlineNotice);
+    const stripeTest = state.stripeTest || S.stripeTest;
     const unknown = state.online === null;
     const offline = state.online === false;
+    if (R.payMethodsText) {
+      R.payMethodsText.textContent = stripeTest && stripeTest.enabled
+        ? 'Google Pay（Stripe 测试）· 测试卡'
+        : '支付宝 / 微信 / 银行卡';
+    }
+    if (R.activateGuarantee) {
+      R.activateGuarantee.textContent = stripeTest && stripeTest.enabled
+        ? '测试支付只记订单，不自动激活'
+        : '支付成功后自动激活';
+    }
+
+    if (stripeTest && stripeTest.blockCheckout) {
+      R.offlineNotice.className = 'notice notice-bar';
+      R.offlineNotice.appendChild(icon('warning'));
+      R.offlineNotice.appendChild(el('div', { class: 'notice__body', text: stripeTest.message || '正式扣款未开启。' }));
+      return;
+    }
+    if (stripeTest && stripeTest.enabled) {
+      R.offlineNotice.className = 'notice notice--info notice-bar';
+      R.offlineNotice.appendChild(icon('card'));
+      R.offlineNotice.appendChild(el('div', {
+        class: 'notice__body',
+        text: 'Stripe 测试模式已开启。结账会打开 Stripe 托管页，可使用 Google Pay 或测试卡。不会真实扣款，也不会写入正式授权。人民币标价未改；本次测试收款使用目录中的美元价。',
+      }));
+      return;
+    }
 
     if (unknown) {
       R.offlineNotice.className = 'notice notice--info notice-bar';
@@ -1199,22 +1229,36 @@
     const base = plan.price;
     const discount = S.coupon ? Math.max(0, Math.min(base - 1, S.coupon.discountCents || 0)) : 0;
     const total = S.coupon && Number.isFinite(S.coupon.finalPriceCents) ? Math.max(0, S.coupon.finalPriceCents) : base - discount;
+    const quote = plan.stripeTestQuote;
 
-    if (discount > 0) {
-      R.sumDiscountRow.classList.remove('hidden');
-      R.sumDiscount.textContent = '-' + formatMoney(discount);
-      R.sumOriginal.classList.remove('hidden');
-      R.sumOriginal.textContent = '原价 ' + formatMoney(base);
-    } else {
+    if (quote && quote.amountText) {
       R.sumDiscountRow.classList.add('hidden');
       R.sumOriginal.classList.add('hidden');
+      if (R.sumCurrency) R.sumCurrency.textContent = '';
+      R.sumTotal.textContent = quote.amountText;
+    } else {
+      if (discount > 0) {
+        R.sumDiscountRow.classList.remove('hidden');
+        R.sumDiscount.textContent = '-' + formatMoney(discount);
+        R.sumOriginal.classList.remove('hidden');
+        R.sumOriginal.textContent = '原价 ' + formatMoney(base);
+      } else {
+        R.sumDiscountRow.classList.add('hidden');
+        R.sumOriginal.classList.add('hidden');
+      }
+      if (R.sumCurrency) R.sumCurrency.textContent = UI.currency();
+      R.sumTotal.textContent = UI.moneyNumber(total);
     }
-    R.sumTotal.textContent = UI.moneyNumber(total);
 
-    // 促销提示：有券显示券信息，否则显示年卡折算
+    // 促销提示：测试模式说明实收金额；有券显示券信息，否则显示年卡折算
     clear(R.sumPromo);
-    R.sumPromo.appendChild(icon(S.coupon ? 'gift' : 'sparkle'));
-    if (S.coupon) {
+    R.sumPromo.appendChild(icon(quote ? 'card' : S.coupon ? 'gift' : 'sparkle'));
+    if (quote && quote.amountText) {
+      const billing = quote.mode === 'subscription' ? '订阅' : '一次性';
+      R.sumPromo.appendChild(el('span', {
+        text: `本次 Stripe 测试收款 ${quote.amountText}（${billing}，目录美元价）。人民币标价未改，优惠码不参与测试扣款。`,
+      }));
+    } else if (S.coupon) {
       R.sumPromo.appendChild(
         el('span', { text: '已使用优惠码 ' + S.coupon.code + (S.coupon.description ? '（' + S.coupon.description + '）' : '') }),
       );
@@ -1231,6 +1275,7 @@
     const label = R.buyBtn.querySelector('span');
     if (label) {
       if (S.buyBusy) label.textContent = '正在创建订单…';
+      else if (S.stripeTest && S.stripeTest.blockCheckout) label.textContent = '测试结账未就绪';
       else if (offline) label.textContent = '许可服务未启动';
       else if (checking) label.textContent = '正在检查许可服务…';
       else if (dlcLocked) label.textContent = '需先拥有完整版';
@@ -1350,27 +1395,33 @@
     }
 
     const order = res.order || {};
-    const fallbackAmount = plan.price - (S.coupon ? S.coupon.discountCents || 0 : 0);
+    const fallbackAmount = plan.stripeTestQuote ? plan.stripeTestQuote.amount : plan.price - (S.coupon ? S.coupon.discountCents || 0 : 0);
     S.order = {
       id: order.id || order.orderId || '',
       planId: order.planId || plan.id,
       amount: Number.isFinite(order.amount) ? order.amount : fallbackAmount,
+      amountText: order.amountText || (plan.stripeTestQuote && plan.stripeTestQuote.amountText) || '',
+      currency: order.currency || '',
       status: order.status || 'pending',
       payUrl: order.payUrl || '',
       expiresAt: order.expiresAt || 0,
       createdAt: order.createdAt || 0,
+      testMode: !!order.testMode,
+      stripeCheckoutSessionId: order.stripeCheckoutSessionId || '',
+      stripePaymentIntentId: order.stripePaymentIntentId || '',
       plan,
     };
     S.payKey = '';
     S.pollErrors = 0;
     S.payPhase = 'waiting';
-    S.pollDeadline = Date.now() + PAY_WAIT_LIMIT_MS;
+    S.pollDeadline = Date.now() + (S.order.testMode ? TEST_PAY_WAIT_LIMIT_MS : PAY_WAIT_LIMIT_MS);
 
     renderPayView();
     startPolling();
 
     // 主进程通常已经在系统浏览器打开支付页；若没有 payUrl 则提示用户
     if (!S.order.payUrl) toast('订单已创建，请在弹出的支付页完成付款', 'info', 4000);
+    else if (S.order.testMode) toast('已打开 Stripe 测试结账，可使用 Google Pay 或测试卡', 'info', 4200);
   }
 
   function startPolling() {
@@ -1404,10 +1455,18 @@
     S.pollErrors = 0;
     const order = res.order || {};
     if (order.status === 'paid') {
+      if (S.order) {
+        S.order.status = 'paid';
+        S.order.testMode = !!(order.testMode || S.order.testMode);
+        S.order.amountText = order.amountText || S.order.amountText || '';
+        S.order.stripeCheckoutSessionId = order.stripeCheckoutSessionId || S.order.stripeCheckoutSessionId || '';
+        S.order.stripePaymentIntentId = order.stripePaymentIntentId || S.order.stripePaymentIntentId || '';
+      }
       await onOrderPaid(order);
       return;
     }
-    if (order.status === 'cancelled') {
+    // 测试结账的取消页不会把仍可支付的会话写成终态。即便账本里暂时是 cancelled，也继续向 Stripe 核对。
+    if (order.status === 'cancelled' && !(order.testMode || (S.order && S.order.testMode))) {
       failPay('订单已取消');
       return;
     }
@@ -1420,6 +1479,13 @@
 
   async function onOrderPaid(order) {
     stopPolling();
+    if (order && order.testMode) {
+      S.payPhase = 'recorded';
+      S.payKey = '';
+      renderPayView();
+      toast('测试订单已入账。没有真实扣款，也没有签发正式激活码。', 'ok', 4600);
+      return;
+    }
     S.payPhase = 'activating';
     S.payKey = order.licenseKey || '';
     renderPayView();
@@ -1480,6 +1546,7 @@
 
     const view = el('div', { class: 'pay-view' });
     if (S.payPhase === 'success') view.appendChild(buildSuccessView());
+    else if (S.payPhase === 'recorded') view.appendChild(buildRecordedView());
     else if (S.payPhase === 'failed') view.appendChild(buildFailedView());
     else if (S.payPhase === 'keyissue') view.appendChild(buildKeyIssueView());
     else view.appendChild(buildWaitingView());
@@ -1500,14 +1567,18 @@
         class: 'pay-sub',
         text: activating
           ? '正在用订单中的激活码为这台设备激活 Pro，请稍候。'
-          : '已在系统浏览器打开支付页。完成付款后，这里会在几秒内自动解锁。',
+          : order.testMode
+            ? '已在系统浏览器打开 Stripe 测试结账页。请使用测试卡或 Google Pay 测试卡组，不会真实扣款。'
+            : '已在系统浏览器打开支付页。完成付款后，这里会在几秒内自动解锁。',
       }),
-      el(
-        'div',
-        { class: 'pay-amount' },
-        el('span', { class: 'currency', text: UI.currency() }),
-        el('span', { class: 'num', text: UI.moneyNumber(order.amount || 0) }),
-      ),
+      order.amountText
+        ? el('div', { class: 'pay-amount' }, el('span', { class: 'num', text: order.amountText }))
+        : el(
+          'div',
+          { class: 'pay-amount' },
+          el('span', { class: 'currency', text: UI.currency() }),
+          el('span', { class: 'num', text: UI.moneyNumber(order.amount || 0) }),
+        ),
     );
 
     const rows = el('div', { class: 'pay-rows' });
@@ -1562,7 +1633,9 @@
       actions,
       el('div', {
         class: 'pay-note',
-        text: '提示：若支付页没有自动弹出，可能是浏览器拦截了弹窗。也可以稍后从「我的授权」中重新激活。',
+        text: order.testMode
+          ? 'Google Pay 出现在 Stripe 托管结账页上。若没看到，请确认 Dashboard 处于 Test mode，并已打开 Google Pay；用 Chrome 登录带有卡片的 Google 账号，实际付款请走测试卡。'
+          : '提示：若支付页没有自动弹出，可能是浏览器拦截了弹窗。也可以稍后从「我的授权」中重新激活。',
       }),
     );
   }
@@ -1597,6 +1670,37 @@
     S.payKey = '';
     renderPayView();
     toast('已取消本次购买', 'info');
+  }
+
+  function buildRecordedView() {
+    const order = S.order || {};
+    const wrap = el(
+      'div',
+      { class: 'card result-card' },
+      el('div', { class: 'result__ring result__ring--teal' }, icon('check')),
+      el('div', { class: 'h2', text: '测试订单已入账' }),
+      el('div', {
+        class: 'pay-sub',
+        text: 'Stripe 测试模式已记录这张订单。没有真实扣款，也没有签发正式激活码，生产授权保持关闭。',
+      }),
+    );
+    const rows = el('div', { class: 'pay-rows' });
+    rows.appendChild(payRow('订单号', order.id || '—', true));
+    rows.appendChild(payRow('Checkout Session', order.stripeCheckoutSessionId || '—', true));
+    rows.appendChild(payRow('PaymentIntent', order.stripePaymentIntentId || '—', true));
+    rows.appendChild(payRow('金额', order.amountText || '—', false));
+    wrap.appendChild(rows);
+    const back = el('button', { class: 'btn btn--primary', type: 'button' }, el('span', { text: '返回方案' }));
+    back.addEventListener('click', () => {
+      S.payPhase = 'idle';
+      renderPayView();
+    });
+    wrap.appendChild(el('div', { class: 'result-actions' }, back));
+    wrap.appendChild(el('div', {
+      class: 'pay-note',
+      text: '在 Stripe Dashboard 的 Test mode 里，可以用 Checkout Session 编号找到这张订单。正式收款需要另一次明确开启。',
+    }));
+    return wrap;
   }
 
   function buildSuccessView() {
@@ -2314,7 +2418,9 @@
         online: !!(res.server && res.server.online),
         base: (res.server && res.server.base) || (S.license && S.license.apiBase) || '',
         error: res.server ? res.server.error : null,
+        stripeTest: (res.server && res.server.stripeTest) || S.stripeTest || null,
       };
+      if (S.server.stripeTest) S.stripeTest = S.server.stripeTest;
       if (!S.selectedPlanId) pickDefaultPlan();
       renderTitlebarBadge();
       renderHead();
