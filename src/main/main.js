@@ -28,6 +28,7 @@ const { FocusTimer, FREE_MINUTES } = require('./focus');
 const { Growth } = require('./growth');
 const { LicenseManager } = require('./license');
 const { CommerceClient } = require('./commerce');
+const { StripeTestCheckout } = require('./stripe-test');
 const { WindowManager } = require('./windows');
 const { PresenceWatcher } = require('./presence');
 const { SpeechService } = require('./speech');
@@ -116,6 +117,8 @@ class AppRuntime {
     this.focus = new FocusTimer(this.settings);
     this.growth = new Growth(this.settings);
     this.commerce = new CommerceClient(() => (this.settings.get('apiBase') || this.apiBase).trim() || PRODUCT.apiBase);
+    // 仅在 CUBBIT_STRIPE_TEST=1 且密钥为 sk_test_ 时启用。live 密钥会把结账整个关掉。
+    this.stripeTest = new StripeTestCheckout({ userDataDir: app.getPath('userData') });
     this.presence = new PresenceWatcher(this.settings);
     this.speech = new SpeechService(this.settings, this.presence);
     // 神经语音（更接近真人）：服务端 Edge TTS 合成，宠物窗口负责播放
@@ -399,9 +402,10 @@ class AppRuntime {
       focus: this.focus.snapshot(),
       growth: this.growth.snapshot(),
       skins: SKINS.map((skin) => ({ ...skin, locked: !this.skinUnlocked(skin) })),
-      dlc: DLC,
+      dlc: this.stripeTest.decorateSellables(DLC),
       freeTier: FREE_TIER,
-      plans: PLANS.filter((p) => require('../shared/offer-config').legacyPlanVisible(p.id, this.offerFlags())),
+      plans: this.stripeTest.decorateSellables(PLANS.filter((p) => require('../shared/offer-config').legacyPlanVisible(p.id, this.offerFlags()))),
+      stripeTest: this.stripeTest.status(),
       offers: require('../shared/pricing').storeOffers(this.priceLocale(), this.offerFlags()),
       proBenefits: PRO_BENEFITS,
       features: FEATURES,
@@ -2022,6 +2026,12 @@ if (!gotLock) {
   try { app.setAsDefaultProtocolClient('cubbit'); } catch { /* ignore */ }
   app.whenReady().then(() => {
     runtime = new AppRuntime();
+    runtime.stripeTest.startReturnServer().then((res) => {
+      if (res && res.ok) console.log('[stripe-test] return server', res.base);
+      else if (res && !res.skipped && res.message) console.error('[stripe-test]', res.message);
+    }).catch((err) => {
+      console.error('[stripe-test]', err && err.message);
+    });
     // QA：--open=paywall / --open=couple 直接打开某个面板（首实例也生效）
     {
       const openArg0 = process.argv.find((a) => a.startsWith('--open='));
@@ -2230,5 +2240,6 @@ if (!gotLock) {
 
   app.on('will-quit', () => {
     globalShortcut.unregisterAll();
+    if (runtime && runtime.stripeTest) runtime.stripeTest.stopReturnServer();
   });
 }

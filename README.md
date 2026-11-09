@@ -50,6 +50,10 @@ Realtime credentials are **client-side PubNub publish/subscribe keys**, not secr
 
 The updater URL is configured in `package.json` (`build.publish`).
 
+## Stripe test checkout (Google Pay)
+
+In-app checkout can open a **Stripe-hosted test Checkout** page (Google Pay is a Stripe wallet, not a separate Google merchant). It stays off until both `CUBBIT_STRIPE_TEST=1` and `STRIPE_SECRET_KEY=sk_test_...` are set. Live keys are rejected. See [docs/stripe-test-checkout.md](docs/stripe-test-checkout.md)（中文步骤：环境变量、Dashboard 打开 Google Pay、下一笔测试订单）. Do not commit keys.
+
 ## Project layout
 
 ```

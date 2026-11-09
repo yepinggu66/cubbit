@@ -12,6 +12,8 @@
     "private":  false,
     "scripts":  {
                     "start":  "electron .",
+                    "test":  "node --test tests/stripe-test.test.js",
+                    "stripe:test":  "node scripts/stripe-test-checkout.js",
                     "dist":  "electron-builder --win",
                     "dist:portable":  "electron-builder --win portable",
                     "lint":  "eslint . --ext .js"

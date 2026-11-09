@@ -131,6 +131,26 @@
   }
 
   async function onBuy() {
+    const stripe = app.state && app.state.stripeTest;
+    if (stripe && stripe.blockCheckout) {
+      setStatus(stripe.message || T('Live checkout is disabled.', '正式扣款未开启。'), 'err');
+      return;
+    }
+    if (stripe && stripe.enabled) {
+      setStatus(T('Opening Stripe test checkout…', '正在打开 Stripe 测试结账（Google Pay）…'));
+      const res = await app.invoke(IPC.STORE_CHECKOUT, { planId: 'lite_couple' });
+      if (!res || !res.ok) {
+        setStatus((res && res.message) || T('Could not start test checkout.', '没能创建测试订单。'), 'err');
+        return;
+      }
+      const id = (res.order && (res.order.stripeCheckoutSessionId || res.order.id)) || '';
+      setStatus(T(
+        `Test checkout opened (${id}). Use a Stripe test card or the Google Pay test card suite. No real charge, and no production key is issued.`,
+        `已打开 Stripe 测试结账（${id}）。请使用测试卡或 Google Pay 测试卡组。不会真实扣款，也不会发正式激活码。`,
+      ));
+      $('keyBox').classList.remove('hidden');
+      return;
+    }
     if (!cfg.checkoutReady) {
       setStatus(T(
         `Checkout isn't live yet. Email ${cfg.supportEmail || 'support@cubbit.app'} and we'll send a key.`,

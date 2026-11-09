@@ -235,23 +235,53 @@ function registerIpc(rt) {
 
   // ---------------------------------------------------------------- 商店
   handle(INVOKE.STORE_PLANS, async () => {
-    const license = rt.license.getStatus();
-    const health = await rt.commerce.ping();
+    const stripeTest = rt.stripeTest ? rt.stripeTest.status() : { enabled: false, blockCheckout: false };
+    const health = stripeTest.enabled || stripeTest.blockCheckout
+      ? { ok: !!stripeTest.enabled, message: stripeTest.message || '' }
+      : await rt.commerce.ping();
+    const flags = rt.offerFlags ? rt.offerFlags() : undefined;
+    const plans = PLANS.filter((p) => OFFER_CONFIG.legacyPlanVisible(p.id, flags));
     return {
       ok: true,
       // v2.2：只展示 offer-config 里可见的档位（AI 订阅受 FLAGS.aiCompanion 控制）
-      plans: PLANS.filter((p) => OFFER_CONFIG.legacyPlanVisible(p.id, rt.offerFlags ? rt.offerFlags() : undefined)),
-      offers: PRICING.storeOffers(rt.priceLocale ? rt.priceLocale() : 'zh-CN', rt.offerFlags ? rt.offerFlags() : undefined),
-      dlc: DLC,
+      plans: rt.stripeTest ? rt.stripeTest.decorateSellables(plans) : plans,
+      offers: PRICING.storeOffers(rt.priceLocale ? rt.priceLocale() : 'zh-CN', flags),
+      dlc: rt.stripeTest ? rt.stripeTest.decorateSellables(DLC) : DLC,
       freeTier: FREE_TIER,
       skins: SKINS.map((skin) => ({ ...skin, locked: !rt.skinUnlocked(skin) })),
       license: rt.licenseView(),
-      server: { online: !!(health.ok), base: rt.commerce.base(), error: health.ok ? null : health.message },
+      server: {
+        online: !!(health.ok),
+        base: stripeTest.enabled ? 'stripe-test' : rt.commerce.base(),
+        error: health.ok ? null : health.message,
+        stripeTest,
+      },
     };
   });
 
   handle(INVOKE.STORE_CHECKOUT, async (_e, { planId, couponCode, email } = {}) => {
     const license = rt.license.getStatus();
+    if (rt.stripeTest) {
+      const gate = rt.stripeTest.gate();
+      if (gate.blockCheckout) return { ok: false, code: gate.code, message: gate.message };
+      if (gate.enabled) {
+        const testOrder = await rt.stripeTest.createCheckout({
+          planId,
+          couponCode: couponCode ? String(couponCode).trim().toUpperCase() : undefined,
+          email: email ? String(email).trim() : undefined,
+          deviceId: license.deviceId,
+        });
+        if (testOrder.ok && testOrder.order && testOrder.order.payUrl) {
+          try {
+            const payUrl = new URL(testOrder.order.payUrl);
+            if (payUrl.protocol === 'https:' && payUrl.hostname === 'checkout.stripe.com') {
+              await shell.openExternal(testOrder.order.payUrl);
+            }
+          } catch { /* 结账链接打不开时，界面仍保留 payUrl 供重试 */ }
+        }
+        return testOrder;
+      }
+    }
     // 客户端下单前校验：已下架商品（如已并入完整版的 DLC 皮肤包）不得再单独下单。
     // 服务端也有一道同样的校验，这里再加一道，避免前端漏改时用户仍能下单。
     const sellable = (DLC || []).find((d) => d.id === planId);
@@ -276,7 +306,11 @@ function registerIpc(rt) {
     return res;
   });
 
-  handle(INVOKE.STORE_ORDER, async (_e, { orderId } = {}) => rt.commerce.getOrder(String(orderId || '')));
+  handle(INVOKE.STORE_ORDER, async (_e, { orderId } = {}) => {
+    const id = String(orderId || '');
+    if (rt.stripeTest && rt.stripeTest.hasOrder(id)) return rt.stripeTest.syncOrder(id);
+    return rt.commerce.getOrder(id);
+  });
 
   handle(INVOKE.STORE_COUPON, async (_e, { code, planId } = {}) => {
     if (!code) return { ok: false, code: 'COUPON_INVALID', message: '请输入优惠码' };

@@ -4,6 +4,8 @@ build/win-unpacked/
 .ops/
 .env
 .env.*
+stripe-test-orders.json
+.stripe-test-orders.json
 *.log
 *.exe
 *.blockmap
