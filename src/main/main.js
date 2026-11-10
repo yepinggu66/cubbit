@@ -449,6 +449,7 @@ class AppRuntime {
         voiceEnabled: !!this.settings.get('voiceEnabled'),
       },
       palette: this.currentPalette(),
+      colorSource: this.colorSource(),
       presence: this._devPresenceSnapshot(),
       life: this.life ? this.life.snapshot() : { mood: 'calm', moodLabel: '平静' },
       ai: this.ai ? this.ai.status() : null,
@@ -688,8 +689,20 @@ class AppRuntime {
       Object.assign(palette, s.customColors);
     }
     const diyPet = DIY.normalize(s.diyPet);
-    if (diyPet.enabled) Object.assign(palette, DIY.palette(diyPet));
+    // v3.3：谁最后被点就听谁的——点了皮肤（夜光等）用皮肤配色+特效；点了身体颜色才用 DIY 配色。
+    // 以前只要 DIY 开着就无条件盖上 DIY 配色（默认经典橙），皮肤衣橱选什么桌宠都还是橙色。
+    if (diyPet.enabled && this.colorSource() === 'diy') Object.assign(palette, DIY.palette(diyPet));
     return palette;
+  }
+
+  /**
+   * 身体配色来源：'skin'（皮肤衣橱）或 'diy'（身体颜色 / 自定义颜色）。
+   * 旧设置没有这个字段：选过非默认皮肤的按 'skin'，还在默认橙红经典（blaze）上的按 'diy'。
+   */
+  colorSource() {
+    const s = this.settings.settings || {};
+    if (s.colorSource === 'skin' || s.colorSource === 'diy') return s.colorSource;
+    return s.skinId && s.skinId !== 'blaze' ? 'skin' : 'diy';
   }
 
   // ---------------------------------------------------------------- 广播
@@ -1051,6 +1064,18 @@ class AppRuntime {
       return { ok: false, code: 'FEATURE_LOCKED', feature: 'custom_colors', message: '自定义配色是 Pro 功能' };
     }
     if (clean.diyPet !== undefined) clean.diyPet = DIY.normalize(clean.diyPet);
+    // 配色来源：面板显式传 colorSource（身体颜色 = 'diy'）；否则点皮肤 / 改 Pro 自定义配色 = 'skin'，
+    // DIY 配色真的变了（或刚打开 DIY）= 'diy'。只换形象/配件/性格不改来源。
+    if (clean.colorSource !== undefined && clean.colorSource !== 'skin' && clean.colorSource !== 'diy') delete clean.colorSource;
+    if (clean.colorSource === undefined) {
+      if (clean.skinId !== undefined || (clean.customColors && typeof clean.customColors === 'object')) clean.colorSource = 'skin';
+      if (clean.diyPet !== undefined) {
+        const prevDiy = DIY.normalize(this.settings.get('diyPet'));
+        const nextDiy = clean.diyPet;
+        const colorChanged = nextDiy.paletteId !== prevDiy.paletteId || String(nextDiy.bodyColor || '') !== String(prevDiy.bodyColor || '');
+        if (nextDiy.enabled && (colorChanged || !prevDiy.enabled)) clean.colorSource = 'diy';
+      }
+    }
     if (clean.multiPetCount !== undefined) {
       const n = Math.max(1, Math.min(3, Number(clean.multiPetCount) || 1));
       if (n > 1 && !this.can('multi_pet')) return { ok: false, code: 'FEATURE_LOCKED', feature: 'multi_pet', message: '多宠物同屏是完整版功能' };
@@ -1123,7 +1148,7 @@ class AppRuntime {
     // v2.3：切换皮肤时清除自定义配色，避免旧配色静默覆盖新皮肤
     if (clean.skinId && clean.customColors === undefined && this.settings.get('customColors')) clean.customColors = null;
     this.settings.patch(clean);
-    if (clean.skinId || clean.customColors !== undefined || clean.diyPet !== undefined) {
+    if (clean.skinId || clean.customColors !== undefined || clean.diyPet !== undefined || clean.colorSource !== undefined) {
       if (this._skinPreviewTimer) { clearTimeout(this._skinPreviewTimer); this._skinPreviewTimer = null; }
       this.sendPetEvent('skin', { palette: this.currentPalette(), skinId: this.settings.get('skinId') || 'blaze' });
     }

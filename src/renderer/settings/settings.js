@@ -293,7 +293,7 @@
         renderDiyPreview(S.diyDraft);
       }, 950);
     };
-    const saveDiy = async (patch, message) => {
+    const saveDiy = async (patch, message, extra) => {
       const merged = Object.assign({}, S.diyDraft, patch, { enabled: true });
       // 改配色/配件时保持当前形象：探险方块仔仍是探险方块仔，其它回到经典方块仔
       if (!Object.prototype.hasOwnProperty.call(patch, 'animalId')) merged.animalId = S.diyDraft && S.diyDraft.animalId === DIY.EXPLORER_ID ? DIY.EXPLORER_ID : 'custom';
@@ -301,7 +301,8 @@
       S.diyDraft = next;
       holdDiyDraft();
       renderDiyPreview(next);
-      return save({ diyPet: next }, message);
+      if (extra && extra.colorSource && app.state) app.state.colorSource = extra.colorSource;
+      return save(Object.assign({ diyPet: next }, extra || {}), message);
     };
 
     R.diyPreviewGlow = el('div', { class: 'diy-preview__glow' });
@@ -418,7 +419,7 @@
         }, el('i', { style: { background: palette.eye } })),
         el('span', { class: 'diy-palette__label', text: palette.label }),
       );
-      swatch.addEventListener('click', () => saveDiy({ paletteId: palette.id }, `换成了「${palette.label}」配色`));
+      swatch.addEventListener('click', () => saveDiy({ paletteId: palette.id }, `换成了「${palette.label}」配色`, { colorSource: 'diy' }));
       R.diyPaletteButtons[palette.id] = swatch;
       paletteGrid.appendChild(swatch);
     }
@@ -432,7 +433,7 @@
       R.diyCustomBall,
       el('span', { class: 'diy-palette__label', text: '自定义' }),
     );
-    const pickCustom = (message) => saveDiy({ paletteId: DIY.CUSTOM_PALETTE_ID || 'custom', bodyColor: R.diyCustomColor.value }, message);
+    const pickCustom = (message) => saveDiy({ paletteId: DIY.CUSTOM_PALETTE_ID || 'custom', bodyColor: R.diyCustomColor.value }, message, { colorSource: 'diy' });
     const pickCustomSoon = UI.debounce(() => pickCustom(''), 220);
     R.diyCustomColor.addEventListener('input', () => {
       const pal = DIY.derivePalette ? DIY.derivePalette(R.diyCustomColor.value) : null;
@@ -680,7 +681,11 @@
         if (value === 'auto') return fallback || '';
         return value === 'none' ? '' : value;
       };
-      const palette = DIY.palette(cfg);
+      // 皮肤衣橱最后被点（colorSource = 'skin'）时，预览跟桌宠一样用皮肤配色
+      const skinColors = !!(state.colorSource === 'skin' && state.palette);
+      const palette = skinColors
+        ? Object.assign({}, DIY.palette(cfg), state.palette, { emoji: '👗', label: (skin && skin.name) || '皮肤配色' })
+        : DIY.palette(cfg);
       const temperament = DIY.TEMPERAMENTS.find((item) => item.id === cfg.temperament) || DIY.TEMPERAMENTS[0];
       const hatId = resolve(cfg.hat, skinAcc.hat);
       const earsId = resolve(cfg.ears, skinAcc.ears);
@@ -748,7 +753,7 @@
       const setActive = (refs, activeId) => {
         for (const [id, node] of Object.entries(refs)) node.classList.toggle('is-active', id === activeId);
       };
-      setActive(R.diyPaletteButtons, cfg.paletteId);
+      setActive(R.diyPaletteButtons, skinColors ? '' : cfg.paletteId);
       setActive(R.diyAnimalButtons, cfg.animalId);
       setActive(R.diyHatButtons, cfg.hat);
       setActive(R.diyEarButtons, cfg.ears);
@@ -1055,7 +1060,8 @@
       setTimeout(() => (dlcId ? app.openPanel('store') : app.showUpgrade('skins_premium')), 900);
       return;
     }
-    if (active) {
+    // 身体颜色（DIY）接管时，再点当前皮肤 = 切回这套皮肤的配色
+    if (active && !(app.state && app.state.colorSource === 'diy')) {
       toast('正在使用「' + skin.name + '」', 'info', 1800);
       return;
     }

@@ -224,17 +224,23 @@
     }
   }
 
+  // 皮肤衣橱最后被点时（colorSource = 'skin'），桌宠用皮肤配色；卡片也跟着显示皮肤配色，色块不高亮
+  function skinColors() {
+    return !!(S.state && S.state.colorSource === 'skin' && S.state.palette);
+  }
+
   function paintColor(cfg) {
     if (!cfg) return;
-    if (R.swatches) for (const b of R.swatches.children) b.classList.toggle('is-active', b.dataset.id === cfg.paletteId);
-    const isCustom = cfg.paletteId === DIY.CUSTOM_PALETTE_ID;
+    const bySkin = skinColors();
+    if (R.swatches) for (const b of R.swatches.children) b.classList.toggle('is-active', !bySkin && b.dataset.id === cfg.paletteId);
+    const isCustom = !bySkin && cfg.paletteId === DIY.CUSTOM_PALETTE_ID;
     if (R.customColor) R.customColor.classList.toggle('is-active', isCustom);
     if (R.colorPick && document.activeElement !== R.colorPick) R.colorPick.value = DIY.palette(cfg).body2;
     // 两张方块仔卡片（经典 / 探险）都跟着换色
     for (const id of ['custom', DIY.EXPLORER_ID]) {
       const card = S.cards.get(id);
       const pet = card && card.querySelector('.pet');
-      if (pet) Dom.palette(pet, DIY.palette(cfg));
+      if (pet) Dom.palette(pet, bySkin ? Object.assign({}, DIY.palette(cfg), S.state.palette) : DIY.palette(cfg));
     }
   }
 
@@ -245,11 +251,12 @@
     const keep = base.animalId === DIY.EXPLORER_ID ? DIY.EXPLORER_ID : 'custom';
     const next = DIY.normalize(Object.assign({}, base, patch, { enabled: true, animalId: keep }));
     S.current = next;
+    if (S.state) S.state.colorSource = 'diy';
     paintActive(next);
     paintColor(next);
     clearTimeout(colorTimer);
     colorTimer = setTimeout(async () => {
-      const res = await invoke(CH_SET, { diyPet: next });
+      const res = await invoke(CH_SET, { diyPet: next, colorSource: 'diy' });
       if (res && res.state) applyState(res.state);
       if (message) toast(message);
     }, patch.paletteId === DIY.CUSTOM_PALETTE_ID ? 220 : 0);
@@ -299,20 +306,30 @@
     api.onState && api.onState(applyState);
   }
 
+  // 关闭本面板：优先走 preload 的 close()/window('close')，失败或不可用时退回 window.close()（修复“关不掉”）
+  function closePanel() {
+    const fallback = () => { try { window.close(); } catch (_) { /* ignore */ } };
+    try {
+      const p = api && (api.close ? api.close() : api.window ? api.window('close') : api.invoke(CH_PANEL_WINDOW, { action: 'close' }));
+      if (!p || typeof p.then !== 'function') return fallback();
+      p.then((r) => { if (r === false || (r && r.ok === false)) fallback(); }, fallback);
+    } catch (_) { fallback(); }
+  }
+
   // ------------------------------------------------------------------ 事件
-  if (R.closeBtn) R.closeBtn.addEventListener('click', () => invoke(CH_PANEL_WINDOW, { action: 'close' }));
+  if (R.closeBtn) R.closeBtn.addEventListener('click', () => closePanel());
   if (R.randomBtn) R.randomBtn.addEventListener('click', randomize);
   const photoBtn = document.getElementById('photoBtn');
   if (photoBtn) {
     photoBtn.addEventListener('click', async () => {
       await invoke(CH_PANEL_OPEN, { name: 'photo' });
-      invoke(CH_PANEL_WINDOW, { action: 'close' });
+      closePanel();
     });
   }
   if (R.diyBtn) {
     R.diyBtn.addEventListener('click', async () => {
       await invoke(CH_PANEL_OPEN, { name: 'settings' });
-      invoke(CH_PANEL_WINDOW, { action: 'close' });
+      closePanel();
     });
   }
   const storeBtn = document.getElementById('storeBtn');
@@ -322,7 +339,7 @@
     });
   }
   window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') invoke(CH_PANEL_WINDOW, { action: 'close' });
+    if (e.key === 'Escape') closePanel();
   });
 
   // 让卡片自己眨眼：每次随机挑 1~2 只，间隔也随机，避免整排一起动（很假）

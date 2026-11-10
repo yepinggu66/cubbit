@@ -4,12 +4,12 @@
   "channel": "beta",
   "status": "internal-beta",
   "officiallyLaunched": false,
-  "releaseDate": "2026-11-10",
+  "releaseDate": "2026-11-11",
   "experimentId": "softlaunch-2026-11",
   "stableWindowsUrl": "https://pingguye.cn/cubbit/dl/windows/latest",
   "downloadDeployment": {
     "status": "deployed",
-    "deployedAt": "2026-11-10",
+    "deployedAt": "2026-11-11",
     "host": "pingguye.cn",
     "note": "Windows 安装包已上传到 /cubbit/dl/（版本文件 + Cubbit-Setup-latest.exe）；本版本不提供便携版"
   },
@@ -17,8 +17,8 @@
     {
       "kind": "nsis",
       "url": "https://pingguye.cn/cubbit/dl/Cubbit-Setup-2.9.1-soft.exe",
-      "size": 126371518,
-      "sha256": "DD6DC1F83249C5BBB197B844473A1077FB7D22394036DD25A8574FB67CBF30CB"
+      "size": 126372733,
+      "sha256": "1D9F722FD2D1B67B12ED0DB0E87265B92687DB933F28F1805F20347180E0EE08"
     }
   ],
   "metricsSchemaVersion": 2,

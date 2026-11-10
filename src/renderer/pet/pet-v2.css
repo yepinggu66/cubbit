@@ -1920,7 +1920,6 @@ body.reduce-motion .pet.art-form > .pet-art-wrap {
    帽子、耳朵、尾巴整层隐藏，避免两只叠在一起或配饰飘在插画上。
    动作帧由 shared/pet-sprite.js 按状态类切换，外层沿用上面的 art* 动画（呼吸/走路/睡觉/弹跳）。
    ============================================================ */
-.pet.sprite-form > .skin-fx,
 .pet.sprite-form .acc-hat,
 .pet.sprite-form .acc-ears,
 .pet.sprite-form .acc-tail,
@@ -1946,6 +1945,11 @@ body.reduce-motion .pet.art-form > .pet-art-wrap {
 .pet.sprite-form .face > .emote-fx {
   visibility: visible;
 }
+/* 探险方块仔也保留皮肤特效层（星点/光晕/粒子），叠在插画上方，不挡点击 */
+.pet.sprite-form > .skin-fx {
+  pointer-events: none;
+}
+
 /* 观影模式（探险方块仔）：不再借用经典方块的 CSS 夜光眼——插画本身半透明留在原地，
    变暗、不抢画面；命中区域仍按（隐藏的）眼睛位置上报，拖动/退出不受影响。 */
 body.cinema .pet.sprite-form .face > .eye {

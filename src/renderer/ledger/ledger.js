@@ -1126,8 +1126,17 @@
     await load();
   }
 
+  // 关闭本面板：优先走 preload 的 close()/window('close')，失败或不可用时退回 window.close()（修复“关不掉”）
+  function closePanel() {
+    const fallback = () => { try { window.close(); } catch (_) { /* ignore */ } };
+    try {
+      const p = api && (api.close ? api.close() : api.window ? api.window('close') : api.invoke('app:panel:window', { action: 'close' }));
+      if (!p || typeof p.then !== 'function') return fallback();
+      p.then((r) => { if (r === false || (r && r.ok === false)) fallback(); }, fallback);
+    } catch (_) { fallback(); }
+  }
   function close() {
-    if (api) api.invoke(CH.panelWindow, { action: 'close' });
+    closePanel();
   }
 
   // ------------------------------------------------------------------ 启动

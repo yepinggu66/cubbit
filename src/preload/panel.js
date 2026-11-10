@@ -8,6 +8,7 @@ const { INVOKE, EVENTS } = require('../shared/ipc.js');
 const ALLOWED = new Set([
   INVOKE.APP_STATE,
   INVOKE.APP_PANEL_OPEN,
+  INVOKE.APP_PANEL_WINDOW, // 面板自身的 关闭/最小化（与 panel.close()/panel.window() 同一通道）
   INVOKE.APP_OPEN_EXTERNAL,
   INVOKE.APP_SETTINGS_SET,
   INVOKE.SKIN_PREVIEW,

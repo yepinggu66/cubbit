@@ -361,8 +361,17 @@
     note('分开了。它不会闹，但今天会安静一点。');
   }
 
+  // 关闭本面板：优先走 preload 的 close()/window('close')，失败或不可用时退回 window.close()（修复“关不掉”）
+  function closePanel() {
+    const fallback = () => { try { window.close(); } catch (_) { /* ignore */ } };
+    try {
+      const p = api && (api.close ? api.close() : api.window ? api.window('close') : api.invoke('app:panel:window', { action: 'close' }));
+      if (!p || typeof p.then !== 'function') return fallback();
+      p.then((r) => { if (r === false || (r && r.ok === false)) fallback(); }, fallback);
+    } catch (_) { fallback(); }
+  }
   function close() {
-    if (api) api.invoke(CH.panelWindow, { action: 'close' });
+    closePanel();
   }
 
   // ------------------------------------------------------------------ 演示态
@@ -414,7 +423,8 @@
         S.ownArt = '../assets/pets/classic-cube.png';
       } else if (diy.enabled && diy.animalId === DIY.EXPLORER_ID) {
         // 探险方块仔：插画 idle 帧，按用户配色只给身体换色
-        if (window.CubbitSprite) S.ownArt = await window.CubbitSprite.url(DIY.palette(diy).body2, 'idle');
+        const body = app.colorSource === 'skin' && app.palette && app.palette.body2 ? app.palette.body2 : DIY.palette(diy).body2;
+        if (window.CubbitSprite) S.ownArt = await window.CubbitSprite.url(body, 'idle');
       } else if (diy.enabled) {
         S.ownArt = DIY.artFile(diy.animalId, 'idle') || S.ownArt;
         const actor = DIY.animalById(diy.animalId) || (DIY.isPhotoId(diy.animalId) ? DIY.photoPets().find((p) => p.id === diy.animalId) : null);
