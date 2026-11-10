@@ -3,7 +3,7 @@
 > A tiny cube on both your desktops. Poke it, your partner feels it.
 > 两只桌面上的小方块：戳一下，对方会有感觉。
 
-This repository is the open-source source snapshot of **Cubbit v2.6.3-soft** (soft-launch build), published from `softlaunch-2.5`. The older `2.5.4-soft` delivery bundle contained only installers/videos/docs and **no source code**, so this repository uses the 2.6.3 source tree instead.
+This repository is the open-source source snapshot of **Cubbit v2.9.1-soft** (soft-launch / internal beta build), published from `softlaunch-2.5`. Earlier history keeps the previous `v2.6.3-soft` snapshot. Windows installers are attached to GitHub Releases, not committed to the repo. Live payments are not enabled in this build.
 
 ## What is Cubbit?
 
