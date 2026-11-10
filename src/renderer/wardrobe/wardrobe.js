@@ -306,20 +306,30 @@
     api.onState && api.onState(applyState);
   }
 
+  // 关闭本面板：优先走 preload 的 close()/window('close')，失败或不可用时退回 window.close()（修复“关不掉”）
+  function closePanel() {
+    const fallback = () => { try { window.close(); } catch (_) { /* ignore */ } };
+    try {
+      const p = api && (api.close ? api.close() : api.window ? api.window('close') : api.invoke(CH_PANEL_WINDOW, { action: 'close' }));
+      if (!p || typeof p.then !== 'function') return fallback();
+      p.then((r) => { if (r === false || (r && r.ok === false)) fallback(); }, fallback);
+    } catch (_) { fallback(); }
+  }
+
   // ------------------------------------------------------------------ 事件
-  if (R.closeBtn) R.closeBtn.addEventListener('click', () => invoke(CH_PANEL_WINDOW, { action: 'close' }));
+  if (R.closeBtn) R.closeBtn.addEventListener('click', () => closePanel());
   if (R.randomBtn) R.randomBtn.addEventListener('click', randomize);
   const photoBtn = document.getElementById('photoBtn');
   if (photoBtn) {
     photoBtn.addEventListener('click', async () => {
       await invoke(CH_PANEL_OPEN, { name: 'photo' });
-      invoke(CH_PANEL_WINDOW, { action: 'close' });
+      closePanel();
     });
   }
   if (R.diyBtn) {
     R.diyBtn.addEventListener('click', async () => {
       await invoke(CH_PANEL_OPEN, { name: 'settings' });
-      invoke(CH_PANEL_WINDOW, { action: 'close' });
+      closePanel();
     });
   }
   const storeBtn = document.getElementById('storeBtn');
@@ -329,7 +339,7 @@
     });
   }
   window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') invoke(CH_PANEL_WINDOW, { action: 'close' });
+    if (e.key === 'Escape') closePanel();
   });
 
   // 让卡片自己眨眼：每次随机挑 1~2 只，间隔也随机，避免整排一起动（很假）
