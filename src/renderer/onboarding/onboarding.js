@@ -38,6 +38,9 @@
     step: 0,
     busy: false,
     finishing: false,
+    cohort: '',
+    cohortSource: 'onboarding',
+    cohortSaving: false,
   };
 
   document.addEventListener('DOMContentLoaded', init);
@@ -50,6 +53,10 @@
     document.getElementById('skipBtn').addEventListener('click', onSkip);
     document.getElementById('backBtn').addEventListener('click', () => goStep(S.step - 1));
     document.getElementById('nextBtn').addEventListener('click', onNext);
+
+    for (const button of UI.$$('[data-cohort]')) {
+      button.addEventListener('click', () => selectCohort(button.getAttribute('data-cohort'), 'onboarding'));
+    }
 
     document.addEventListener('keydown', (event) => {
       if (event.key === 'ArrowRight' && S.step < 3 - 1) goStep(S.step + 1);
@@ -64,10 +71,26 @@
     document.documentElement.lang = LANG;
     mountSteps();
 
+    const queryCohort = String(new URLSearchParams(location.search).get('cohort') || '').toLowerCase();
+    if (['couple', 'solo'].includes(settings.betaCohort)) {
+      S.cohort = settings.betaCohort;
+      S.cohortSource = settings.betaCohortSource || 'onboarding';
+    } else if (['couple', 'solo'].includes(queryCohort)) {
+      S.cohort = queryCohort;
+      S.cohortSource = 'invite_link';
+      selectCohort(queryCohort, 'invite_link');
+    }
+    renderCohort();
+
     app.onState((state) => {
       applyPalette(state);
       renderTrial(state);
       renderShortcut(state);
+      const savedCohort = state && state.settings && state.settings.betaCohort;
+      if (!S.cohort && ['couple', 'solo'].includes(savedCohort)) {
+        S.cohort = savedCohort;
+        renderCohort();
+      }
     });
 
     const initialStep = Number(new URLSearchParams(location.search).get('step'));
@@ -132,6 +155,40 @@
     const skip = document.getElementById('skipBtn');
     skip.classList.toggle('hidden', target === 3 - 1);
     skip.textContent = T('先自己玩，稍后配对', 'Play solo for now');
+  }
+
+  function renderCohort() {
+    for (const button of UI.$$('[data-cohort]')) {
+      const active = button.getAttribute('data-cohort') === S.cohort;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-pressed', active ? 'true' : 'false');
+    }
+  }
+
+  async function selectCohort(cohort, source) {
+    if (!['couple', 'solo'].includes(cohort) || S.cohortSaving) return false;
+    S.cohort = cohort;
+    S.cohortSource = source || 'onboarding';
+    renderCohort();
+    S.cohortSaving = true;
+    try {
+      const res = await app.invoke(
+        IPC.APP_SETTINGS_SET,
+        { betaCohort: cohort, betaCohortSource: S.cohortSource },
+        { gate: false }
+      );
+      if (!res || !res.ok) {
+        toast(T('cohort 保存失败，请重试', 'Could not save the beta cohort'), 'err', 3200);
+        return false;
+      }
+      if (res.state) app._applyState(res.state);
+      return true;
+    } catch {
+      toast(T('cohort 保存失败，请重试', 'Could not save the beta cohort'), 'err', 3200);
+      return false;
+    } finally {
+      S.cohortSaving = false;
+    }
   }
 
   function applyPalette(state) {
@@ -210,6 +267,15 @@
       await finish();
       return;
     }
+    if (S.step === 0) {
+      if (!S.cohort) {
+        toast(T('先选择这次是情侣测试还是单人测试', 'Choose a couple or solo beta cohort first'), 'warn', 3200);
+        return;
+      }
+      if (S.cohortSaving) return;
+      goStep(1);
+      return;
+    }
     if (S.step === 1) {
       // 免费内测版：试用是本地自动开启的，这里只做一次兜底尝试。
       // 即使服务端不可达，也必须能继续——绝不把用户卡在「开启失败」这一步。
@@ -278,6 +344,10 @@
       cancelLabel: T('继续看看', 'Keep going'),
     });
     if (!ok) return;
+    if (!S.cohort) {
+      const saved = await selectCohort('solo', 'skip');
+      if (!saved) return;
+    }
     await finish();
   }
 })();

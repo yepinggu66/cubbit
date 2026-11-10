@@ -11,6 +11,11 @@
 
   const api = window.cubbit && window.cubbit.pet ? window.cubbit.pet : null;
   const isMock = !api;
+  const DIY = window.CUBBIT_DIY || {
+    normalize: (value) => value || {},
+    weights: () => ({}),
+    heldGlyph: () => null,
+  };
 
   const els = {
     stage: document.getElementById('stage'),
@@ -41,7 +46,7 @@
       glow: 'rgba(255,150,110,.45)',
       dark: false,
     },
-    settings: { skinId: 'blaze', sizeScale: 1, multiPetCount: 1, reduceMotion: false, onboardingDone: true, voiceEnabled: true, voiceVolume: 0.7, voiceRate: 1.05 },
+    settings: { skinId: 'blaze', diyPet: null, sizeScale: 1, multiPetCount: 1, reduceMotion: false, onboardingDone: true, voiceEnabled: true, voiceVolume: 0.7, voiceRate: 1.05 },
     license: { state: 'trial', trialDaysLeft: 7, planName: '体验版' },
     ui: { showTrialBadge: true, isPro: false, cinemaMode: false, voiceEnabled: true },
     focus: { running: false, paused: false, remainingMs: 0, label: '' },
@@ -109,6 +114,7 @@
       if (v) root.style.setProperty(k, v);
     });
     document.body.classList.toggle('dark', !!palette.dark);
+    if (window.CubbitSprite) window.CubbitSprite.refresh();
     // 自定义深色机身也要保证嘴巴/眉毛可见：按 body2 亮度自动选嘴色
     try {
       const m = /^#?([0-9a-f]{6})$/i.exec(String(palette.body2 || '').trim());
@@ -142,6 +148,24 @@
         <div class="arm r"></div>
         <div class="leg l"></div>
         <div class="leg r"></div>
+        <div class="animal-shape" aria-hidden="true">
+          <div class="animal-tail"></div>
+          <div class="animal-body"><div class="animal-belly"></div></div>
+          <div class="animal-wing l"></div>
+          <div class="animal-wing r"></div>
+          <div class="animal-paw hind l"></div>
+          <div class="animal-paw hind r"></div>
+          <div class="animal-paw front l"></div>
+          <div class="animal-paw front r"></div>
+          <div class="animal-head">
+            <div class="animal-ear l"></div>
+            <div class="animal-ear r"></div>
+            <div class="animal-mark l"></div>
+            <div class="animal-mark r"></div>
+            <div class="animal-muzzle"></div>
+            <div class="animal-nose"></div>
+          </div>
+        </div>
         <div class="body"></div>
         <div class="face">
           <div class="eye l">
@@ -412,7 +436,7 @@
   }
 
   // ============================================================ v1.5 待机行为
-  const IDLE_CLASSES = ['idle-sig', 'idle-breathe', 'idle-stretch', 'idle-hop', 'idle-shake', 'idle-sway', 'idle-nod', 'idle-spin', 'idle-daze', 'is-drool'];
+  const IDLE_CLASSES = ['idle-sig', 'idle-breathe', 'idle-stretch', 'idle-hop', 'idle-shake', 'idle-sway', 'idle-nod', 'idle-spin', 'idle-daze', 'idle-tiptoe', 'idle-bonk', 'idle-peek', 'idle-flop', 'idle-wave', 'idle-sneeze', 'idle-sniff', 'idle-melt', 'is-drool'];
   const IDLE_ACTIONS = [
     { name: 'yawn', weight: 8, duration: 1800, cls: 'idle-breathe', expr: { eyes: 'half', mouth: 'o', body: 'slump' } },
     { name: 'stretch', weight: 6, duration: 1500, cls: 'idle-stretch', expr: { eyes: 'wide', mouth: 'smile', body: 'lean' } },
@@ -433,6 +457,14 @@
     { name: 'think', weight: 4, duration: 2000, look: true, expr: 'thinking' },
     { name: 'wink', weight: 4, duration: 1200, expr: 'wink' },
     { name: 'smug', weight: 3, duration: 1600, cls: 'idle-nod', expr: 'smug' },
+    { name: 'tiptoe', weight: 7, duration: 2400, cls: 'idle-tiptoe', expr: 'curious' },
+    { name: 'bonk', weight: 5, duration: 1650, cls: 'idle-bonk', expr: 'bonk' },
+    { name: 'peek', weight: 7, duration: 2450, cls: 'idle-peek', expr: 'peekaboo' },
+    { name: 'flop', weight: 5, duration: 2800, cls: 'idle-flop', expr: 'puddle', fx: 'dust' },
+    { name: 'wave', weight: 5, duration: 1900, cls: 'idle-wave', expr: 'tinyWave' },
+    { name: 'sneeze', weight: 4, duration: 1350, cls: 'idle-sneeze', expr: 'bonk', fx: 'dust' },
+    { name: 'sniff', weight: 5, duration: 2200, cls: 'idle-sniff', expr: 'curious' },
+    { name: 'melt', weight: 4, duration: 2600, cls: 'idle-melt', expr: 'puddle', fx: 'sparkle' },
   ];
 
   let activityNodAt = 0;
@@ -443,6 +475,7 @@
   function markActivity(reason) {
     lastUserActivityAt = performance.now();
     if (idleActive && reason !== 'behavior') cancelIdle('user');
+    if (reason !== 'behavior' && typeof clearAutonomyScene === 'function') clearAutonomyScene();
   }
 
   function cancelIdle(reason) {
@@ -450,7 +483,7 @@
     const active = idleActive;
     clearTimeout(active.timer);
     idleActive = null;
-    for (const p of petInstances) p.el.classList.remove(...IDLE_CLASSES);
+    for (const p of petInstances) { p.el.classList.remove(...IDLE_CLASSES); delete p.el.dataset.idleAct; }
     if (reason !== 'behavior') {
       setExpression(EXPR_DEFAULT, { duration: 260 });
       idleCooldownUntil = performance.now() + 1200;
@@ -458,20 +491,31 @@
   }
 
   function pickWeightedIdle() {
-    const total = IDLE_ACTIONS.reduce((sum, a) => sum + a.weight, 0);
+    const diy = DIY.normalize(state.settings && state.settings.diyPet);
+    const boosts = diy.enabled ? DIY.weights(diy) : {};
+    const weighted = IDLE_ACTIONS.map((action) => ({
+      action,
+      weight: action.weight * (boosts[action.name] || 1),
+    }));
+    const total = weighted.reduce((sum, item) => sum + item.weight, 0);
     let roll = Math.random() * total;
-    for (const action of IDLE_ACTIONS) {
-      roll -= action.weight;
-      if (roll <= 0) return action;
+    for (const item of weighted) {
+      roll -= item.weight;
+      if (roll <= 0) return item.action;
     }
     return IDLE_ACTIONS[0];
   }
 
   function startIdle(action) {
     cancelIdle('behavior');
-    for (const p of petInstances) if (action.cls) p.el.classList.add(action.cls);
+    for (const p of petInstances) {
+      if (action.cls) p.el.classList.add(action.cls);
+      p.el.dataset.idleAct = action.name; // 插画层据此区分 伸懒腰 / 打瞌睡 等同类动画
+    }
     if (action.expr) setExpression(action.expr, { duration: action.duration });
     if (action.sig) skinSignature();
+    if (action.fx === 'dust') setTimeout(() => dust(), Math.max(350, Math.round(action.duration * 0.45)));
+    if (action.fx === 'sparkle') setTimeout(() => sparkles(5), Math.max(250, Math.round(action.duration * 0.35)));
     if (action.look) {
       const dir = pick(['look-left', 'look-right']);
       for (const p of petInstances) p.el.classList.add(dir);
@@ -480,7 +524,7 @@
       }, Math.min(action.duration, 1200));
     }
     const timer = setTimeout(() => {
-      for (const p of petInstances) p.el.classList.remove(...IDLE_CLASSES);
+      for (const p of petInstances) { p.el.classList.remove(...IDLE_CLASSES); delete p.el.dataset.idleAct; }
       idleActive = null;
       setExpression(EXPR_DEFAULT, { duration: 300 });
       idleCooldownUntil = performance.now() + rand(900, 2000);
@@ -500,6 +544,8 @@
     const t = performance.now();
     if (dragging || sleeping || focusCelebrating || cinemaMode || quietMode || petting.active || idleActive) return false;
     if (document.body.classList.contains('reduce-motion')) return false;
+    // 走路/爬行途中不插伸懒腰等原地小动作（否则插画版会一直停在走路帧，经典版两套动画叠在一起）
+    if (document.body.classList.contains('is-walking') || document.body.classList.contains('is-crawling')) return false;
     if (force) return true;
     return t > idleCooldownUntil && t - lastUserActivityAt > 12000;
   }
@@ -510,6 +556,198 @@
       if (idleAllowed() && Math.random() < 0.72) triggerIdle();
       scheduleIdle();
     }, rand(7000, 15000));
+  }
+
+  // ------------------------------------------------------------ 自主场景编排
+  const AUTONOMY_SCENES = [
+    {
+      id: 'morning_stretch',
+      duration: 4300,
+      steps: [
+        { at: 0, idle: 'stretch' },
+        { at: 900, expr: 'sleepySmile', exprMs: 1300, pop: false },
+        { at: 1050, bubble: '早上好，先伸个懒腰', emoji: '🌤️', chance: 0.5 },
+        { at: 2100, expr: 'content', exprMs: 1800, pop: false },
+        { at: 2450, fx: 'sparkles' },
+      ],
+    },
+    {
+      id: 'focus_quiet',
+      duration: 4400,
+      steps: [
+        { at: 0, idle: 'daze' },
+        { at: 700, expr: 'focused', exprMs: 1500, pop: false },
+        { at: 1050, bubble: '你忙，我在旁边安静待着', emoji: '💻', chance: 0.35 },
+        { at: 2350, expr: 'content', exprMs: 1700, pop: false },
+      ],
+    },
+    {
+      id: 'curious_sniff',
+      duration: 3600,
+      steps: [
+        { at: 0, idle: 'sniff' },
+        { at: 850, expr: 'curious', exprMs: 1300, pop: false },
+        { at: 1050, bubble: '咦，这里好像有新味道', emoji: '👀', chance: 0.55 },
+        { at: 2050, expr: 'thinking', exprMs: 1100, pop: false },
+        { at: 2750, expr: 'content', exprMs: 900, pop: false },
+      ],
+    },
+    {
+      id: 'window_gaze',
+      duration: 4200,
+      steps: [
+        { at: 0, idle: 'lookAround' },
+        { at: 1350, expr: 'thinking', exprMs: 1500, pop: false },
+        { at: 1550, bubble: '窗外刚刚好像有什么经过', emoji: '✨', chance: 0.35 },
+        { at: 2950, expr: 'content', exprMs: 1200, pop: false },
+      ],
+    },
+    {
+      id: 'belly_crawl',
+      duration: 2800,
+      steps: [
+        { at: 0, expr: 'content', exprMs: 1400, pop: false },
+        { at: 650, bubble: '贴着地面慢慢爬过去…', emoji: '🐛', chance: 0.22 },
+        { at: 1500, expr: 'proud', exprMs: 1100, pop: false },
+      ],
+    },
+    {
+      id: 'peek_hello',
+      duration: 4100,
+      steps: [
+        { at: 0, idle: 'peek' },
+        { at: 900, expr: 'shyPeek', exprMs: 1500, pop: false },
+        { at: 1050, bubble: '偷偷看一下你在做什么', emoji: '🫣', chance: 0.5 },
+        { at: 2250, expr: 'love', exprMs: 1500, pop: false },
+        { at: 2350, fx: 'hearts' },
+      ],
+    },
+    {
+      id: 'playful_spin',
+      duration: 3200,
+      steps: [
+        { at: 0, idle: 'tailChase' },
+        { at: 850, expr: 'giggle', exprMs: 1200, pop: false },
+        { at: 1150, fx: 'sparkles' },
+        { at: 1700, idle: 'hop' },
+        { at: 1850, bubble: '突然有点开心', emoji: '🎵', chance: 0.35 },
+        { at: 2750, expr: 'content', exprMs: 900, pop: false },
+      ],
+    },
+    {
+      id: 'clumsy_bonk',
+      duration: 4400,
+      steps: [
+        { at: 0, idle: 'tiptoe' },
+        { at: 1000, expr: 'surprised', exprMs: 850, pop: false },
+        { at: 1150, bubble: '嘿…我好像踩空了', emoji: '😵', chance: 0.6 },
+        { at: 1500, fx: 'dust' },
+        { at: 2500, idle: 'bonk' },
+        { at: 3000, expr: 'dizzy', exprMs: 850, pop: false },
+        { at: 4150, expr: 'content', exprMs: 700, pop: false },
+      ],
+    },
+    {
+      id: 'sleepy_nod',
+      duration: 5200,
+      steps: [
+        { at: 0, idle: 'yawn' },
+        { at: 650, expr: 'sleepy', exprMs: 1500, pop: false },
+        { at: 2050, idle: 'doze' },
+        { at: 2200, bubble: '眼皮有点重…就眯一下', emoji: '😴', chance: 0.45 },
+        { at: 5000, expr: 'sleepySmile', exprMs: 900, pop: false },
+      ],
+    },
+    {
+      id: 'brave_climb',
+      duration: 2600,
+      steps: [
+        { at: 0, expr: 'determined', exprMs: 1700, pop: false },
+        { at: 650, bubble: '上面好像看得更远', emoji: '🧗', chance: 0.2 },
+        { at: 1600, expr: 'proud', exprMs: 1300, pop: false },
+      ],
+    },
+    {
+      id: 'proud_little',
+      duration: 3100,
+      steps: [
+        { at: 0, idle: 'wave' },
+        { at: 850, expr: 'proud', exprMs: 1500, pop: false },
+        { at: 950, fx: 'hearts' },
+        { at: 1150, bubble: '我今天也有好好陪你', emoji: '💗', chance: 0.3 },
+        { at: 2650, expr: 'content', exprMs: 1000, pop: false },
+      ],
+    },
+  ];
+  const AUTONOMY_SCENE_MAP = new Map(AUTONOMY_SCENES.map((scene) => [scene.id, scene]));
+  const AUTONOMY_SCENE_CLASSES = AUTONOMY_SCENES.map((scene) => `scene-${scene.id.replace(/_/g, '-')}`);
+  let autonomySceneToken = 0;
+  let autonomySceneTimers = [];
+  let autonomySceneActive = null;
+
+  function clearAutonomyScene() {
+    autonomySceneToken += 1;
+    for (const timer of autonomySceneTimers) clearTimeout(timer);
+    autonomySceneTimers = [];
+    for (const p of petInstances) p.el.classList.remove(...AUTONOMY_SCENE_CLASSES);
+    autonomySceneActive = null;
+  }
+
+  function runAutonomyScene(id, payload = {}) {
+    const scene = AUTONOMY_SCENE_MAP.get(id);
+    if (!scene) return false;
+    if (dragging || sleeping || focusCelebrating || cinemaMode || quietMode || petting.active) return false;
+    clearAutonomyScene();
+    cancelIdle('behavior');
+    const token = autonomySceneToken;
+    autonomySceneActive = { id: scene.id, startedAt: performance.now(), payload: { ...payload } };
+    const className = `scene-${scene.id.replace(/_/g, '-')}`;
+    for (const p of petInstances) p.el.classList.add(className);
+    for (const step of scene.steps) {
+      const timer = setTimeout(() => {
+        if (token !== autonomySceneToken) return;
+        if (step.idle) triggerIdle(step.idle);
+        if (step.expr) {
+          setExpression(step.expr, {
+            duration: step.exprMs || 1600,
+            pop: step.pop !== false,
+          });
+        }
+        if (step.bubble && (!step.chance || Math.random() < step.chance)) {
+          showBubble(step.bubble, {
+            emoji: step.emoji || '',
+            ms: Math.max(1800, Math.min(3600, scene.duration - step.at)),
+            replaceable: true,
+          });
+        }
+        if (step.fx === 'hearts') hearts(4);
+        else if (step.fx === 'sparkles') sparkles(6);
+        else if (step.fx === 'dust') dust();
+      }, step.at);
+      autonomySceneTimers.push(timer);
+    }
+    const finish = setTimeout(() => {
+      if (token !== autonomySceneToken) return;
+      for (const p of petInstances) p.el.classList.remove(...AUTONOMY_SCENE_CLASSES);
+      autonomySceneActive = null;
+      if (!idleActive) setExpression('content', { duration: 700, pop: false });
+    }, scene.duration);
+    autonomySceneTimers.push(finish);
+    return scene.id;
+  }
+
+  function sceneForDecision(action, payload = {}) {
+    if (payload.scene && AUTONOMY_SCENE_MAP.has(payload.scene)) return payload.scene;
+    if (action === 'rest') return 'sleepy_nod';
+    if (action === 'seek_attention') return 'peek_hello';
+    if (action === 'jump') return 'playful_spin';
+    if (action === 'climb') return 'brave_climb';
+    if (action === 'crawl') return 'belly_crawl';
+    if (action === 'walk') return Math.random() < 0.5 ? 'curious_sniff' : 'window_gaze';
+    const kind = (state.presence && state.presence.kind) || '';
+    if (['coding', 'focus', 'meeting'].includes(kind)) return 'focus_quiet';
+    const hour = new Date().getHours();
+    return hour >= 6 && hour < 10 ? 'morning_stretch' : pick(['curious_sniff', 'window_gaze']);
   }
 
   // ============================================================ v1.5 皮肤特效
@@ -533,12 +771,51 @@
 
   function applySkinAccessories(p, meta) {
     const acc = (meta && meta.accessory) || {};
-    p.el.dataset.hat = acc.hat || '';
-    p.el.dataset.ears = acc.ears || '';
-    p.el.dataset.tail = acc.tail || '';
+    const diy = p === partnerInstance ? null : DIY.normalize(state.settings && state.settings.diyPet);
+    const useDiy = !!(diy && diy.enabled);
+    const animalId = DIY.ANIMAL_PRESETS_ENABLED || (diy && (DIY.isPhotoId(diy.animalId) || diy.animalId === DIY.EXPLORER_ID)) ? diy && diy.animalId : 'custom';
+    // 经典方块仔 (custom) 走原来的 CSS 立体方块（完整 42 种表情、眼神跟随、配色与配件）；
+    // v3.2「探险方块仔」(explorer) 走插画层 (.sprite-form)：按状态换动作帧、只给身体换色；
+    // 用户拍照生成的宠物走位图层 (.art-form)。
+    const Sprite = window.CubbitSprite || null;
+    const useSprite = !!(useDiy && animalId === DIY.EXPLORER_ID && Sprite);
+    const useArt = !useSprite && !!(useDiy && animalId && animalId !== 'custom' && animalId !== DIY.EXPLORER_ID && DIY.hasArt(animalId));
+    if (Sprite && !useSprite) Sprite.detach(p.el);
+    p.el.dataset.hat = useDiy && diy.hat !== 'auto' ? (diy.hat === 'none' ? '' : diy.hat) : acc.hat || '';
+    p.el.dataset.ears = useDiy && diy.ears !== 'auto' ? (diy.ears === 'none' ? '' : diy.ears) : acc.ears || '';
+    p.el.dataset.tail = useDiy && diy.tail !== 'auto' ? (diy.tail === 'none' ? '' : diy.tail) : acc.tail || '';
+    p.el.dataset.diy = useDiy ? 'on' : '';
+    p.el.dataset.animal = useDiy ? animalId : '';
+    p.el.classList.toggle('animal-form', !!(useDiy && animalId && animalId !== 'custom' && animalId !== DIY.EXPLORER_ID) && !useArt && !useSprite);
+    p.el.classList.toggle('art-form', useArt || useSprite);
+    p.el.dataset.temperament = useDiy ? diy.temperament : '';
     p.el.dataset.idle = (meta && meta.idle) || 'wiggle';
     const held = p.el.querySelector('.acc-held');
-    if (held) held.textContent = acc.held || '';
+    const diyHeld = useDiy ? DIY.heldGlyph(diy) : null;
+    if (held) held.textContent = diyHeld === null || diy.heldId === 'auto' ? acc.held || '' : diyHeld;
+
+    // 位图两帧：idle 常显，blink 叠在上面靠 opacity 切换。
+    // 两帧由同一个外框基准排版，切换时不会位移或缩放跳变。
+    const artImg = p.el.querySelector('.pet-art');
+    const artFx = p.el.querySelector('.pet-art-fx');
+    const setSrc = (img, next) => {
+      if (!img) return;
+      if (next) {
+        if (img.getAttribute('src') !== next) img.setAttribute('src', next);
+      } else if (img.hasAttribute('src')) {
+        img.removeAttribute('src');
+      }
+    };
+    if (useSprite) {
+      Sprite.attach(p.el, { blink: true }); // 只有桌面上的这只会眨眼；形象馆/设置里的预览保持睁眼
+    } else if (useArt) {
+      setSrc(artImg, DIY.artFile(animalId, 'idle'));
+      setSrc(artFx, DIY.hasArtFrame(animalId, 'blink') ? DIY.artFile(animalId, 'blink') : null);
+    } else {
+      setSrc(artImg, null);
+      setSrc(artFx, null);
+      p.el.classList.remove('art-blink', 'art-talk');
+    }
   }
 
   function skinParticles(count = 4) {
@@ -667,6 +944,8 @@
     els.bubbleEmoji.classList.toggle('show', !!item.emoji);
     els.bubbleText.textContent = '';
     requestAnimationFrame(() => { els.bubble.classList.add('show'); positionBubble(); });
+    // 说话时位图形象跟着点头，否则气泡在飘而宠物一动不动，像在放录音
+    for (const p of petInstances) if (p.el.classList.contains('art-form')) p.el.classList.add('art-talk');
     reportHitboxes();
 
     // 打字机效果
@@ -686,6 +965,7 @@
         if (token !== bubbleToken) return;
         els.bubble.classList.add('hidden');
         els.bubbleText.textContent = '';
+        if (!bubbleQueue.length) for (const p of petInstances) p.el.classList.remove('art-talk');
         reportHitboxes();
         drainBubble();
       }, 190);
@@ -730,18 +1010,31 @@
     setTimeout(() => el.remove(), opts.className === 'zzz' ? 2800 : 1500);
   }
 
-  /** 粒子起点：宠物身体底部（避免从脸部/眼睛位置冒出） */
+  /** 粒子起点：宠物身体底部（兼容位图形象与立方体形态） */
+  function petVisualRect(p) {
+    if (!p) return null;
+    if (p.el && p.el.classList.contains('art-form')) {
+      const wrap = p.el.querySelector('.pet-art-wrap');
+      if (wrap) {
+        const wr = wrap.getBoundingClientRect();
+        if (wr.width > 0) return wr;
+      }
+    }
+    const r = p.body ? p.body.getBoundingClientRect() : null;
+    return r && r.width > 0 ? r : p.el.getBoundingClientRect();
+  }
+
   function petAnchor(index = 0) {
     const p = petInstances[index];
-    if (!p) return { x: 190, y: 430 };
-    const r = p.body.getBoundingClientRect();
+    const r = petVisualRect(p);
+    if (!r) return { x: 190, y: 430 };
     return { x: r.left + r.width / 2, y: r.bottom - 6 };
   }
 
   function petCenter(index = 0) {
     const p = petInstances[index];
-    if (!p) return { x: 190, y: 340 };
-    const r = p.body.getBoundingClientRect();
+    const r = petVisualRect(p);
+    if (!r) return { x: 190, y: 340 };
     return { x: r.left + r.width / 2, y: r.top + r.height * 0.45 };
   }
 
@@ -812,7 +1105,8 @@
     const els2 = petInstances.map((p) => p.el).concat(partnerInstance ? [partnerInstance.el] : []);
     for (const e of els2) {
       if (!e) continue;
-      const parts = e.querySelectorAll('.body, .arm, .leg');
+      const isArt = e.classList.contains('art-form');
+      const parts = isArt ? e.querySelectorAll('.pet-art-wrap') : e.querySelectorAll('.body, .arm, .leg');
       for (const part of (parts.length ? parts : [e])) {
         const r = part.getBoundingClientRect();
         if (!(r.width > 0)) continue;
@@ -975,6 +1269,8 @@
     if (now() - pokeCooldown < 500) return;
     pokeCooldown = now();
     markActivity('click');
+    // 插画层：被点一下先晕一会儿（和设计稿「被点晕」一致）
+    if (window.CubbitSprite) for (const p of petInstances) window.CubbitSprite.hold(p.el, 'dizzy', 1300);
     if (!api) return;
     api.interaction('click').then((res) => {
       if (!res || !res.ok) return;
@@ -1025,6 +1321,15 @@
   const BLINKABLE = ['wide', 'half', 'look', 'sparkle', 'angry', 'tears', 'sleepy'];
   function blinkOnce() {
     if (petInstances.some((p) => /is-sleep/.test(p.el.className))) return;
+    // 位图形象没有可动的眼珠，靠叠加「闭眼帧」眨眼——和 CSS 形象共用同一套
+    // 随机节奏，两套渲染方式在同一次眨眼里同时动作，不会出现一半睁一半闭。
+    const artPets = petInstances.filter((p) => p.el.classList.contains('art-form'));
+    if (artPets.length) {
+      for (const p of artPets) p.el.classList.add('art-blink');
+      setTimeout(() => {
+        for (const p of artPets) p.el.classList.remove('art-blink');
+      }, 130);
+    }
     if (!BLINKABLE.includes(exprState.eyes)) return;
     for (const p of petInstances) {
       for (const eye of p.eyes) eye.style.transform = 'scaleY(0.08)';
@@ -1112,6 +1417,38 @@
       if (!sleeping) setMood('sad', 1600);
     } else if (!sleeping && !petInstances.some((p) => /is-(drag|sleep|focus)/.test(p.el.className))) {
       clearMood();
+    }
+    reportHitboxes();
+  }
+
+  /**
+   * 人生账本的资源状态 → 它今天的样子。
+   *
+   * 这里刻意只改两件事：毛色（滤镜）和待机速度。
+   * 不改素材、不改尺寸、不改骨架——12 只 × 2 帧全部按同一套基准对齐过，
+   * 任何几何改动都会让它们互相对不上，而颜色和节奏是免费的。
+   */
+  const LIFE_LEVELS = ['steady', 'normal', 'tired', 'broke', 'caged', 'danger'];
+  let lastLifeLevel = '';
+
+  function applyResourceMood(m) {
+    if (!m || !m.level) return;
+    const root = document.documentElement;
+    root.style.setProperty('--life-hue', `${Number(m.hue) || 0}deg`);
+    root.style.setProperty('--life-sat', String(Number(m.sat) || 1));
+    root.style.setProperty('--life-bright', String(Number(m.bright) || 1));
+    root.style.setProperty('--life-tempo', String(Number(m.tempo) || 1));
+    document.body.dataset.life = m.level;
+    for (const p of petInstances) {
+      for (const lv of LIFE_LEVELS) p.el.classList.toggle(`life-${lv}`, lv === m.level);
+    }
+
+    // 状态刚变的时候，让它自己说一句。同一状态反复推送不重复说。
+    if (m.level !== lastLifeLevel) {
+      lastLifeLevel = m.level;
+      if (m.line && !cinemaMode && !quietMode && !sleeping && !dragging) {
+        showBubble(m.line, { emoji: '🫧', ms: 4600 });
+      }
     }
     reportHitboxes();
   }
@@ -1327,6 +1664,7 @@
           Object.assign(state.palette, payload.palette);
           setCssVars(state.palette);
         }
+        if (payload.diyPet !== undefined) state.settings.diyPet = payload.diyPet;
         applySkin(payload.skinId || (payload.skin && payload.skin.id) || state.settings.skinId || 'blaze');
         break;
       case 'tts': {
@@ -1377,8 +1715,30 @@
         break;
       }
       case 'walk-start': {
+        clearAutonomyScene();
+        cancelIdle('behavior');
         document.body.classList.add('is-walking');
         for (const p of petInstances) { p.el.classList.add('is-walk'); if (payload && payload.dir < 0) p.el.classList.add('walk-left'); }
+        setExpression(payload && payload.scene === 'curious_sniff' ? 'curious' : 'content', { duration: 0, pop: false });
+        break;
+      }
+      case 'crawl-start': {
+        clearAutonomyScene();
+        cancelIdle('behavior');
+        document.body.classList.add('is-crawling');
+        for (const p of petInstances) {
+          p.el.classList.add('is-crawl');
+          p.el.classList.toggle('walk-left', !!(payload && payload.dir < 0));
+        }
+        setExpression('determined', { duration: 0, pop: false });
+        break;
+      }
+      case 'crawl-end': {
+        document.body.classList.remove('is-crawling');
+        for (const p of petInstances) p.el.classList.remove('is-crawl', 'walk-left');
+        if (payload && payload.completed === true) {
+          runAutonomyScene(sceneForDecision('crawl', payload), payload);
+        }
         break;
       }
       case 'walk-dir': {
@@ -1388,10 +1748,45 @@
       case 'walk-end': {
         document.body.classList.remove('is-walking');
         for (const p of petInstances) p.el.classList.remove('is-walk', 'walk-left');
+        if (payload && payload.completed === true && payload.scene !== 'brave_climb') {
+          runAutonomyScene(sceneForDecision('walk', payload), payload);
+        }
+        break;
+      }
+      case 'jump-start': {
+        clearAutonomyScene();
+        cancelIdle('behavior');
+        for (const p of petInstances) p.el.classList.add('is-autonomy-jump');
+        setExpression('excited', { duration: 900 });
+        sparkles(5);
+        break;
+      }
+      case 'jump-end': {
+        for (const p of petInstances) p.el.classList.remove('is-autonomy-jump');
+        if (payload && payload.completed === true) runAutonomyScene(sceneForDecision('jump', payload), payload);
+        break;
+      }
+      case 'climb-end': {
+        for (const p of petInstances) p.el.classList.remove('is-climb');
+        if (payload && payload.completed === true) runAutonomyScene(sceneForDecision('climb', payload), payload);
+        break;
+      }
+      case 'autonomy-think': {
+        runAutonomyScene(sceneForDecision('think', payload), payload);
+        break;
+      }
+      case 'autonomy-seek': {
+        runAutonomyScene(sceneForDecision('seek_attention', payload), payload);
+        break;
+      }
+      case 'autonomy-rest': {
+        runAutonomyScene(sceneForDecision('rest', payload), payload);
         break;
       }
       case 'climb': {
         for (const p of petInstances) p.el.classList.add('is-climb');
+        setExpression('determined', { duration: 1500, pop: false });
+        if (!quietMode && Math.random() < 0.18) showBubble('再爬高一点点…', { emoji: '🧗', ms: 1800, replaceable: true });
         setTimeout(() => {
           for (const p of petInstances) p.el.classList.remove('is-climb');
         }, 900);
@@ -1553,6 +1948,10 @@
         applyLifeMood(payload && payload.mood);
         break;
       }
+      case 'life-resource': {
+        applyResourceMood(payload);
+        break;
+      }
       case 'presence': {
         state.presence = { ...(state.presence || {}), ...payload };
         applyPresence(payload, payload.cinema);
@@ -1628,6 +2027,7 @@
           bubbleToken++;
           els.bubble.classList.remove('show');
           els.bubble.classList.add('hidden');
+          for (const p of petInstances) p.el.classList.remove('art-talk');
           drainBubble();
         }
         break;
@@ -1708,6 +2108,14 @@
       return;
     }
     try {
+      // 先拿照片宠物注册表：applyState 里就会用到 DIY.artFile，
+      // 晚一步注册的话，第一次渲染会退回到 CSS 方块（闪一下很显眼）。
+      if (api.photoPets) {
+        const photos = await api.photoPets();
+        if (photos && photos.ok && photos.items && photos.items.length) {
+          DIY.registerPhotoPets(photos.items);
+        }
+      }
       const st = await api.ready();
       applyState(st);
     } catch {
@@ -1778,11 +2186,22 @@
     setMood: (mood, ms) => setMood(mood, ms || 0),
     clearMood: () => clearMood(),
     applySkin: (id) => applySkin(id),
+    // 唤醒办事四个动作（倾听/思考/干活/汇报）先只提供切换入口，后台另做：spritePose('think') / spritePose(null)
+    spritePose: (name) => {
+      if (!window.CubbitSprite) return false;
+      for (const p of petInstances) window.CubbitSprite.setAgentPose(p.el, name || null);
+      return true;
+    },
     emote: (evt, opts) => emote(evt, opts || {}),
     expressions: () => Object.keys(XD.EXPRESSIONS || {}),
     signature: () => skinSignature(),
     triggerIdle: (name) => triggerIdle(name),
+    cancelIdle: () => cancelIdle('qa'),
     actions: () => IDLE_ACTIONS.map((a) => a.name),
+    runScene: (id, payload) => runAutonomyScene(id, payload || {}),
+    stopScene: () => clearAutonomyScene(),
+    scenes: () => AUTONOMY_SCENES.map((scene) => ({ id: scene.id, duration: scene.duration })),
+    scene: () => (autonomySceneActive ? { ...autonomySceneActive } : null),
     dispatch: (kind, payload) => handleEvent({ kind, payload: payload || {} }),
     palette: (p) => {
       if (!p) return;

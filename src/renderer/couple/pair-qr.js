@@ -62,7 +62,7 @@
   /** 可以直接转发的整段邀请信息 */
   function message(code) {
     const cfg = window.CubbitLiteConfig || {};
-    const dl = cfg.downloadUrl || 'https://pingguye.cn/cubbit/dl/Cubbit-Setup-2.5.1-soft.exe';
+    const dl = cfg.downloadUrl || 'https://pingguye.cn/cubbit/dl/windows/latest';
     return [
       '我在用「方块仔」，一只住在桌面上的小方块。你也装一个，我们俩的方块仔就能互相看见。',
       '',

@@ -31,5 +31,7 @@ contextBridge.exposeInMainWorld('cubbit', {
     openPanel: (name) => ipcRenderer.invoke(INVOKE.APP_PANEL_OPEN, { name }),
     voiceTalk: () => ipcRenderer.invoke(INVOKE.VOICE_LISTEN, {}),
     tts: (text, kind) => ipcRenderer.invoke(INVOKE.TTS_SPEAK, { text, kind }),
+    // 照片宠物：桌宠页必须先拿到注册表，DIY.artFile 才认识 file:// 的那几只
+    photoPets: () => ipcRenderer.invoke(INVOKE.PET_PHOTO_LIST),
   },
 });

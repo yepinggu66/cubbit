@@ -38,6 +38,9 @@
     tickTimer: null,
     feedTimer: null,
     sizeSave: null,
+    diyDraft: null,
+    diyLockUntil: 0,
+    diySyncTimer: null,
   };
 
   // =============================================================== 启动
@@ -277,6 +280,485 @@
     const skinCard = el('div', { class: 'card' }, cardHead('皮肤衣橱', '点击即可换上；带 🔒 的皮肤点一下可在桌面免费试穿 10 秒，开通 7 天体验或完整版后永久可用。', 'palette'), R.swatchGrid, R.skinHint);
     sec.appendChild(skinCard);
 
+    // ---- DIY 宠物工坊（免费内测直接可用）
+    const DIY = window.CUBBIT_DIY;
+    const currentDiy = () => DIY.normalize(app.state && app.state.settings && app.state.settings.diyPet);
+    S.diyDraft = currentDiy();
+    const holdDiyDraft = () => {
+      S.diyLockUntil = Date.now() + 900;
+      clearTimeout(S.diySyncTimer);
+      S.diySyncTimer = setTimeout(() => {
+        S.diyLockUntil = 0;
+        S.diyDraft = currentDiy();
+        renderDiyPreview(S.diyDraft);
+      }, 950);
+    };
+    const saveDiy = async (patch, message) => {
+      const merged = Object.assign({}, S.diyDraft, patch, { enabled: true });
+      // 改配色/配件时保持当前形象：探险方块仔仍是探险方块仔，其它回到经典方块仔
+      if (!Object.prototype.hasOwnProperty.call(patch, 'animalId')) merged.animalId = S.diyDraft && S.diyDraft.animalId === DIY.EXPLORER_ID ? DIY.EXPLORER_ID : 'custom';
+      const next = DIY.normalize(merged);
+      S.diyDraft = next;
+      holdDiyDraft();
+      renderDiyPreview(next);
+      return save({ diyPet: next }, message);
+    };
+
+    R.diyPreviewGlow = el('div', { class: 'diy-preview__glow' });
+    R.diyPreviewTail = el('div', { class: 'diy-preview__tail' });
+    R.diyPreviewEars = el('div', { class: 'diy-preview__ears' });
+    R.diyPreviewHat = el('div', { class: 'diy-preview__hat' });
+    R.diyPreviewAnimal = el(
+      'div',
+      { class: 'diy-preview__animal', 'aria-hidden': 'true' },
+      el('div', { class: 'diy-preview__animal-tail' }),
+      el('div', { class: 'diy-preview__animal-body' }),
+      el('div', { class: 'diy-preview__animal-paw l' }),
+      el('div', { class: 'diy-preview__animal-paw r' }),
+      el('div', { class: 'diy-preview__animal-ear l' }),
+      el('div', { class: 'diy-preview__animal-ear r' }),
+      el('div', { class: 'diy-preview__animal-mark l' }),
+      el('div', { class: 'diy-preview__animal-mark r' }),
+      el('div', { class: 'diy-preview__animal-muzzle' }),
+      el('div', { class: 'diy-preview__animal-nose' }),
+    );
+    R.diyPreviewBody = el(
+      'div',
+      { class: 'diy-preview__body' },
+      el('div', { class: 'diy-preview__eye l' }),
+      el('div', { class: 'diy-preview__eye r' }),
+      el('div', { class: 'diy-preview__blush l' }),
+      el('div', { class: 'diy-preview__blush r' }),
+      el('div', { class: 'diy-preview__mouth' }),
+    );
+    R.diyPreviewHeld = el('div', { class: 'diy-preview__held' });
+    R.diyPreviewArt = el('img', { class: 'diy-preview__art', alt: '', 'aria-hidden': 'true' });
+    R.diyPreview = el(
+      'div',
+      { class: 'diy-preview', 'aria-label': 'DIY 宠物预览' },
+      el('div', { class: 'diy-preview__shadow' }),
+      R.diyPreviewArt,
+      R.diyPreviewGlow,
+      R.diyPreviewAnimal,
+      R.diyPreviewTail,
+      R.diyPreviewEars,
+      R.diyPreviewBody,
+      R.diyPreviewHat,
+      R.diyPreviewHeld,
+    );
+    R.diyPreviewName = el('div', { class: 'diy-preview-card__name', text: '蜜桃 · 软乎乎' });
+    R.diyPreviewDesc = el('div', { class: 'diy-preview-card__desc', text: '可以自由组合颜色、配件和小性格；想整只换掉就去形象馆。' });
+
+    R.diyPaletteButtons = {};
+    R.diyAnimalButtons = {};
+    R.diyHatButtons = {};
+    R.diyEarButtons = {};
+    R.diyTailButtons = {};
+    R.diyHeldButtons = {};
+    R.diyTemperamentButtons = {};
+
+    const animalGrid = el('div', { class: 'diy-animals' });
+    // 只列有渲染图的形象：没图的仍是 CSS 轮廓，和位图放在一起会明显掉档次。
+    // 想自由配色/配件仍可从形象馆的「自由组合」进。
+    const animalChoices = DIY.ANIMAL_PRESETS_ENABLED ? DIY.ANIMALS.filter((a) => a.art) : [];
+    for (const animal of animalChoices) {
+      const btn = el(
+        'button',
+        {
+          class: 'diy-animal',
+          type: 'button',
+          title: animal.desc || animal.label,
+          dataset: { id: animal.id },
+        },
+        el('span', { class: 'diy-animal__emoji', text: animal.emoji }),
+        el('span', { class: 'diy-animal__copy' },
+          el('strong', { text: animal.label }),
+          el('small', { text: animal.desc || '' }),
+        ),
+      );
+      btn.addEventListener('click', () => {
+        if (animal.id === 'custom') {
+          saveDiy({ animalId: 'custom' }, '已切换为自由组合');
+          return;
+        }
+        saveDiy(
+          {
+            animalId: animal.id,
+            paletteId: animal.paletteId,
+            hat: animal.hat,
+            ears: animal.ears,
+            tail: animal.tail,
+            heldId: animal.heldId,
+            temperament: animal.temperament,
+          },
+          `换成了「${animal.label}」动物模板`
+        );
+      });
+      R.diyAnimalButtons[animal.id] = btn;
+      animalGrid.appendChild(btn);
+    }
+
+    const paletteGrid = el('div', { class: 'diy-options diy-options--palette' });
+    for (const palette of DIY.PALETTES) {
+      const swatch = el(
+        'button',
+        {
+          class: 'diy-palette',
+          type: 'button',
+          title: palette.label,
+          'aria-label': '配色：' + palette.label,
+          dataset: { id: palette.id },
+        },
+        el('span', {
+          class: 'diy-palette__ball',
+          style: {
+            background: `linear-gradient(145deg, ${palette.body1}, ${palette.body2} 55%, ${palette.body3})`,
+            boxShadow: `0 5px 12px rgba(0,0,0,.28), 0 0 14px ${palette.glow}`,
+          },
+        }, el('i', { style: { background: palette.eye } })),
+        el('span', { class: 'diy-palette__label', text: palette.label }),
+      );
+      swatch.addEventListener('click', () => saveDiy({ paletteId: palette.id }, `换成了「${palette.label}」配色`));
+      R.diyPaletteButtons[palette.id] = swatch;
+      paletteGrid.appendChild(swatch);
+    }
+
+    // 自定义颜色：任意主色，只换身体（小灯、小包、五官保持原色）
+    R.diyCustomColor = el('input', { class: 'diy-palette__picker', type: 'color', value: '#f08a62', 'aria-label': '自定义身体颜色' });
+    R.diyCustomBall = el('span', { class: 'diy-palette__ball diy-palette__ball--custom' }, el('i', { style: { background: '#3a211c' } }), R.diyCustomColor);
+    const customSwatch = el(
+      'label',
+      { class: 'diy-palette diy-palette--custom', title: '自定义颜色：随便挑一个', dataset: { id: DIY.CUSTOM_PALETTE_ID || 'custom' } },
+      R.diyCustomBall,
+      el('span', { class: 'diy-palette__label', text: '自定义' }),
+    );
+    const pickCustom = (message) => saveDiy({ paletteId: DIY.CUSTOM_PALETTE_ID || 'custom', bodyColor: R.diyCustomColor.value }, message);
+    const pickCustomSoon = UI.debounce(() => pickCustom(''), 220);
+    R.diyCustomColor.addEventListener('input', () => {
+      const pal = DIY.derivePalette ? DIY.derivePalette(R.diyCustomColor.value) : null;
+      if (pal) R.diyCustomBall.style.background = `linear-gradient(145deg, ${pal.body1}, ${pal.body2} 55%, ${pal.body3})`;
+      pickCustomSoon();
+    });
+    R.diyCustomColor.addEventListener('change', () => pickCustom('换上了自定义颜色'));
+    R.diyPaletteButtons[DIY.CUSTOM_PALETTE_ID || 'custom'] = customSwatch;
+    paletteGrid.appendChild(customSwatch);
+
+    const makeOptionGrid = (items, key, labelOf, glyphOf, onPick) => {
+      const grid = el('div', { class: 'diy-options' });
+      const refs = {};
+      for (const item of items) {
+        const btn = el(
+          'button',
+          {
+            class: 'diy-option',
+            type: 'button',
+            title: labelOf(item),
+            'aria-label': `${labelOf(item)}`,
+            dataset: { id: item.id },
+          },
+          el('span', { class: 'diy-option__glyph', text: glyphOf(item) }),
+          el('span', { class: 'diy-option__label', text: labelOf(item) }),
+        );
+        btn.addEventListener('click', () => onPick(item));
+        refs[item.id] = btn;
+        grid.appendChild(btn);
+      }
+      R['diy' + key + 'Buttons'] = refs;
+      return grid;
+    };
+
+    R.diyHatGrid = makeOptionGrid(DIY.HATS, 'Hat', (x) => x.label, (x) => x.emoji, (item) => saveDiy({ hat: item.id }));
+    R.diyEarGrid = makeOptionGrid(DIY.EARS, 'Ear', (x) => x.label, (x) => x.emoji, (item) => saveDiy({ ears: item.id }));
+    R.diyTailGrid = makeOptionGrid(DIY.TAILS, 'Tail', (x) => x.label, (x) => x.emoji, (item) => saveDiy({ tail: item.id }));
+    R.diyHeldGrid = makeOptionGrid(DIY.HELD, 'Held', (x) => x.label, (x) => x.glyph || '·', (item) => saveDiy({ heldId: item.id }));
+
+    R.diyTemperamentGrid = el('div', { class: 'diy-options diy-options--temperament' });
+    for (const temperament of DIY.TEMPERAMENTS) {
+      const btn = el(
+        'button',
+        { class: 'diy-temperament', type: 'button', dataset: { id: temperament.id } },
+        el('span', { class: 'diy-temperament__glyph', text: temperament.emoji }),
+        el('span', { class: 'diy-temperament__body' },
+          el('span', { class: 'diy-temperament__title', text: temperament.label }),
+          el('span', { class: 'diy-temperament__desc', text: temperament.desc }),
+        ),
+      );
+      btn.addEventListener('click', () => saveDiy({ temperament: temperament.id }, `性格设为「${temperament.label}」`));
+      R.diyTemperamentButtons[temperament.id] = btn;
+      R.diyTemperamentGrid.appendChild(btn);
+    }
+
+    R.diyToggle = makeSwitch(false, async (on) => {
+      const next = Object.assign({}, S.diyDraft, { enabled: on });
+      S.diyDraft = next;
+      holdDiyDraft();
+      renderDiyPreview(next);
+      const ok = await save({ diyPet: next }, on ? 'DIY 造型已启用到桌面' : '已恢复当前皮肤的默认造型');
+      if (!ok) {
+        await app.refresh();
+        S.diyDraft = currentDiy();
+        renderDiyPreview(S.diyDraft);
+      }
+    });
+    R.diyRandom = el('button', { class: 'btn btn--sm btn--primary', type: 'button' }, icon('sparkle'), el('span', { text: '随机一只' }));
+    R.diyRandom.addEventListener('click', async () => {
+      const next = DIY.randomize(S.diyDraft);
+      S.diyDraft = next;
+      holdDiyDraft();
+      renderDiyPreview(next);
+      const ok = await save({ diyPet: next }, '随机造型已经跑到桌面上啦');
+      if (!ok) {
+        S.diyDraft = currentDiy();
+        renderDiyPreview(S.diyDraft);
+      }
+    });
+    R.diyReset = el('button', { class: 'btn btn--sm btn--ghost', type: 'button' }, icon('rotate-ccw'), el('span', { text: '恢复原生' }));
+    R.diyReset.addEventListener('click', async () => {
+      const next = Object.assign({}, DIY.DEFAULT, { enabled: false });
+      S.diyDraft = next;
+      holdDiyDraft();
+      renderDiyPreview(next);
+      const ok = await save({ diyPet: next }, '已恢复当前皮肤的原生造型');
+      if (!ok) {
+        S.diyDraft = currentDiy();
+        renderDiyPreview(S.diyDraft);
+      }
+    });
+
+    R.diyPreviewCard = el(
+      'div',
+      { class: 'diy-preview-card' },
+      el('div', { class: 'diy-preview-card__stage' }, R.diyPreview),
+      el('div', { class: 'diy-preview-card__copy' },
+        R.diyPreviewName,
+        R.diyPreviewDesc,
+        el('div', { class: 'diy-preview-card__actions' }, R.diyRandom, R.diyReset),
+      ),
+    );
+    R.diyField = (title, desc, control) => el(
+      'div',
+      { class: 'diy-field' },
+      el('div', { class: 'diy-field__head' },
+        el('div', { class: 'diy-field__title', text: title }),
+        desc ? el('div', { class: 'diy-field__desc', text: desc }) : null,
+      ),
+      control,
+    );
+    const diyHead = cardHead('DIY 宠物工坊', '在选定的形象上继续微调配色、配件和小性格，保存后立刻换到桌面。换整只形象请用上面的形象馆。', 'sliders');
+    const diySwitchWrap = el(
+      'div',
+      { class: 'diy-enable' },
+      el('span', { class: 'diy-enable__label', text: '启用到桌面' }),
+      R.diyToggle,
+    );
+    diyHead.appendChild(diySwitchWrap);
+
+    // 形象馆入口。数量与名单都从「真正有渲染图的形象」推出来，避免文案写死
+    // 之后跟实际素材对不上（之前就出现过写着 12 种、进去只有 4 种）。
+    // 动物预设关闭时只宣传方块仔，不要再写 11 种高清形象。
+    const artAnimals = DIY.ANIMAL_PRESETS_ENABLED ? DIY.ANIMALS.filter((a) => a.art) : [];
+    const artCount = artAnimals.length;
+    const artNames = artAnimals.map((a) => a.label.replace(/^小/, '')).join('、');
+    const wardrobeBtnLabel = DIY.ANIMAL_PRESETS_ENABLED
+      ? `形象馆 · ${artCount} 种形象`
+      : '形象馆 · 方块仔';
+    const wardrobeDesc = DIY.ANIMAL_PRESETS_ENABLED
+      ? `${artNames}，点一下就换。`
+      : '经典方块仔：亮橙身子、大眼睛、小手小脚；形象馆里还有带小灯和小包的「探险方块仔」。配色和配件可在下面自由组合。';
+    const wardrobeBtn = el(
+      'button',
+      { class: 'btn btn--sm btn--primary', type: 'button' },
+      icon('sparkle'),
+      el('span', { text: wardrobeBtnLabel }),
+    );
+    wardrobeBtn.addEventListener('click', () => app.openPanel('wardrobe'));
+    R.wardrobeNow = el('span', { class: 'diy-quality-note' }, el('span', { text: '当前：方块仔' }));
+    const wardrobeBar = el(
+      'div',
+      { class: 'diy-wardrobe-bar' },
+      el('div', { class: 'diy-wardrobe-bar__copy' },
+        el('span', { class: 'diy-wardrobe-bar__title', text: DIY.ANIMAL_PRESETS_ENABLED ? '想整只换掉？' : '外观' }),
+        el('span', { class: 'diy-wardrobe-bar__desc', text: wardrobeDesc }),
+      ),
+      R.wardrobeNow,
+      wardrobeBtn,
+    );
+    const diyCard = el(
+      'div',
+      { class: 'card diy-card' },
+      diyHead,
+      wardrobeBar,
+      R.diyPreviewCard,
+      DIY.ANIMAL_PRESETS_ENABLED
+        ? R.diyField('宠物形象', `${artCount} 种高清形象，点一下就会整只换掉，配件和性格跟着预设走。`, animalGrid)
+        : R.diyField(
+            '当前外观',
+            '那 11 个旧动物形象已撤下。桌面默认是经典方块仔，也可以去形象馆换成探险方块仔。',
+            el('div', { class: 'diy-quality-note' }, el('span', { text: '经典方块仔 · 探险方块仔' })),
+          ),
+      R.diyField('配色', '多套柔和的低饱和配色，随时可以换心情。', paletteGrid),
+      R.diyField('头上', '跟随皮肤，或者自己挑一个小装饰。', R.diyHatGrid),
+      R.diyField('耳朵', '猫耳、兔耳、小熊耳和小天线都可以组合。', R.diyEarGrid),
+      R.diyField('尾巴 / 背后', '给方块仔加一条尾巴或一对小翅膀。', R.diyTailGrid),
+      R.diyField('手里拿着', '小物件会跟着方块仔一起轻轻晃。', R.diyHeldGrid),
+      R.diyField('小性格', '只会调整待机动作的偏好，不会改变互动和情侣功能。', R.diyTemperamentGrid),
+    );
+    sec.appendChild(diyCard);
+
+    // ---- 拍一只 / 分享（v3.3：照片宠物 + 分享到站点，已撤下相亲角）
+    const photoBtn = el(
+      'button',
+      { class: 'btn btn--sm btn--primary', type: 'button' },
+      el('span', { text: '拍一只，变成桌宠' }),
+    );
+    photoBtn.addEventListener('click', () => app.openPanel('photo'));
+    const wardrobeQuickBtn = el(
+      'button',
+      { class: 'btn btn--sm', type: 'button' },
+      el('span', { text: '打开形象馆（12 种形象）' }),
+    );
+    wardrobeQuickBtn.addEventListener('click', () => app.openPanel('wardrobe'));
+    sec.appendChild(
+      el(
+        'div',
+        { class: 'card' },
+        cardHead(
+          '拍一只 · 形象馆',
+          '路边遇见的小动物或家里的主子拍下来，本机自动抠底、对齐比例并生成眨眼帧，立刻变成一只桌宠（照片不上传）。也可以去形象馆查看方块仔，或用照片生成专属宠物。',
+          'heart',
+        ),
+        el(
+          'div',
+          { class: 'row', style: { gap: '10px', alignItems: 'center', flexWrap: 'wrap', marginTop: '6px' } },
+          photoBtn,
+          wardrobeQuickBtn,
+          el('span', { class: 'diy-quality-note' }, el('span', { text: '抠图与生成均在本机离线完成' })),
+        ),
+      ),
+    );
+    // ---- 人生指南 · 三场试炼 & 神秘探险
+    const ledgerBtn = el(
+      'button',
+      { class: 'btn btn--sm btn--primary', type: 'button' },
+      el('span', { text: '开始人生指南 · 三场试炼' }),
+    );
+    ledgerBtn.addEventListener('click', () => app.openPanel('ledger'));
+    const farmBtn = el(
+      'button',
+      { class: 'btn btn--sm', type: 'button' },
+      el('span', { text: '🗺️ 进入神秘探险' }),
+    );
+    farmBtn.addEventListener('click', () => app.openPanel('farm'));
+    sec.appendChild(
+      el(
+        'div',
+        { class: 'card' },
+        cardHead(
+          '人生指南 · 神秘探险',
+          '「人生指南」把 767 条循证建议浓缩为三场立即可玩的短试炼（高分生成分享卡与保持清单，低分定制专属健康方案）；「神秘探险」带你的宠物（与伴侣宠物）深入荒野营地、奇遇猛兽并收集皮肤碎片。',
+          'sparkle',
+        ),
+        el(
+          'div',
+          { class: 'row', style: { gap: '10px', alignItems: 'center', flexWrap: 'wrap', marginTop: '6px' } },
+          ledgerBtn,
+          farmBtn,
+          el('span', { class: 'diy-quality-note' }, el('span', { text: '三场试炼随时可玩 · 完全离线' })),
+        ),
+      ),
+    );
+
+    function renderDiyPreview(input) {
+      if (!R.diyPreview) return;
+      const cfg = DIY.normalize(input);
+      S.diyDraft = cfg;
+      const state = app.state || {};
+      const skin = ((state.skins || [])).find((item) => item.id === ((state.settings && state.settings.skinId) || 'blaze'));
+      const skinAcc = (skin && skin.accessory) || {};
+      const resolve = (value, fallback) => {
+        if (!cfg.enabled) return fallback || '';
+        if (value === 'auto') return fallback || '';
+        return value === 'none' ? '' : value;
+      };
+      const palette = DIY.palette(cfg);
+      const temperament = DIY.TEMPERAMENTS.find((item) => item.id === cfg.temperament) || DIY.TEMPERAMENTS[0];
+      const hatId = resolve(cfg.hat, skinAcc.hat);
+      const earsId = resolve(cfg.ears, skinAcc.ears);
+      const tailId = resolve(cfg.tail, skinAcc.tail);
+      const held = cfg.enabled && cfg.heldId !== 'auto'
+        ? (DIY.HELD.find((item) => item.id === cfg.heldId) || {}).glyph || ''
+        : skinAcc.held || '';
+      const hat = DIY.HATS.find((item) => item.id === hatId);
+
+      R.diyPreview.dataset.enabled = cfg.enabled ? '1' : '0';
+      R.diyPreview.dataset.animal = cfg.animalId;
+      R.diyPreview.dataset.temperament = cfg.temperament;
+      R.diyPreview.style.setProperty('--diy-1', palette.body1);
+      R.diyPreview.style.setProperty('--diy-2', palette.body2);
+      R.diyPreview.style.setProperty('--diy-3', palette.body3);
+      R.diyPreview.style.setProperty('--diy-eye', palette.eye);
+      R.diyPreview.style.setProperty('--diy-blush', palette.blush);
+      R.diyPreview.style.setProperty('--diy-glow', palette.glow);
+      R.diyPreviewEars.dataset.ears = earsId;
+      R.diyPreviewTail.dataset.tail = tailId;
+      R.diyPreviewHat.textContent = hat ? hat.emoji : '';
+      R.diyPreviewHeld.textContent = held;
+      const isExplorer = cfg.animalId === DIY.EXPLORER_ID;
+      const animal = isExplorer ? DIY.EXPLORER : cfg.animalId !== 'custom' ? DIY.animalById(cfg.animalId) : null;
+      // 有渲染图的形象用位图替换整套 CSS 拼装（与桌宠窗口保持一致）
+      const isPhoto = !!(DIY.isPhotoId && DIY.isPhotoId(cfg.animalId) && DIY.hasArt(cfg.animalId));
+      const useArt = !isExplorer && !!((animal || isPhoto) && DIY.hasArt(cfg.animalId));
+      // 探险方块仔：和桌面一样用插画，只给身体换色；经典方块仔仍是 CSS 预览
+      const Sprite = window.CubbitSprite || null;
+      const useSprite = isExplorer && !!Sprite;
+      R.diyPreview.classList.toggle('is-art', useArt || useSprite);
+      R.diyPreview.classList.toggle('is-sprite', useSprite);
+      if (R.diyPreviewArt) {
+        if (useSprite) {
+          const body = palette.body2;
+          R.diyPreviewArt.dataset.want = body;
+          Sprite.url(body, 'idle').then((src) => {
+            if (R.diyPreviewArt.dataset.want !== body) return;
+            if (R.diyPreviewArt.getAttribute('src') !== src) R.diyPreviewArt.setAttribute('src', src);
+          });
+        } else if (useArt) {
+          delete R.diyPreviewArt.dataset.want;
+          const src = DIY.artFile(cfg.animalId, 'idle');
+          if (R.diyPreviewArt.getAttribute('src') !== src) R.diyPreviewArt.setAttribute('src', src);
+        } else if (R.diyPreviewArt.hasAttribute('src')) {
+          R.diyPreviewArt.removeAttribute('src');
+        }
+      }
+      if (R.diyCustomColor && document.activeElement !== R.diyCustomColor) {
+        const customHex = cfg.bodyColor || palette.body2;
+        if (/^#[0-9a-f]{6}$/i.test(customHex)) R.diyCustomColor.value = customHex;
+        const pal = DIY.derivePalette && cfg.bodyColor ? DIY.derivePalette(cfg.bodyColor) : null;
+        if (R.diyCustomBall) R.diyCustomBall.style.background = pal ? `linear-gradient(145deg, ${pal.body1}, ${pal.body2} 55%, ${pal.body3})` : '';
+      }
+      R.diyPreviewName.textContent = animal
+        ? `${animal.emoji} ${animal.label} · ${temperament.emoji} ${temperament.label}`
+        : `${palette.emoji} ${palette.label} · ${temperament.emoji} ${temperament.label}`;
+      R.diyPreviewDesc.textContent = animal ? animal.desc : temperament.desc;
+      if (R.wardrobeNow) {
+        const label = animal ? animal.label : '方块仔';
+        R.wardrobeNow.textContent = cfg.enabled ? `当前：${label}` : `当前：${label}（DIY 已关闭）`;
+      }
+
+      setSwitch(R.diyToggle, cfg.enabled);
+      const setActive = (refs, activeId) => {
+        for (const [id, node] of Object.entries(refs)) node.classList.toggle('is-active', id === activeId);
+      };
+      setActive(R.diyPaletteButtons, cfg.paletteId);
+      setActive(R.diyAnimalButtons, cfg.animalId);
+      setActive(R.diyHatButtons, cfg.hat);
+      setActive(R.diyEarButtons, cfg.ears);
+      setActive(R.diyTailButtons, cfg.tail);
+      setActive(R.diyHeldButtons, cfg.heldId);
+      setActive(R.diyTemperamentButtons, cfg.temperament);
+    }
+
+    renderDiyPreview(S.diyDraft);
+
     // ---- 大小
     R.sizePet = el('div', { class: 'size-preview__pet' });
     R.sizeSlider = el('input', {
@@ -511,6 +993,10 @@
       R.customColorsLock.style.display = locked ? 'inline-flex' : 'none';
       if (!R.customCardTitle.contains(R.customColorsLock)) R.customCardTitle.appendChild(R.customColorsLock);
       R.customCard.style.cursor = locked ? 'pointer' : '';
+      if (!S.diyLockUntil || Date.now() >= S.diyLockUntil) {
+        S.diyDraft = currentDiy();
+        renderDiyPreview(S.diyDraft);
+      }
     };
   }
 
@@ -622,6 +1108,11 @@
       if (!ok) setSwitch(R.reduceMotionSwitch, !on);
       else document.body.classList.toggle('reduce-motion', on);
     });
+    R.roamSwitch = makeSwitch(true, async (on) => {
+      const ok = await save({ petRoamEnabled: on });
+      if (!ok) setSwitch(R.roamSwitch, !on);
+      else toast(on ? '已开启自主活动' : '已暂停自主活动', 'ok');
+    });
     R.alwaysOnTopSwitch = makeSwitch(true, async (on) => {
       const ok = await save({ alwaysOnTop: on });
       if (!ok) setSwitch(R.alwaysOnTopSwitch, !on);
@@ -640,6 +1131,7 @@
       rowItem({ title: '始终置顶', desc: '让方块仔始终显示在其它窗口上方。', iconName: 'monitor', ctrl: R.alwaysOnTopSwitch }).el,
       rowItem({ title: '启动时打招呼', desc: '打开应用时让方块仔说句话。', iconName: 'bell', ctrl: R.bubbleSwitch }).el,
       rowItem({ title: '音效', desc: '互动、专注完成时播放轻提示音。', iconName: 'volume', ctrl: R.soundSwitch }).el,
+      rowItem({ title: '自主活动', desc: '没人打扰时，它会沿桌面底部走动、贴地爬行，并把动作、表情和气泡串成连续小场景。', iconName: 'sparkle', ctrl: R.roamSwitch }).el,
       rowItem({ title: '减少动效', desc: '关闭浮动、弹跳等动画，适合晕动症或省电场景。', iconName: 'leaf', ctrl: R.reduceMotionSwitch }).el,
     );
     sec.appendChild(behaviorCard);
@@ -708,6 +1200,7 @@
       setSwitch(R.autoStartSwitch, settings.autoStart);
       setSwitch(R.soundSwitch, settings.soundEnabled);
       setSwitch(R.reduceMotionSwitch, settings.reduceMotion);
+      setSwitch(R.roamSwitch, settings.petRoamEnabled !== false);
     if (R.gameSwitch) setSwitch(R.gameSwitch, settings.gameAutoHide !== false);
     if (R.gameWhitelistInput && document.activeElement !== R.gameWhitelistInput) {
       R.gameWhitelistInput.value = Array.isArray(settings.gameWhitelist) ? settings.gameWhitelist.join('\n') : '';

@@ -5,14 +5,14 @@
    ============================================================ */
 
 :root {
-  --body1: #ffd9bf;
-  --body2: #ef7a52;
-  --body3: #c9482a;
-  --eye: #2b1a14;
-  --pupil: #140c08;
-  --blush: #ff8d78;
-  --rim: #ffe6d4;
-  --glow: rgba(255, 150, 110, 0.45);
+  --body1: #ffd2b3;
+  --body2: #f08a62;
+  --body3: #e56b45;
+  --eye: #3a211c;
+  --pupil: #1c100d;
+  --blush: #ff9c9c;
+  --rim: #fff4ee;
+  --glow: rgba(229, 107, 69, 0.42);
   --sclera: #ffffff;
   --mouth: rgba(74, 30, 18, 0.9);
   --bubble-bg: rgba(255, 253, 250, 0.96);
@@ -134,9 +134,12 @@ body {
   bottom: 2px;
   width: 44px;
   height: 26px;
-  border-radius: 14px 14px 16px 16px;
-  background: linear-gradient(180deg, var(--body2), var(--body3));
-  box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.22);
+  border-radius: 15px 15px 18px 18px;
+  background: radial-gradient(circle at 35% 24%, var(--body1), var(--body2) 55%, var(--body3) 100%);
+  box-shadow:
+    inset 0 -5px 9px rgba(0, 0, 0, 0.28),
+    inset 0 2px 4px rgba(255, 255, 255, 0.35),
+    0 4px 8px rgba(0, 0, 0, 0.22);
   z-index: 1;
 }
 
@@ -148,39 +151,47 @@ body {
   right: 30px;
 }
 
-/* 身体 */
+/* 身体：3D 软胶/黏土微表面体积感 */
 .body {
   position: absolute;
   left: 10px;
   right: 10px;
   top: 8px;
   bottom: 20px;
-  border-radius: 34% 34% 32% 32%;
-  background: linear-gradient(154deg, var(--body1) 0%, var(--body2) 52%, var(--body3) 100%);
+  border-radius: 36% 36% 33% 33% / 35% 35% 31% 31%;
+  background:
+    radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.38) 0%, transparent 48%),
+    linear-gradient(154deg, var(--body1) 0%, var(--body2) 48%, var(--body3) 100%);
   box-shadow:
-    inset 0 -22px 36px rgba(0, 0, 0, 0.26),
-    inset 0 16px 30px rgba(255, 255, 255, 0.42),
-    inset 0 0 0 2px rgba(255, 255, 255, 0.12),
-    0 16px 26px -8px rgba(0, 0, 0, 0.3);
+    inset 0 -24px 38px rgba(0, 0, 0, 0.3),
+    inset 0 18px 30px rgba(255, 255, 255, 0.5),
+    inset 0 0 0 2.5px rgba(255, 255, 255, 0.18),
+    inset -8px 0 18px rgba(255, 255, 255, 0.12),
+    0 18px 28px -8px rgba(0, 0, 0, 0.34),
+    0 0 24px -4px var(--glow, transparent);
   z-index: 2;
   overflow: hidden;
 }
 
 .body::before {
-  /* 左上方高光：黏土/果冻质感 */
+  /* 左上方高光 + 边缘漫反射：3D 软胶/果冻质感 */
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 62% 46% at 28% 17%, rgba(255, 255, 255, 0.62), transparent 68%);
+  background:
+    radial-gradient(ellipse 26% 14% at 26% 14%, rgba(255, 255, 255, 0.78), transparent 72%),
+    radial-gradient(ellipse 64% 48% at 28% 18%, rgba(255, 255, 255, 0.55), transparent 68%);
   border-radius: inherit;
 }
 
 .body::after {
-  /* 底部环境光遮蔽 */
+  /* 底部环境光遮蔽 + 地面反光 */
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 70% 40% at 50% 108%, rgba(0, 0, 0, 0.3), transparent 62%);
+  background:
+    radial-gradient(ellipse 52% 16% at 50% 96%, rgba(255, 255, 255, 0.14), transparent 70%),
+    radial-gradient(ellipse 74% 42% at 50% 108%, rgba(0, 0, 0, 0.34), transparent 64%);
   border-radius: inherit;
 }
 
@@ -188,11 +199,14 @@ body {
 .arm {
   position: absolute;
   top: 56%;
-  width: 20px;
+  width: 21px;
   height: 46px;
-  border-radius: 12px;
-  background: linear-gradient(180deg, var(--body2), var(--body3));
-  box-shadow: inset -2px -4px 8px rgba(0, 0, 0, 0.2), inset 2px 2px 6px rgba(255, 255, 255, 0.25);
+  border-radius: 13px;
+  background: radial-gradient(circle at 35% 25%, var(--body1), var(--body2) 58%, var(--body3) 100%);
+  box-shadow:
+    inset -2px -5px 8px rgba(0, 0, 0, 0.24),
+    inset 2px 3px 6px rgba(255, 255, 255, 0.34),
+    0 4px 8px rgba(0, 0, 0, 0.18);
   z-index: 1;
   transform-origin: 50% 12%;
   animation: armSwing 3.6s ease-in-out infinite;
@@ -954,7 +968,8 @@ body.cinema .pet .leg,
 body.cinema .pet .mouth,
 body.cinema .pet .blush,
 body.cinema .pet .eye-happy,
-body.cinema .pet .shadow {
+body.cinema .pet .shadow,
+body.cinema .pet .sig {
   opacity: 0 !important;
   transition: opacity 0.8s ease;
 }

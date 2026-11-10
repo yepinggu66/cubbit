@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>方块仔 · 形象馆</title>
+    <link rel="stylesheet" href="../pet/pet.css" />
+    <link rel="stylesheet" href="../pet/pet-v2.css" />
+    <link rel="stylesheet" href="wardrobe.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="bar">
+        <div class="bar__left">
+          <span class="bar__dot"></span>
+          <div>
+            <h1>形象馆</h1>
+            <p>挑一个陪你上班的。点一下就会立刻换上。</p>
+          </div>
+        </div>
+        <div class="bar__right">
+          <button class="btn btn--ghost" id="randomBtn" type="button">🎲 随机换一个</button>
+          <button class="btn btn--ghost" id="photoBtn" type="button">📷 拍一只</button>
+          <button class="btn btn--ghost" id="diyBtn" type="button">🎨 自由组合</button>
+          <button class="btn btn--primary" id="storeBtn" type="button">👑 会员领 20 套皮肤</button>
+          <button class="btn btn--icon" id="closeBtn" type="button" aria-label="关闭">✕</button>
+        </div>
+      </header>
+
+      <section class="colorbar" id="colorbar" aria-label="方块仔身体颜色">
+        <span class="colorbar__label">身体颜色</span>
+        <div class="colorbar__swatches" id="swatches"></div>
+        <label class="colorbar__custom" id="customColor" title="自定义颜色：随便挑一个">
+          <input type="color" id="colorPick" value="#f08a62" aria-label="自定义身体颜色" />
+          <span>🎨 自定义颜色</span>
+        </label>
+        <span class="colorbar__hint">只换身体颜色；探险版的小灯和小包保持原色</span>
+      </section>
+
+      <main class="grid" id="grid" aria-live="polite"></main>
+
+      <footer class="tip" id="tip">形象随时切换，等级、亲密度和正在做的事都不会丢。</footer>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="../pet/sprites/sprite-data.js"></script>
+    <script src="../../shared/pet-sprite.js"></script>
+    <script src="../../shared/pet-dom.js"></script>
+    <script src="../../shared/diy.js"></script>
+    <script src="../../shared/i18n-dict.js"></script>
+    <script src="../../shared/i18n.js"></script>
+    <script src="wardrobe.js"></script>
+  </body>
+</html>

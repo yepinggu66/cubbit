@@ -7,7 +7,8 @@
  *  - 拖动时主进程跟随鼠标移动窗口，避免 `-webkit-app-region: drag` 吃掉点击事件
  */
 const path = require('node:path');
-const { BrowserWindow, screen, shell } = require('electron');
+const { BrowserWindow, screen, shell, app } = require('electron');
+const { PetBrain } = require('./pet-brain');
 
 const PET_W = 380;
 const PET_H = 470;
@@ -30,15 +31,22 @@ const PANEL_SIZES = {
   coupleRoom: { dir: 'couple-room', width: 1000, height: 700, minWidth: 860, minHeight: 620, title: '方块仔 情侣空间' },
   couple: { width: 900, height: 720, minWidth: 800, minHeight: 620, title: '方块仔 情侣模式' },
   chat: { width: 900, height: 680, minWidth: 760, minHeight: 560, title: '方块仔 聊天' },
+  wardrobe: { dir: 'wardrobe', width: 980, height: 720, minWidth: 720, minHeight: 560, title: '方块仔 · 形象馆' },
+  ledger: { dir: 'ledger', width: 960, height: 780, minWidth: 780, minHeight: 620, title: '方块仔 · 人生账本' },
+  photo: { dir: 'photo', width: 940, height: 780, minWidth: 760, minHeight: 620, title: '方块仔 · 拍一只' },
+  mate: { dir: 'mate', width: 1040, height: 800, minWidth: 820, minHeight: 640, title: '方块仔 · 相亲角' },
 };
 
 class WindowManager {
-  constructor(runtime) {
+  constructor(runtime, opts = {}) {
     this.rt = runtime;
     this.petWindow = null;
     this.panels = new Map();
     this.petVisible = true;
     this.dragging = null;
+    this.brain = opts.brain || new PetBrain({
+      file: opts.brainFile || path.join(app.getPath('userData'), 'pet-brain.json'),
+    });
   }
 
   // ---------------------------------------------------------------- 桌宠窗口
@@ -133,6 +141,373 @@ class WindowManager {
       try { this.rt.sendToPet('pet:event', { kind: 'walk-end', payload: {} }); } catch { /* ignore */ }
     }
   }
+
+  /** 低频自动小步巡游：只在桌面空闲时走一小段，不绕完整圈。 */
+  scheduleAutoRoam(delayMs) {
+    clearTimeout(this._autoRoamTimer);
+    this._autoRoamTimer = null;
+    if (!this.petWindow || this.petWindow.isDestroyed()) return false;
+    if (this.rt.settings.get('petRoamEnabled') === false) return false;
+    const qa = process.argv.includes('--qa-auto-roam');
+    const wait = Number.isFinite(delayMs)
+      ? Math.max(250, delayMs)
+      : qa
+        ? 900
+        : this._autoRoamFirst !== false
+          ? 8000 + Math.random() * 6000
+          : 18000 + Math.random() * 12000;
+    this._autoRoamFirst = false;
+    this._autoRoamTimer = setTimeout(() => {
+      this._autoRoamTimer = null;
+      if (!this._canAutoRoam()) {
+        this.scheduleAutoRoam(qa ? 900 : undefined);
+        return;
+      }
+      const presence = this.rt.presence && this.rt.presence.snapshot ? this.rt.presence.snapshot() : {};
+      const decision = qa
+        ? { action: 'walk', scene: 'curious_sniff', reason: 'qa', energy: 50, curiosity: 50, social: 50 }
+        : this.brain.observe({
+            visible: true,
+            busy: false,
+            pointerNear: false,
+            enabled: this.rt.settings.get('petRoamEnabled') !== false,
+            paired: !!(this.rt.hasPartnerPet && this.rt.hasPartnerPet()),
+            presenceKind: presence.kind || 'working',
+            lastInteractionAt: this.rt.lastPetInteractionAt || 0,
+          });
+      if (!decision) {
+        this.scheduleAutoRoam(qa ? 900 : 8000 + Math.random() * 6000);
+        return;
+      }
+      try { if (this.rt.beta) this.rt.beta.log('autonomy_action', decision); } catch { /* ignore */ }
+      this.performAutonomy(decision, {
+        qa,
+        onDone: () => this.scheduleAutoRoam(qa ? 900 : 18000 + Math.random() * 12000),
+      });
+    }, wait);
+    if (this._autoRoamTimer.unref) this._autoRoamTimer.unref();
+    return true;
+  }
+
+  stopAutoRoam() {
+    clearTimeout(this._autoRoamTimer);
+    this._autoRoamTimer = null;
+    this.cancelAutoStroll();
+  }
+
+  _canAutoRoam() {
+    const win = this.petWindow;
+    if (!win || win.isDestroyed() || !win.isVisible() || !this.petVisible) return false;
+    if (this.dragging || this.peek || this._roam || this._anim || this._autoStroll) return false;
+    if (this.rt.settings.get('petRoamEnabled') === false) return false;
+    if (this.rt.lastPetInteractionAt && Date.now() - this.rt.lastPetInteractionAt < 12000) return false;
+    if (this.rt._cinema) return false;
+    const presence = this.rt.presence && this.rt.presence.snapshot ? this.rt.presence.snapshot() : null;
+    if (presence && ['meeting', 'game', 'video', 'cinema'].includes(presence.kind)) return false;
+    const cursor = screen.getCursorScreenPoint();
+    const b = win.getBounds();
+    if (
+      cursor.x >= b.x - 100 &&
+      cursor.x <= b.x + b.width + 100 &&
+      cursor.y >= b.y - 100 &&
+      cursor.y <= b.y + b.height + 100
+    ) return false;
+    return true;
+  }
+
+  stroll({ automatic = false, qa = false, onDone, decision = {} } = {}) {
+    const win = this.petWindow;
+    if (!win || win.isDestroyed() || this.dragging || this._roam || this._autoStroll) return false;
+    const [x, y] = win.getPosition();
+    const [w, h] = [this.petWidth(), this.petHeight()];
+    const wa = screen.getDisplayMatching(win.getBounds()).workArea;
+    const left = wa.x;
+    const right = wa.x + wa.width - w;
+    const minStep = 140;
+    const maxStep = 360;
+    let dir = Math.random() < 0.5 ? -1 : 1;
+    const available = dir < 0 ? x - left : right - x;
+    if (available < minStep) dir *= -1;
+    const maxDistance = dir < 0 ? x - left : right - x;
+    if (maxDistance < 40) return false;
+    const distance = Math.min(maxDistance, minStep + Math.random() * (maxStep - minStep));
+    const targetX = Math.round(x + dir * distance);
+    const targetY = Math.round(wa.y + wa.height - h);
+    const duration = Math.max(1200, Math.min(4200, Math.round((distance / 110) * 1000)));
+    const startedAt = Date.now();
+    this.edge = null;
+    this.peek = null;
+    this.rt.sendToPet('pet:event', { kind: 'walk-start', payload: { dir, scene: decision.scene || '' } });
+    this.rt.sendToPet('pet:event', { kind: 'walk-dir', payload: { dir, scene: decision.scene || '' } });
+    if (qa) console.log('[auto-roam] start', x, y, '->', targetX, targetY);
+
+    const finish = (completed) => {
+      if (!this._autoStroll) return;
+      clearInterval(this._autoStroll.timer);
+      this._autoStroll = null;
+      try {
+        this.rt.sendToPet('pet:event', {
+          kind: 'walk-end',
+          payload: { completed, scene: decision.scene || '' },
+        });
+      } catch { /* ignore */ }
+      let px = x;
+      let py = y;
+      try { [px, py] = win.getPosition(); } catch { /* destroyed */ }
+      this.rt.settings.patch({ petPosition: { x: px, y: py, edge: null } });
+      if (qa) console.log('[auto-roam]', completed ? 'end' : 'cancelled', px, py);
+      if (onDone) onDone();
+    };
+
+    this._autoStroll = {
+      kind: 'walk',
+      timer: setInterval(() => {
+        if (!this._autoStroll || win.isDestroyed() || !win.isVisible()) {
+          finish(false);
+          return;
+        }
+        if (this.rt.lastPetInteractionAt && this.rt.lastPetInteractionAt > startedAt) {
+          finish(false);
+          return;
+        }
+        const elapsed = Date.now() - startedAt;
+        const t = Math.min(1, elapsed / duration);
+        const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        this._place(
+          win,
+          Math.round(x + (targetX - x) * ease),
+          Math.round(y + (targetY - y) * ease)
+        );
+        if (t >= 1) finish(true);
+      }, 16),
+    };
+    if (this._autoStroll.timer.unref) this._autoStroll.timer.unref();
+    return true;
+  }
+
+  performAutonomy(decision, { qa = false, onDone } = {}) {
+    const done = onDone || (() => {});
+    if (!decision || !decision.action) {
+      done();
+      return false;
+    }
+    if (decision.action === 'walk') {
+      const started = this.stroll({ automatic: true, qa, onDone: done, decision });
+      if (!started) done();
+      return started;
+    }
+    if (decision.action === 'crawl') return this.crawlAutonomously({ qa, onDone: done, decision });
+    if (decision.action === 'jump') return this.hopAutonomously({ qa, onDone: done, decision });
+    if (decision.action === 'climb') return this.climbAutonomously({ qa, onDone: done, decision });
+    if (decision.action === 'rest') {
+      this.rt.sendToPet('pet:event', { kind: 'autonomy-rest', payload: decision });
+      setTimeout(done, qa ? 800 : 6500);
+      return true;
+    }
+    if (decision.action === 'seek_attention') {
+      this.rt.sendToPet('pet:event', { kind: 'autonomy-seek', payload: decision });
+      setTimeout(done, qa ? 800 : 5000);
+      return true;
+    }
+    this.rt.sendToPet('pet:event', { kind: 'autonomy-think', payload: decision });
+    setTimeout(done, qa ? 800 : 5200);
+    return true;
+  }
+
+  crawlAutonomously({ qa = false, onDone, decision = {} } = {}) {
+    const win = this.petWindow;
+    if (!win || win.isDestroyed() || this.dragging || this._autoStroll) return false;
+    const [x] = win.getPosition();
+    const [w, h] = [this.petWidth(), this.petHeight()];
+    const wa = screen.getDisplayMatching(win.getBounds()).workArea;
+    const left = wa.x;
+    const right = wa.x + wa.width - w;
+    const groundY = wa.y + wa.height - h;
+    const minStep = 90;
+    const maxStep = 280;
+    let dir = Math.random() < 0.5 ? -1 : 1;
+    const available = dir < 0 ? x - left : right - x;
+    if (available < minStep) dir *= -1;
+    const maxDistance = dir < 0 ? x - left : right - x;
+    if (maxDistance < 40) return false;
+    const distance = Math.min(maxDistance, minStep + Math.random() * (maxStep - minStep));
+    const targetX = Math.round(x + dir * distance);
+    const duration = Math.max(1900, Math.min(4600, Math.round((distance / 58) * 1000)));
+    const startedAt = Date.now();
+    this.edge = null;
+    this.peek = null;
+    this._place(win, x, groundY);
+    this.rt.sendToPet('pet:event', {
+      kind: 'crawl-start',
+      payload: { dir, scene: decision.scene || 'belly_crawl' },
+    });
+    if (qa) console.log('[ground-crawl] start', x, groundY, '->', targetX, groundY);
+
+    const finish = (completed) => {
+      if (!this._autoStroll) return;
+      clearInterval(this._autoStroll.timer);
+      this._autoStroll = null;
+      let px = targetX;
+      let py = groundY;
+      try { [px, py] = win.getPosition(); } catch { /* destroyed */ }
+      this.rt.settings.patch({ petPosition: { x: px, y: py, edge: null } });
+      this.rt.sendToPet('pet:event', {
+        kind: 'crawl-end',
+        payload: { completed, scene: decision.scene || 'belly_crawl' },
+      });
+      if (qa) console.log('[ground-crawl]', completed ? 'end' : 'cancelled', px, py);
+      if (onDone) onDone();
+    };
+
+    this._autoStroll = {
+      kind: 'crawl',
+      timer: setInterval(() => {
+        if (!this._autoStroll || win.isDestroyed() || !win.isVisible()) {
+          finish(false);
+          return;
+        }
+        if (this.rt.lastPetInteractionAt && this.rt.lastPetInteractionAt > startedAt) {
+          finish(false);
+          return;
+        }
+        const t = Math.min(1, (Date.now() - startedAt) / duration);
+        const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        this._place(win, Math.round(x + (targetX - x) * ease), groundY);
+        if (t >= 1) finish(true);
+      }, 16),
+    };
+    if (this._autoStroll.timer.unref) this._autoStroll.timer.unref();
+    return true;
+  }
+
+  hopAutonomously({ qa = false, onDone, decision = {} } = {}) {
+    const win = this.petWindow;
+    if (!win || win.isDestroyed() || this.dragging || this._autoStroll) return false;
+    const [x, y] = win.getPosition();
+    const wa = screen.getDisplayMatching(win.getBounds()).workArea;
+    const lift = Math.min(42, Math.max(18, Math.round(this.petHeight() * 0.07)));
+    const top = Math.max(wa.y, y - lift);
+    const startedAt = Date.now();
+    const duration = 850;
+    this.rt.sendToPet('pet:event', {
+      kind: 'jump-start',
+      payload: { dir: 1, scene: decision.scene || '' },
+    });
+    const finish = (completed) => {
+      if (!this._autoStroll) return;
+      clearInterval(this._autoStroll.timer);
+      this._autoStroll = null;
+      let px = x;
+      let py = y;
+      try { [px, py] = win.getPosition(); } catch { /* destroyed */ }
+      this.rt.settings.patch({ petPosition: { x: px, y: py, edge: null } });
+      this.rt.sendToPet('pet:event', {
+        kind: 'jump-end',
+        payload: { completed, scene: decision.scene || '' },
+      });
+      if (qa) console.log('[autonomy]', completed ? 'jump-end' : 'jump-cancelled', px, py);
+      if (onDone) onDone();
+    };
+    this._autoStroll = {
+      kind: 'jump',
+      timer: setInterval(() => {
+        if (!this._autoStroll || win.isDestroyed()) {
+          finish(false);
+          return;
+        }
+        const t = Math.min(1, (Date.now() - startedAt) / duration);
+        const arc = Math.sin(Math.PI * t);
+        this._place(win, x, Math.round(y + (top - y) * arc));
+        if (t >= 1) finish(true);
+      }, 16),
+    };
+    if (this._autoStroll.timer.unref) this._autoStroll.timer.unref();
+    return true;
+  }
+
+  climbAutonomously({ qa = false, onDone, decision = {} } = {}) {
+    const win = this.petWindow;
+    if (!win || win.isDestroyed() || this.dragging || this._autoStroll) return false;
+    const [x0, y0] = win.getPosition();
+    const [w, h] = [this.petWidth(), this.petHeight()];
+    const wa = screen.getDisplayMatching(win.getBounds()).workArea;
+    const left = wa.x;
+    const right = wa.x + wa.width - w;
+    const edge = x0 - left <= right - x0 ? 'left' : 'right';
+    const targetX = edge === 'left' ? left : right;
+    const targetY = Math.max(wa.y, y0 - 72);
+    const duration = 1700;
+    const startedAt = Date.now();
+    this.rt.sendToPet('pet:event', {
+      kind: 'walk-start',
+      payload: { dir: targetX < x0 ? -1 : 1, scene: decision.scene || '' },
+    });
+    const finish = (completed) => {
+      if (!this._autoStroll) return;
+      clearInterval(this._autoStroll.timer);
+      this._autoStroll = null;
+      let px = targetX;
+      let py = targetY;
+      try { [px, py] = win.getPosition(); } catch { /* destroyed */ }
+      this.rt.settings.patch({ petPosition: { x: px, y: py, edge } });
+      this.rt.sendToPet('pet:event', {
+        kind: 'climb-end',
+        payload: { edge, completed, scene: decision.scene || '' },
+      });
+      this.rt.sendToPet('pet:event', {
+        kind: 'walk-end',
+        payload: { completed, scene: decision.scene || '' },
+      });
+      if (qa) console.log('[autonomy]', completed ? 'climb-end' : 'climb-cancelled', px, py);
+      if (onDone) onDone();
+    };
+    this._autoStroll = {
+      kind: 'climb',
+      timer: setInterval(() => {
+        if (!this._autoStroll || win.isDestroyed()) {
+          finish(false);
+          return;
+        }
+        const t = Math.min(1, (Date.now() - startedAt) / duration);
+        const horizontal = Math.min(1, t / 0.45);
+        const vertical = Math.max(0, (t - 0.45) / 0.55);
+        if (t <= 0.45) {
+          const ease = 1 - Math.pow(1 - horizontal, 3);
+          this._place(win, Math.round(x0 + (targetX - x0) * ease), y0);
+        } else {
+          if (!this._autoStroll.climbing) {
+            this._autoStroll.climbing = true;
+            this.rt.sendToPet('pet:event', {
+              kind: 'climb',
+              payload: { edge, scene: decision.scene || '' },
+            });
+          }
+          const ease = 1 - Math.pow(1 - vertical, 3);
+          this._place(win, targetX, Math.round(y0 + (targetY - y0) * ease));
+        }
+        if (t >= 1) finish(true);
+      }, 16),
+    };
+    if (this._autoStroll.timer.unref) this._autoStroll.timer.unref();
+    return true;
+  }
+
+  cancelAutoStroll() {
+    if (!this._autoStroll) return;
+    const kind = this._autoStroll.kind || 'walk';
+    clearInterval(this._autoStroll.timer);
+    this._autoStroll = null;
+    try {
+      if (kind === 'jump') this.rt.sendToPet('pet:event', { kind: 'jump-end', payload: { completed: false } });
+      else if (kind === 'climb') {
+        this.rt.sendToPet('pet:event', { kind: 'climb-end', payload: { completed: false } });
+        this.rt.sendToPet('pet:event', { kind: 'walk-end', payload: {} });
+      } else if (kind === 'crawl') {
+        this.rt.sendToPet('pet:event', { kind: 'crawl-end', payload: { completed: false } });
+      } else this.rt.sendToPet('pet:event', { kind: 'walk-end', payload: {} });
+    } catch { /* ignore */ }
+  }
+
   /** 大小设置变化时，重设宠物窗口尺寸并夹回屏幕内 */
   resizePet() {
     const win = this.petWindow;
@@ -227,6 +602,7 @@ class WindowManager {
     this.petWindow = win;
 
     this.startHitTestLoop();
+    this.scheduleAutoRoam();
     return win;
   }
 
@@ -486,6 +862,7 @@ class WindowManager {
   // ---------------------------------------------------------------- 拖动
   beginDrag({ offsetX = 0, offsetY = 0 } = {}) {
     if (this._roam) this.stopRoam(); // 用户一拖就打断散步
+    this.cancelAutoStroll();
     dlog('beginDrag called', offsetX, offsetY);
     const win = this.petWindow;
     if (!win || win.isDestroyed()) return { ok: false };
@@ -582,6 +959,7 @@ class WindowManager {
     const result = { ok: true, x, y: finalY, vx: drag ? Math.round(drag.vx) : 0, vy: drag ? Math.round(drag.vy) : 0, snapped, edge: s.edge };
     dlog('endDrag', JSON.stringify(result), 'startPos=', JSON.stringify(drag && drag.startPos));
     this.rt.sendToPet('pet:event', { kind: 'drag-end', payload: result });
+    this.scheduleAutoRoam(15000);
     return result;
   }
 
@@ -686,6 +1064,7 @@ class WindowManager {
 
   closeAll() {
     this.stopHitTestLoop();
+    this.stopAutoRoam();
     if (this.dragging && this.dragging.timer) clearInterval(this.dragging.timer);
     this.dragging = null;
     this.closeAllPanels();

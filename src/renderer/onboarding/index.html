@@ -20,7 +20,8 @@
         <aside class="onb-art" aria-hidden="true">
           <div class="onb-art__glow"></div>
           <div class="onb-art__stage">
-            <div class="cube" id="artCube">
+            <div class="cube cube--art" id="artCube">
+              <img class="cube__art" src="../assets/pets/classic-cube.png" alt="" draggable="false" />
               <div class="cube__face">
                 <span class="cube__eye cube__eye--l"></span>
                 <span class="cube__eye cube__eye--r"></span>
@@ -57,6 +58,27 @@
                 <span class="i18n-zh">它住在你的桌面上。你戳一下，TA 那边会跳一下；TA 说的话、留的语音，会从它头顶冒出来。</span>
                 <span class="i18n-en">It lives on your desktop. Poke it — your partner's cube jumps. Their notes and voice messages pop out of its head.</span>
               </p>
+              <div class="onb-cohort" id="cohortChoice" role="group" aria-label="内测 cohort / Beta cohort">
+                <button class="onb-cohort__option" type="button" data-cohort="couple">
+                  <span class="onb-cohort__icon" aria-hidden="true">💞</span>
+                  <span class="onb-cohort__copy">
+                    <strong><span class="i18n-zh">情侣双人测试</span><span class="i18n-en">Couple beta</span></strong>
+                    <small><span class="i18n-zh">我和 TA 两个人各装一份</span><span class="i18n-en">Both of us install Cubbit</span></small>
+                  </span>
+                </button>
+                <button class="onb-cohort__option" type="button" data-cohort="solo">
+                  <span class="onb-cohort__icon" aria-hidden="true">🧸</span>
+                  <span class="onb-cohort__copy">
+                    <strong><span class="i18n-zh">单人体验测试</span><span class="i18n-en">Solo beta</span></strong>
+                    <small><span class="i18n-zh">这次先一个人用，不参与配对率</span><span class="i18n-en">Use it alone; pairing metrics do not apply</span></small>
+                  </span>
+                </button>
+              </div>
+              <div class="onb-cohort__note">
+                <span data-icon="info"></span>
+                <span class="i18n-zh">只影响数据统计口径，不限制任何功能。之后仍可尝试配对。</span>
+                <span class="i18n-en">This only changes analytics groups. It does not lock any feature; you can still pair later.</span>
+              </div>
               <div class="onb-feats">
                 <div class="onb-feat">
                   <div class="ico-tile"><span data-icon="heart"></span></div>

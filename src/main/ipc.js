@@ -25,10 +25,13 @@ const SETTINGS_WHITELIST = new Set([
   'nightMode',
   'bubbleOnLaunch',
   'customColors',
+  'diyPet',
   'language',
   'apiBase',
   'multiPetCount',
   'onboardingDone',
+  'betaCohort',
+  'betaCohortSource',
   'hotkeys',
   'reduceMotion',
   'focus',
@@ -73,6 +76,10 @@ const SETTINGS_WHITELIST = new Set([
   'couplePokeSync',
   'petEdgeSnap',
   'petEdgeHide',
+  'petRoamEnabled',
+  // 分享落地页地址（默认 cubbit.app/share.html）与相亲候选来源（留空=离线池）
+  'shareBase',
+  'mateEndpoint',
 ]);
 
 function safeHandler(fn, label) {
@@ -124,6 +131,50 @@ function registerIpc(rt) {
     return { ok: !!win, name };
   });
 
+  // ---------------------------------------------------------------- 人生账本
+  // 一天一步的判定与结算全在主进程：渲染层只负责展示。
+  const noLedger = () => ({ ok: false, code: 'NO_LEDGER', message: '人生账本还没准备好。' });
+  handle(INVOKE.LIFE_STATE, () => (rt.ledger ? rt.ledger.snapshot() : noLedger()));
+  handle(INVOKE.LIFE_CHOOSE, (_e, { cardId, action } = {}) =>
+    rt.ledger ? rt.ledger.choose(cardId, action) : noLedger(),
+  );
+  handle(INVOKE.LIFE_RESTART, () => (rt.ledger ? rt.ledger.restart() : noLedger()));
+  handle(INVOKE.LIFE_DUO, (_e, payload = {}) => {
+    if (!rt.ledger) return noLedger();
+    return payload && payload.action === 'stop'
+      ? rt.ledger.stopDuo()
+      : rt.ledger.startDuo(payload && payload.names);
+  });
+  handle(INVOKE.LIFE_HAND, () => (rt.ledger ? rt.ledger.hand() : noLedger()));
+
+  // ---------------------------------------------------------------- 照片宠物
+  const noForge = () => ({ ok: false, code: 'NO_FORGE', message: '照片宠物模块还没准备好。' });
+  handle(INVOKE.PET_PHOTO_LIST, () => (rt.petforge ? { ok: true, items: rt.petforge.list() } : noForge()));
+  handle(INVOKE.PET_PHOTO_FORGE, (_e, payload) => (rt.petforge ? rt.petforge.forge(payload || {}) : noForge()));
+  handle(INVOKE.PET_PHOTO_REMOVE, (_e, { id } = {}) =>
+    rt.petforge ? rt.petforge.remove(String(id || '')) : noForge(),
+  );
+
+  // ---------------------------------------------------------------- 分享
+  const noShare = () => ({ ok: false, code: 'NO_SHARE', message: '分享模块还没准备好。' });
+  handle(INVOKE.SHARE_INFO, () => ({
+    ok: true,
+    base: String(rt.settings.get('shareBase') || ''),
+    exportDir: rt.share ? rt.share.exportDir() : '',
+  }));
+  handle(INVOKE.SHARE_CARD, (_e, payload) => (rt.share ? rt.share.saveCard(payload || {}) : noShare()));
+  handle(INVOKE.SHARE_TEXT, (_e, { text } = {}) => (rt.share ? rt.share.copyText(text) : noShare()));
+  handle(INVOKE.SHARE_OPEN, (_e, { url } = {}) => (rt.share ? rt.share.open(url) : noShare()));
+
+  // ---------------------------------------------------------------- 宠物相亲
+  const noMate = () => ({ ok: false, code: 'NO_MATE', message: '相亲角还没开门。' });
+  handle(INVOKE.MATE_STATE, () => (rt.mate ? rt.mate.snapshot() : noMate()));
+  handle(INVOKE.MATE_SEEK, async (_e, payload) => (rt.mate ? rt.mate.seek(payload || {}) : noMate()));
+  handle(INVOKE.MATE_PROPOSE, (_e, { id } = {}) => (rt.mate ? rt.mate.propose(id) : noMate()));
+  handle(INVOKE.MATE_RETRY, () => (rt.mate ? rt.mate.retry() : noMate()));
+  handle(INVOKE.MATE_CONFIRM, (_e, payload) => (rt.mate ? rt.mate.confirm(payload || {}) : noMate()));
+  handle(INVOKE.MATE_BREAKUP, () => (rt.mate ? rt.mate.breakup() : noMate()));
+
   handle(INVOKE.APP_PANEL_WINDOW, (event, { action }) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     return { ok: rt.windows.panelWindowAction(win, action) };
@@ -170,6 +221,8 @@ function registerIpc(rt) {
   });
 
   handle(INVOKE.PET_INTERACTION, (_e, { type } = {}) => {
+    rt.lastPetInteractionAt = Date.now();
+    try { if (rt.beta) rt.beta.log('interaction_local', { type: String(type || 'unknown').slice(0, 40) }); } catch { /* ignore */ }
     if (rt.life) rt.life.onInteraction(type);
     if (rt.companion && (type === 'pet' || type === 'click')) rt.companion.add(1, type);
     if (type === 'click' && rt.couplePlus && rt.settings.get('couplePokeSync') !== false) rt.couplePlus.autoPoke();

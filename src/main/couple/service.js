@@ -238,12 +238,16 @@ class CoupleService extends EventEmitter {
   async createInvite() {
     if (this.mode === 'demo') return { ok: false, code: 'DEMO', message: '演示模式：尚未配置联机服务，正在和阿橘体验' };
     if (this._isAnonBlocked()) return this._needUpgrade();
+    this.emit('pairIntent', { role: 'inviter', method: 'invite_code' });
     try {
       const r = await this.backend.createInvite();
       this.invite = { code: r.code, link: r.deepLink || r.link || P.inviteLink(r.code), webLink: r.webLink || '', expiresAt: r.expiresAt };
       this._changed(); this._pollPairing();
       return { ok: true, ...this.invite };
-    } catch (err) { return this._fail(err); }
+    } catch (err) {
+      this.emit('pairFailure', { role: 'inviter', code: String((err && (err.code || err.status)) || 'UNKNOWN').slice(0, 40) });
+      return this._fail(err);
+    }
   }
   /** 邀请方在对方接受前没有情侣频道权限：每 5 秒查一次 getCouple，配对成功后接管 */
   _pollPairing() {
@@ -285,6 +289,7 @@ class CoupleService extends EventEmitter {
     const code = P.parseInvite(raw);
     if (!code) return { ok: false, code: 'BAD_CODE', message: '邀请码格式不对（6 位字母数字）' };
     if (this._isAnonBlocked()) { this.pendingInvite = code; return { ...this._needUpgrade(), pendingCode: code }; }
+    this.emit('pairIntent', { role: 'joiner', method: 'invite_code' });
     try {
       const r = await this._acceptInviteWithRetry(code);
       await this._onPaired(r);
@@ -293,6 +298,7 @@ class CoupleService extends EventEmitter {
       // 响应失败不代表没配上（服务端可能已提交）：查一次账号状态兜底
       await this.refreshAccount().catch(() => {});
       if (this.state.coupleId) return { ok: true, recovered: true, ...this.status() };
+      this.emit('pairFailure', { role: 'joiner', code: String((err && (err.code || err.status)) || 'UNKNOWN').slice(0, 40) });
       return this._fail(err);
     }
   }

@@ -297,11 +297,15 @@
     nightMode: { enabled: true, start: '22:00', end: '07:00' },
     bubbleOnLaunch: true,
     customColors: null,
+    diyPet: { enabled: false, animalId: 'custom', paletteId: 'peach', hat: 'auto', ears: 'auto', tail: 'auto', heldId: 'auto', temperament: 'soft' },
     petPosition: null,
     language: 'zh-CN',
     apiBase: '',
     multiPetCount: 1,
     onboardingDone: false,
+    betaCohort: '',
+    betaCohortAt: 0,
+    betaCohortSource: '',
     hotkeys: { toggle: 'Control+Shift+H', focus: 'Control+Shift+F' },
     reduceMotion: false,
     focus: { lastMinutes: 25, lastLabel: '' },
@@ -326,6 +330,7 @@
     // 第六期：游戏全屏自动隐藏 / 数据与备份
     gameAutoHide: true,
     gameWhitelist: [],
+    petRoamEnabled: true,
     backupAutoSync: true,
   };
 
@@ -780,6 +785,7 @@
     if (clean.customColors && !isPro()) {
       return { ok: false, code: 'FEATURE_LOCKED', feature: 'custom_colors', message: '自定义配色是 Pro 功能' };
     }
+    if (clean.diyPet !== undefined && window.CUBBIT_DIY) clean.diyPet = window.CUBBIT_DIY.normalize(clean.diyPet);
     if (clean.multiPetCount !== undefined) {
       const n = Math.max(1, Math.min(3, Number(clean.multiPetCount) || 1));
       if (n > 1 && !isPro()) return { ok: false, code: 'FEATURE_LOCKED', feature: 'multi_pet', message: '多宠物同屏是 Pro 功能' };

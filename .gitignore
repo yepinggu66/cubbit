@@ -1,5 +1,8 @@
 node_modules/
 dist/
+dist-*/
+dist-official/
+win-unpacked/
 build/win-unpacked/
 .ops/
 .env
@@ -9,8 +12,15 @@ build/win-unpacked/
 *.blockmap
 *.pfx
 *.p12
+*.pem
 *.private.pem
 *.key
 !src/main/license/public-key.pem
+*.zip
+*.bak
+*.reg
 .DS_Store
 Thumbs.db
+tests/artifacts/
+# internal business analysis, kept local
+docs/COMMERCIAL-PLAN.md

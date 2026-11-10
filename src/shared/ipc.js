@@ -126,6 +126,31 @@ const INVOKE = {
   COUPLE_RT_ACCOUNT: 'couple-rt:account',
   COUPLE_RT_VOICE: 'couple-rt:voice',
   COUPLE_RT_MESSAGES: 'couple-rt:messages',
+  // 人生账本（性价比人生 · 一天一步）
+  LIFE_STATE: 'life:state',
+  LIFE_CHOOSE: 'life:choose',
+  LIFE_RESTART: 'life:restart',
+  LIFE_DUO: 'life:duo',
+  LIFE_HAND: 'life:hand',
+
+  // 照片宠物（拍一张路边的小动物 → 变成桌宠）
+  PET_PHOTO_LIST: 'pet:photo:list',
+  PET_PHOTO_FORGE: 'pet:photo:forge',
+  PET_PHOTO_REMOVE: 'pet:photo:remove',
+
+  // 分享（站点落地页 + X / Facebook / 微博 / Telegram）
+  SHARE_INFO: 'share:info',
+  SHARE_CARD: 'share:card',
+  SHARE_TEXT: 'share:text',
+  SHARE_OPEN: 'share:open',
+
+  // 宠物相亲（写需求 → 匹配 → 双方认可 → 恋爱）
+  MATE_STATE: 'mate:state',
+  MATE_SEEK: 'mate:seek',
+  MATE_PROPOSE: 'mate:propose',
+  MATE_RETRY: 'mate:retry',
+  MATE_CONFIRM: 'mate:confirm',
+  MATE_BREAKUP: 'mate:breakup',
 };
 
 const EVENTS = {
@@ -136,6 +161,7 @@ const EVENTS = {
   PANEL_NAV: 'panel:nav',
   AI_MESSAGE: 'ai:message',
   COUPLE_RT: 'couple-rt:event',
+  MATE_CHANGED: 'mate:changed',
 };
 
 module.exports = { INVOKE, EVENTS };

@@ -23,7 +23,7 @@
     checkoutReady: false,
 
     // 官网下载页（2 周内测：直接指向服务器上的安装包）
-    downloadUrl: 'https://pingguye.cn/cubbit/dl/Cubbit-Setup-2.6.3-soft.exe',
+    downloadUrl: 'https://pingguye.cn/cubbit/dl/windows/latest',
     // 邀请落地页：带 code 参数，页面上有「打开方块仔并配对」+ 下载按钮（服务端 landing.js）
     joinBase: 'https://pingguye.cn/cubbit/join',
     supportEmail: 'support@cubbit.app',

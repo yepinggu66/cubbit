@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>方块仔 · 相亲角</title>
+    <link rel="stylesheet" href="mate.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="bar">
+        <div class="bar__left">
+          <span class="bar__dot"></span>
+          <div>
+            <h1>相亲角</h1>
+            <p>先写清楚你要什么样的，再谈。对方要点头，你也要点头。</p>
+          </div>
+        </div>
+        <div class="bar__right">
+          <span class="pill" id="statusPill">单身</span>
+          <button class="btn btn--icon" id="closeBtn" type="button" aria-label="关闭">✕</button>
+        </div>
+      </header>
+
+      <main class="body">
+        <section class="col col--left">
+          <div class="card card--self" id="selfCard"></div>
+
+          <div class="wish" id="wish">
+            <div class="wish__head">
+              <b>你想找个什么样的</b>
+              <span>写得具体一点，匹配才有意义</span>
+            </div>
+            <textarea id="wishText" rows="4" maxlength="300" placeholder="例如：想找个安静一点的，不催我，能一起吃饭。别太能花钱。"></textarea>
+
+            <div class="sliders" id="sliders"></div>
+
+            <button class="btn btn--primary btn--wide" id="seekBtn" type="button">开始找</button>
+            <p class="tip" id="seekTip">候选来自同一天在线的单身宠物；离线时会用一份本地缘分池，一样可以走完整流程。</p>
+          </div>
+        </section>
+
+        <section class="col col--right" id="listCol"></section>
+      </main>
+
+      <footer class="foot">
+        <span id="footNote">相亲不是抽奖：分数再高，也会告诉你哪里不合适。</span>
+        <span class="foot__right" id="historyNote"></span>
+      </footer>
+    </div>
+    <script src="../../shared/mate.js"></script>
+    <script src="../pet/sprites/sprite-data.js"></script>
+    <script src="../../shared/pet-sprite.js"></script>
+    <script src="../../shared/diy.js"></script>
+    <script src="mate.js"></script>
+  </body>
+</html>

@@ -14,7 +14,7 @@
   if (typeof module === 'object' && module.exports) module.exports = factory();
   else root.CubbitNav = factory();
 })(typeof self !== 'undefined' ? self : this, function () {
-  const LITE_MODE = true;
+  const LITE_MODE = false;
 
   const ALL_SECTIONS = [
     { id: 'couple', label: '我们俩', icon: 'ring', pro: 'couple_mode', primary: true },
@@ -38,7 +38,7 @@
     ? ALL_SECTIONS.filter((s) => LITE_SECTION_IDS.includes(s.id))
     : ALL_SECTIONS;
 
-  const GROUPS = { tools: { label: '更多工具', collapsedByDefault: true } };
+  const GROUPS = { tools: { label: '效率与工具', collapsedByDefault: false } };
   const DEFAULT_SECTION = 'couple';
 
   /**

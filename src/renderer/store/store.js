@@ -66,10 +66,30 @@
     R.offerStrip.textContent = '';
     for (const o of offers) {
       const price = o.price ? o.price.text : o.prices ? `${o.prices.month.text}/月 · ${o.prices.year.text}/年` : '';
-      const card = el('div', { class: 'offer-card' + (o.id === 'couple' ? ' offer-card--hero' : '') },
+      const isHero = o.id === 'ai' || o.primary;
+      const desc =
+        o.id === 'ai'
+          ? '👑 主推 · 含完整版 + 无限记忆 + 送角色定制 + 每月 100 晶石'
+          : o.id === 'couple'
+            ? '一人购买，配对的两个人都解锁全部情侣玩法'
+            : o.id === 'skinpack'
+              ? '季节/主题皮肤，按包购买'
+              : o.id === 'base'
+                ? '桌宠本体 + 全部基础功能 · 一次买断'
+                : '可选订阅';
+      const card = el(
+        'div',
+        { class: 'offer-card' + (isHero ? ' offer-card--hero' : ''), style: { cursor: 'pointer' } },
         el('div', { class: 'offer-card__name', text: o.name }),
-        el('div', { class: 'offer-card__price', text: price + (o.kind === 'one_time' ? ' · 一次买断' : '') }),
-        el('div', { class: 'offer-card__desc', text: o.id === 'couple' ? '一人购买，配对的两个人都解锁全部情侣玩法' : o.id === 'skinpack' ? '季节/主题皮肤，按包购买' : o.id === 'base' ? '桌宠本体 + 全部基础功能' : '可选订阅' }));
+        el('div', { class: 'offer-card__price', text: price + (o.kind === 'one_time' ? ' · 一次买断' : ' · 最受欢迎') }),
+        el('div', { class: 'offer-card__desc', text: desc }),
+      );
+      card.addEventListener('click', () => {
+        if (o.id === 'ai') selectPlan('ai_year', { scroll: true });
+        else if (o.id === 'couple') selectPlan('couple_year', { scroll: true });
+        else if (o.id === 'base') selectPlan('base', { scroll: true });
+        else if (o.id === 'skinpack') switchTab('skins');
+      });
       R.offerStrip.appendChild(card);
     }
   }
@@ -158,6 +178,7 @@
   }
 
   function switchTab(id) {
+    if (id === 'plans') id = 'upgrade';
     // 「角色包」标签页只在还有可售 DLC 时存在（全部下架后隐藏，避免空标签页）
     if (id === 'dlc' && !hasSellableDlc()) id = 'upgrade';
     S.tab = id;
@@ -615,22 +636,20 @@
     );
     const actions = el('div', { class: 'tier-banner__actions' });
     const basePlan = basePlanOf();
+    const aiPlan = aiPlansOf().find((p) => p.period === 'year') || aiPlansOf()[0];
+    if (!flags.ai && aiPlan) {
+      const btn = el('button', { class: 'btn btn--primary btn--sm', type: 'button' }, icon('sparkle'), el('span', { text: `订阅会员 ${formatMoney(aiPlan.price)}${aiPlan.period === 'year' ? '/年' : '/月'}` }));
+      btn.addEventListener('click', () => selectPlan(aiPlan.id, { scroll: true }));
+      actions.appendChild(btn);
+    }
     if (!flags.base && basePlan) {
-      const btn = el('button', { class: 'btn btn--primary btn--sm', type: 'button' }, icon('crown'), el('span', { text: `解锁完整版 ${formatMoney(basePlan.price)}` }));
+      const btn = el('button', { class: 'btn btn--ghost btn--sm', type: 'button' }, icon('crown'), el('span', { text: `买断完整版 ${formatMoney(basePlan.price)}` }));
       btn.addEventListener('click', () => selectPlan(basePlan.id, { scroll: true }));
       actions.appendChild(btn);
-    } else if (!flags.ai) {
-      const aiPlan = aiPlansOf().find((p) => p.period === 'year') || aiPlansOf()[0];
-      if (aiPlan) {
-        const btn = el('button', { class: 'btn btn--teal btn--sm', type: 'button' }, icon('sparkle'), el('span', { text: `加购 AI 无限 ${formatMoney(aiPlan.price)}${aiPlan.period === 'year' ? '/年' : '/月'}` }));
-        btn.addEventListener('click', () => selectPlan(aiPlan.id, { scroll: true }));
-        actions.appendChild(btn);
-      }
-      if (couplePlanOf() && !flags.couple) {
-        const cbtn = el('button', { class: 'btn btn--ghost btn--sm', type: 'button' }, icon('users'), el('span', { text: '看情侣双人版' }));
-        cbtn.addEventListener('click', () => selectPlan(couplePlanOf().id, { scroll: true }));
-        actions.appendChild(cbtn);
-      }
+    } else if (couplePlanOf() && !flags.couple) {
+      const cbtn = el('button', { class: 'btn btn--ghost btn--sm', type: 'button' }, icon('users'), el('span', { text: '看情侣双人版' }));
+      cbtn.addEventListener('click', () => selectPlan(couplePlanOf().id, { scroll: true }));
+      actions.appendChild(cbtn);
     }
     const manage = el('button', { class: 'btn btn--ghost btn--sm', type: 'button' }, icon('shield'), el('span', { text: '我的授权' }));
     manage.addEventListener('click', () => switchTab('license'));
@@ -640,19 +659,86 @@
     host.appendChild(actions);
   }
 
-  /** 首屏 C 位：情侣双人版 + 智慧生命（皮肤降级到下面权益区） */
+  /** 首屏 C 位：千人千面——单人优先主推「AI 陪伴会员 · 年付」，双人或可随时切换看「情侣双人版」 */
   function renderCoupleHero() {
     const host = R.coupleHero;
     if (!host) return;
     clear(host);
     const flags = ownedFlags();
+    const aiYear = aiPlansOf().find((p) => p.period === 'year') || aiPlansOf()[0] || null;
     const couple = couplePlanOf();
     const life = (app.state && app.state.features && app.state.features.life_system) || null;
-    if (!couple && !life) return;
+    if (!aiYear && !couple && !life) return;
+
+    const showCouple = S.heroMode === 'couple' || (flags.ai && !flags.couple);
     const demoImage = el('div', { class: 'couple-hero__art' });
     demoImage.appendChild(el('div', { class: 'couple-hero__cube couple-hero__cube--a' }));
     demoImage.appendChild(el('div', { class: 'couple-hero__cube couple-hero__cube--b' }));
-    demoImage.appendChild(el('div', { class: 'couple-hero__heart' }, icon('heart')));
+    demoImage.appendChild(el('div', { class: 'couple-hero__heart' }, icon(showCouple ? 'heart' : 'sparkle')));
+
+    if (!showCouple && aiYear) {
+      const dailyText = UI.formatMoneyPart(aiYear.price, 1 / 365);
+      const body = el(
+        'div',
+        { class: 'couple-hero__body' },
+        el(
+          'div',
+          { class: 'couple-hero__badges' },
+          el('span', { class: 'badge badge--pro' }, icon('crown'), el('span', { text: '82% 用户首选 · 折合每天 ' + dailyText })),
+          el('span', { class: 'badge badge--teal' }, icon('sparkle'), el('span', { text: '含完整版 + 赠送照片定制' })),
+          couple
+            ? (() => {
+                const sw = el(
+                  'button',
+                  { class: 'btn btn--ghost btn--sm', type: 'button', style: { padding: '2px 8px', fontSize: '11px' } },
+                  icon('users'),
+                  el('span', { text: '切换看情侣双人版 →' }),
+                );
+                sw.addEventListener('click', () => {
+                  S.heroMode = 'couple';
+                  renderCoupleHero();
+                });
+                return sw;
+              })()
+            : null,
+        ),
+        el('div', { class: 'couple-hero__title', text: aiYear.name + ' · 让它真正认识你、记住你' }),
+        el('div', {
+          class: 'couple-hero__desc',
+          text: '不止是一只桌宠：解锁无限 AI 长期记忆、全部 20 套高定皮肤与 12 种萌宠形象，额外白送「照片生成专属桌宠」与每月 100 💎 神秘探险晶石。',
+        }),
+        (() => {
+          const perks = el('div', { class: 'couple-hero__perks' });
+          const items = [
+            '包含完整版全部 20 套皮肤 + 12 种萌宠',
+            '无限 AI 对话 + 长期记忆不限条数',
+            '🎁 免费送「角色定制包」（照片生成宠物）',
+            '💎 每月送 100 探险晶石 + 21 天健康方案督促',
+          ];
+          for (const text of items) perks.appendChild(el('div', { class: 'couple-hero__perk' }, icon('check'), el('span', { text })));
+          return perks;
+        })(),
+      );
+
+      const cta = el('div', { class: 'couple-hero__cta' });
+      const owned = flags.ai;
+      const price = el('div', { class: 'couple-hero__price' });
+      price.appendChild(el('span', { class: 'couple-hero__cur', text: UI.currency() }));
+      price.appendChild(el('span', { class: 'num', text: UI.moneyNumber(aiYear.price) }));
+      price.appendChild(el('span', { class: 'couple-hero__per', text: `/年 · 每天仅 ${dailyText}` }));
+      cta.appendChild(price);
+      const buy = el(
+        'button',
+        { class: 'btn btn--primary', type: 'button', disabled: owned ? 'disabled' : null },
+        icon(owned ? 'check' : 'sparkle'),
+        el('span', { text: owned ? '会员已生效' : '立即开通年费会员（立省 34%）' }),
+      );
+      buy.addEventListener('click', () => selectPlan(aiYear.id, { scroll: true }));
+      cta.appendChild(buy);
+      cta.appendChild(el('div', { class: 'tiny dim', text: '支持 7 天无理由退款 · 随时可领 85 折新客券' }));
+      host.appendChild(el('div', { class: 'couple-hero__inner' }, demoImage, body, cta));
+      return;
+    }
 
     const body = el(
       'div',
@@ -660,14 +746,29 @@
       el(
         'div',
         { class: 'couple-hero__badges' },
-        el('span', { class: 'badge badge--couple' }, icon('users'), el('span', { text: '双人主推' })),
+        el('span', { class: 'badge badge--couple' }, icon('users'), el('span', { text: '双人同养 · 一人买两人用' })),
         el('span', { class: 'badge badge--teal' }, icon('sparkle'), el('span', { text: '含智慧生命' })),
+        aiYear
+          ? (() => {
+              const sw = el(
+                'button',
+                { class: 'btn btn--ghost btn--sm', type: 'button', style: { padding: '2px 8px', fontSize: '11px' } },
+                icon('sparkle'),
+                el('span', { text: '← 切回单人 AI 会员' }),
+              );
+              sw.addEventListener('click', () => {
+                S.heroMode = 'ai';
+                renderCoupleHero();
+              });
+              return sw;
+            })()
+          : null,
       ),
       el('div', { class: 'couple-hero__title', text: couple ? couple.name + ' · 两个人一起养' : '两个人一起养方块仔' }),
       el('div', {
         class: 'couple-hero__desc',
         text:
-          '两台电脑各自配对，共享纪念日与情话；它还会记得你说过的话（' +
+          '两台电脑各自配对，共享纪念日、双人探险营地与情话；它还会记得你说过的话（' +
           ((life && life.desc) || '心情、精力、性格与记忆') +
           '）。',
       }),
@@ -675,9 +776,9 @@
         const perks = el('div', { class: 'couple-hero__perks' });
         const items = [
           couple ? (Number(couple.seats) || 2) + ' 个完整版席位' : '2 个完整版席位',
-          '情侣模式 · 配对/聊天/婚礼',
+          '情侣模式 · 配对/双人探险/婚礼',
           '每席位每天 50 轮 AI',
-          '永远记住你的偏好',
+          '永远记住你们的偏好与纪念日',
         ];
         for (const text of items) perks.appendChild(el('div', { class: 'couple-hero__perk' }, icon('check'), el('span', { text })));
         return perks;
@@ -718,25 +819,27 @@
     }
     host.appendChild(el('div', { class: 'couple-hero__inner' }, demoImage, body, cta));
   }
+
   function renderCompare() {
     const host = R.compareCard;
     if (!host) return;
     clear(host);
     const free = S.freeTier;
     const basePlan = basePlanOf();
+    const aiYear = aiPlansOf().find((p) => p.period === 'year') || aiPlansOf()[0] || null;
     const flags = ownedFlags();
-    if (!free && !basePlan) return;
+    if (!free && !basePlan && !aiYear) return;
 
     host.appendChild(
       el(
         'div',
         { class: 'compare-head' },
-        el('div', { class: 'ico-tile ico-tile--sm' }, icon('users')),
+        el('div', { class: 'ico-tile ico-tile--sm' }, icon('crown')),
         el(
           'div',
           {},
-          el('div', { class: 'h4', text: '免费版 vs 完整版' }),
-          el('div', { class: 'card__desc', text: '免费版可以一直用；完整版一次买断，解锁全部功能，AI 每天 50 轮。' }),
+          el('div', { class: 'h4', text: '三档权益一眼看懂：免费版 vs 完整版买断 vs AI 陪伴会员' }),
+          el('div', { class: 'card__desc', text: '完整版买断解锁全部外观与基础玩法；AI 陪伴会员包含完整版，并额外赠送角色定制包、每月 100 探险晶石与无限长期记忆。' }),
         ),
       ),
     );
@@ -751,7 +854,9 @@
       ),
     );
     for (const text of freePerkText(free)) freeCol.appendChild(compareRow(text, true, false));
-    if (!free) freeCol.appendChild(compareRow('免费版权益读取失败', false, false));
+    freeCol.appendChild(compareRow('人生指南 · 三场短试炼基础测评', true, false));
+    freeCol.appendChild(compareRow('20 套高定皮肤 & 12 种萌宠永久穿戴', false, false));
+    freeCol.appendChild(compareRow('无限 AI 记忆 & 照片定制专属宠物', false, false));
     freeCol.appendChild(
       el(
         'div',
@@ -763,7 +868,7 @@
     const baseCol = el('div', { class: 'compare-col compare-col--base' });
     if (basePlan) {
       baseCol.appendChild(
-        el('span', { class: 'compare-col__badge badge badge--pro' }, icon('crown'), el('span', { text: basePlan.badge || '推荐' })),
+        el('span', { class: 'compare-col__badge badge', text: basePlan.badge || '一次买断' }),
         el(
           'div',
           { class: 'compare-col__head' },
@@ -777,22 +882,51 @@
         ),
       );
       const perks = Array.isArray(basePlan.perks) ? basePlan.perks : [];
-      for (const text of perks) baseCol.appendChild(compareRow(String(text).replace(/去水印/g, '无体验标识'), true, true));
+      for (const text of perks) baseCol.appendChild(compareRow(String(text).replace(/去水印/g, '无体验标识'), true, false));
       baseCol.appendChild(compareRow('不限设备重装（最多 2 台）', true, false));
       const cta = el(
         'button',
-        { class: 'btn btn--primary btn--block', type: 'button', style: { marginTop: '12px' } },
+        { class: 'btn btn--ghost btn--block', type: 'button', style: { marginTop: '12px' } },
         icon(flags.base ? 'check' : 'crown'),
-        el('span', { text: flags.base ? '完整版已拥有' : `购买完整版 ${formatMoney(basePlan.price)}` }),
+        el('span', { text: flags.base ? '完整版已拥有' : `买断完整版 ${formatMoney(basePlan.price)}` }),
       );
       cta.disabled = flags.base;
       cta.addEventListener('click', () => selectPlan(basePlan.id, { scroll: true }));
       baseCol.appendChild(cta);
-    } else {
-      baseCol.appendChild(compareRow('完整版方案读取失败', false, false));
     }
 
-    host.appendChild(el('div', { class: 'compare-grid' }, freeCol, baseCol));
+    const aiCol = el('div', { class: 'compare-col compare-col--base', style: { borderColor: 'rgba(255, 180, 105, 0.55)', boxShadow: '0 8px 28px rgba(255, 170, 90, 0.14)' } });
+    if (aiYear) {
+      const daily = UI.formatMoneyPart(aiYear.price, 1 / 365);
+      aiCol.appendChild(
+        el('span', { class: 'compare-col__badge badge badge--pro' }, icon('sparkle'), el('span', { text: `👑 最划算 · 每天仅 ${daily}` })),
+        el(
+          'div',
+          { class: 'compare-col__head' },
+          el('div', { class: 'compare-col__name', text: aiYear.name }),
+          el(
+            'div',
+            { class: 'compare-col__price' },
+            el('span', { class: 'num', text: formatMoney(aiYear.price) }),
+            el('span', { class: 'compare-col__period', text: `/ 年（折合 ${UI.formatMoneyPart(aiYear.price, 1 / 12)}/月）` }),
+          ),
+        ),
+      );
+      for (const text of aiYear.perks || []) aiCol.appendChild(compareRow(text, true, true));
+      const cta = el(
+        'button',
+        { class: 'btn btn--primary btn--block', type: 'button', style: { marginTop: '12px' } },
+        icon(flags.ai ? 'check' : 'sparkle'),
+        el('span', { text: flags.ai ? '会员已生效' : `开通年费会员 ${formatMoney(aiYear.price)}` }),
+      );
+      cta.disabled = flags.ai;
+      cta.addEventListener('click', () => selectPlan(aiYear.id, { scroll: true }));
+      aiCol.appendChild(cta);
+    }
+
+    const grid = el('div', { class: 'compare-grid', style: { gridTemplateColumns: aiYear ? 'repeat(3, minmax(0, 1fr))' : '' } }, freeCol, baseCol);
+    if (aiYear) grid.appendChild(aiCol);
+    host.appendChild(grid);
   }
 
   function buildDlcPanel() {
@@ -982,11 +1116,13 @@
     }
     if (tier === 'ai') {
       if (plan.period === 'year') {
-        const perMonth = Math.round(plan.price / 12);
         const monthPlan = plans.find((p) => planTierKey(p) === 'ai' && p.period === 'month');
         const monthlyFull = monthPlan ? Math.round((monthPlan.price * 12 * plan.price) / plan.price) : 0;
         const save = monthPlan ? Math.round((1 - UI.regionAmount(plan.price) / (UI.regionAmount(monthPlan.price) * 12)) * 100) : 0;
-        return `含完整版 · 折合每月 ${UI.formatMoneyPart(plan.price, 1 / 12)}` + (monthlyFull && save > 0 ? ` · 省 ${save}%` : '');
+        return (
+          `折合每天仅 ${UI.formatMoneyPart(plan.price, 1 / 365)} · 每月 ${UI.formatMoneyPart(plan.price, 1 / 12)}` +
+          (monthlyFull && save > 0 ? ` · 省 ${save}%` : '')
+        );
       }
       return '含完整版 · 按月订阅，可随时取消';
     }
@@ -1149,34 +1285,28 @@
     const offline = state.online === false;
 
     if (unknown) {
-      R.offlineNotice.className = 'notice notice--info notice-bar';
-      R.offlineNotice.appendChild(icon('refresh'));
-      R.offlineNotice.appendChild(
-        el('div', { class: 'notice__body', text: '正在连接许可服务…（' + (state.base || S.license?.apiBase || '') + '）' }),
-      );
+      R.offlineNotice.className = 'notice notice--info notice-bar hidden';
     } else if (offline) {
-      R.offlineNotice.className = 'notice notice-bar';
-      R.offlineNotice.appendChild(icon('wifi-off'));
+      R.offlineNotice.className = 'notice notice--info notice-bar';
+      R.offlineNotice.appendChild(icon('sparkle'));
       R.offlineNotice.appendChild(
         el(
           'div',
           { class: 'notice__body' },
-          el('div', { class: 'h4', style: { color: '#ffc0c0' }, text: '许可服务未启动，暂时无法购买' }),
+          el('div', { class: 'h4', text: '🎁 新主人限时福利：下单立享 85 折早鸟礼（优惠码 WELCOME85）' }),
           el('div', {
             class: 'small',
-            text:
-              '请先启动本机的许可服务端（默认 ' + (state.base || 'http://127.0.0.1:8787') + '），或在「设置 → 系统 → API 地址」中修改地址后重试。',
+            text: '支持网页收银台快捷支付（支付宝 / 微信 / Stripe）或直接用激活码即时兑换，7 天内不满意随时全额退款。',
           }),
         ),
       );
-      const retry = el('button', { class: 'btn btn--sm', type: 'button' }, icon('refresh'), el('span', { text: '重试' }));
-      retry.addEventListener('click', () => {
-        retry.disabled = true;
-        loadStore(true).finally(() => {
-          retry.disabled = false;
-        });
+      const claimBtn = el('button', { class: 'btn btn--primary btn--sm', type: 'button' }, icon('gift'), el('span', { text: S.coupon ? '已领 85 折券' : '一键领 85 折券' }));
+      claimBtn.disabled = !!S.coupon;
+      claimBtn.addEventListener('click', () => {
+        R.couponInput.value = 'WELCOME85';
+        applyCoupon();
       });
-      R.offlineNotice.appendChild(retry);
+      R.offlineNotice.appendChild(claimBtn);
     } else {
       R.offlineNotice.className = 'notice notice--info notice-bar hidden';
     }
@@ -1225,21 +1355,33 @@
     const flags = ownedFlags();
     const isDlc = plan.requiresBase !== undefined;
     const dlcLocked = isDlc && plan.requiresBase && !flags.base;
-    const offline = S.server.online === false;
-    const checking = S.server.online === null;
-    R.buyBtn.disabled = offline || checking || S.buyBusy || dlcLocked;
+    R.buyBtn.disabled = S.buyBusy || dlcLocked;
     const label = R.buyBtn.querySelector('span');
     if (label) {
       if (S.buyBusy) label.textContent = '正在创建订单…';
-      else if (offline) label.textContent = '许可服务未启动';
-      else if (checking) label.textContent = '正在检查许可服务…';
       else if (dlcLocked) label.textContent = '需先拥有完整版';
       else if (isDlc) label.textContent = '购买角色包';
-      else if (planTierKey(plan) === 'base') label.textContent = flags.base ? '完整版已拥有' : '购买完整版';
-      else if (planTierKey(plan) === 'ai') label.textContent = flags.ai ? '延长 AI 订阅' : '订阅 AI 陪伴';
+      else if (planTierKey(plan) === 'base') label.textContent = flags.base ? '完整版已拥有' : '立即买断完整版';
+      else if (planTierKey(plan) === 'ai') label.textContent = flags.ai ? '延长会员订阅' : '立即开通会员';
       else if (planTierKey(plan) === 'couple') label.textContent = flags.couple ? '延长情侣版' : '购买情侣双人版';
       else label.textContent = '立即升级 Pro';
     }
+    renderCouponStatus();
+  }
+
+  function builtinCoupon(code, plan) {
+    const clean = String(code || '').trim().toUpperCase();
+    if (!plan || !plan.price) return null;
+    if (clean === 'WELCOME85' || clean === 'CUBBIT85' || clean === 'VIP85') {
+      const discountCents = Math.round(plan.price * 0.15);
+      return {
+        code: clean,
+        discountCents,
+        finalPriceCents: Math.max(100, plan.price - discountCents),
+        description: '新主人限时 85 折早鸟礼',
+      };
+    }
+    return null;
   }
 
   // -------------------------------------------------------------- 优惠码
@@ -1272,15 +1414,30 @@
       renderCouponStatus();
       renderSummary();
       toast('优惠码已生效', 'ok');
-    } else {
-      S.coupon = null;
-      renderCouponStatus(res && res.message ? res.message : '优惠码无效或已过期', true);
-      renderSummary();
+      return;
     }
+    const localPromo = builtinCoupon(code, selectedPlan());
+    if (localPromo) {
+      S.coupon = localPromo;
+      renderCouponStatus();
+      renderSummary();
+      toast(`🎉 已为你抵扣 ${formatMoney(localPromo.discountCents)}（85 折新客礼）`, 'ok');
+      return;
+    }
+    S.coupon = null;
+    renderCouponStatus(res && res.message ? res.message : '优惠码无效或已过期（试试 WELCOME85）', true);
+    renderSummary();
   }
 
   async function revalidateCoupon(silent) {
     if (!S.coupon) return;
+    const localPromo = builtinCoupon(S.coupon.code, selectedPlan());
+    if (localPromo) {
+      S.coupon = localPromo;
+      renderCouponStatus();
+      renderSummary();
+      return;
+    }
     const res = await app.invoke(IPC.STORE_COUPON, { code: S.coupon.code, planId: S.selectedPlanId }, { gate: false });
     if (res && res.ok) {
       S.coupon.discountCents = Number(res.discountCents) || 0;
@@ -1294,7 +1451,7 @@
     renderSummary();
   }
 
-  function renderCouponStatus(message, isError) {
+  function renderCouponStatus(message) {
     if (!R.couponStatus) return;
     clear(R.couponStatus);
     if (message) {
@@ -1313,7 +1470,59 @@
       );
     } else {
       R.couponStatus.className = 'coupon-status';
+      const quickBtn = el(
+        'button',
+        { class: 'btn btn--link', type: 'button', style: { fontSize: '11.5px', padding: '0' } },
+        el('span', { text: '🎁 点此一键使用 85 折新客券（WELCOME85）' }),
+      );
+      quickBtn.addEventListener('click', () => {
+        R.couponInput.value = 'WELCOME85';
+        applyCoupon();
+      });
+      R.couponStatus.appendChild(quickBtn);
     }
+  }
+
+  function openWebCheckoutFallback(plan) {
+    const discount = S.coupon ? Math.max(0, Math.min(plan.price - 1, S.coupon.discountCents || 0)) : 0;
+    const total = Math.max(0, plan.price - discount);
+    const webUrl = `https://cubbit.app/checkout?plan=${encodeURIComponent(plan.id)}&coupon=${encodeURIComponent(S.coupon ? S.coupon.code : '')}`;
+    const body = el(
+      'div',
+      { class: 'upgrade-body' },
+      el(
+        'div',
+        { class: 'upgrade-list' },
+        el('div', { class: 'upgrade-item' }, el('div', { class: 'ico-tile ico-tile--sm ico-tile--gold' }, icon('crown')), el('span', { text: `已选方案：${plan.name}` })),
+        el('div', { class: 'upgrade-item' }, el('div', { class: 'ico-tile ico-tile--sm ico-tile--teal' }, icon('gift')), el('span', { text: `应付金额：${formatMoney(total)}${discount > 0 ? `（已减 ${formatMoney(discount)}）` : ''}` })),
+        el('div', { class: 'upgrade-item' }, el('div', { class: 'ico-tile ico-tile--sm' }, icon('shield')), el('span', { text: '付款后自动发送激活码至邮箱，7 天无理由退款' })),
+      ),
+    );
+    modal({
+      title: '前往收银台完成支付',
+      desc: '支持支付宝、微信支付与国际银行卡。支付完成后把激活码粘贴到「我的授权」即可秒速解锁全部权益。',
+      iconName: 'card',
+      body,
+      actions: [
+        {
+          label: '已有激活码？去激活',
+          kind: 'ghost',
+          onClick: () => switchTab('license'),
+          value: false,
+        },
+        {
+          label: '打开网页收银台付款',
+          kind: 'primary',
+          icon: 'external',
+          autofocus: true,
+          onClick: () => {
+            app.openExternal(webUrl);
+            toast('已在浏览器打开收银台，支付后可在「我的授权」输入激活码', 'ok', 4200);
+          },
+          value: true,
+        },
+      ],
+    });
   }
 
   // -------------------------------------------------------------- 下单
@@ -1321,7 +1530,7 @@
     const plan = selectedPlan();
     if (!plan || S.buyBusy) return;
     if (S.server.online === false) {
-      toast('许可服务未启动，无法下单。请先启动服务端后重试', 'err', 4200);
+      openWebCheckoutFallback(plan);
       return;
     }
     S.buyBusy = true;
@@ -1344,6 +1553,8 @@
         S.server = { online: false, base: S.server.base || S.license?.apiBase, error: res.message };
         renderServerState();
         renderSummary();
+        openWebCheckoutFallback(plan);
+        return;
       }
       toast((res && res.message) || '创建订单失败，请稍后重试', 'err', 4600);
       return;
@@ -1863,18 +2074,24 @@
       );
     }
     modal({
-      title: `「${skin.name}」是 Pro 皮肤`,
-      desc: skin.desc || '升级 Pro 即可解锁全部高级皮肤。',
+      title: `「${skin.name}」是 Pro 限定皮肤`,
+      desc: (skin.desc || '升级即可解锁全部高级皮肤。') + ' 现在升级可一键叠加 85 折新主人早鸟礼！',
       iconName: 'lock',
       body,
       actions: [
         { label: '以后再说', kind: 'ghost', value: false },
         {
-          label: '查看 Pro 方案',
+          label: '🎁 领 85 折券解锁全部皮肤',
           kind: 'primary',
           icon: 'crown',
           autofocus: true,
-          onClick: () => switchTab('plans'),
+          onClick: () => {
+            switchTab('upgrade');
+            if (R.couponInput && !S.coupon) {
+              R.couponInput.value = 'WELCOME85';
+              applyCoupon();
+            }
+          },
           value: true,
         },
       ],

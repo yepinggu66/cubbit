@@ -546,3 +546,108 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Beta cohort selection */
+.onb-cohort {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0 8px;
+}
+
+.onb-cohort__option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--text-2);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background 0.16s ease, transform 0.16s ease;
+}
+
+.onb-cohort__option:hover {
+  border-color: var(--line-strong);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.onb-cohort__option:active {
+  transform: scale(0.985);
+}
+
+.onb-cohort__option.is-active {
+  border-color: rgba(255, 184, 112, 0.72);
+  background: rgba(255, 163, 92, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 184, 112, 0.12);
+}
+
+.onb-cohort__icon {
+  flex: 0 0 auto;
+  font: 20px/1.2 "Segoe UI Emoji", sans-serif;
+}
+
+.onb-cohort__copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.onb-cohort__copy strong {
+  color: var(--text-1);
+  font-size: 12px;
+}
+
+.onb-cohort__copy small {
+  color: var(--text-3);
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.onb-cohort__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-bottom: 11px;
+  color: var(--text-3);
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+.onb-cohort__note svg {
+  flex: 0 0 auto;
+  width: 13px;
+  height: 13px;
+  margin-top: 1px;
+}
+
+@media (max-width: 650px) {
+  .onb-cohort {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* v3.3：引导页直接用经典橙色方块仔的成品图（和桌面默认形象一致），旧的简笔 CSS 方块只作兜底 */
+.cube.cube--art {
+  width: 168px;
+  height: 172px;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  filter: drop-shadow(0 22px 30px rgba(0, 0, 0, 0.42)) drop-shadow(0 0 36px var(--pet-glow, rgba(255, 110, 50, 0.4)));
+}
+.cube.cube--art .cube__face {
+  display: none;
+}
+.cube__art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  -webkit-user-drag: none;
+  user-select: none;
+}

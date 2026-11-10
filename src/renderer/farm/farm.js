@@ -36,7 +36,7 @@
 
   document.addEventListener('DOMContentLoaded', init);
   async function init() {
-    const { bar } = UI.mountTitlebar(app, { page: '小农场' });
+    const { bar } = UI.mountTitlebar(app, { page: '神秘探险' });
     document.getElementById('titlebar-host').appendChild(bar);
     try { await app.boot({}); } catch {}
     try { const st = await app.panel.state(); applyPetState(st); } catch {}
@@ -66,7 +66,7 @@
     document.getElementById('hudShards').textContent = `${v.shards}/${v.shardsNeeded}`;
     document.getElementById('hudWork').classList.toggle('hidden', !v.work);
   }
-  const TOOLS = [['plant', '🌱 种植'], ['water', '💧 浇水'], ['harvest', '🧺 收获'], ['speed', '⚡ 加速']];
+  const TOOLS = [['plant', '🌱 营地栽种'], ['water', '💧 灵泉浇灌'], ['harvest', '🧺 采集收获'], ['speed', '⚡ 晶石加速']];
   function mountTools() {
     R.tools = document.getElementById('tools');
     R.tools.innerHTML = '';
@@ -76,9 +76,9 @@
       R.tools.appendChild(b);
     }
     const cb = (label, fn) => { const b = el('button', { class: 'farm-tool farm-tool--cam', type: 'button', text: label }); b.addEventListener('click', fn); R.tools.appendChild(b); };
-    cb('🏡 回到农场', () => centerFarm()); cb('➕', () => zoomAt(W / 2, H / 2, 1.2)); cb('➖', () => zoomAt(W / 2, H / 2, 1 / 1.2));
+    cb('🏕️ 回到营地', () => centerFarm()); cb('➕', () => zoomAt(W / 2, H / 2, 1.2)); cb('➖', () => zoomAt(W / 2, H / 2, 1 / 1.2));
   }
-  const TABS = [['field', '🌾 农田'], ['animals', '🐔 动物'], ['shop', '🛒 商店'], ['friends', '👥 好友'], ['couple', '💞 情侣'], ['work', '⛏️ 打工']];
+  const TABS = [['field', '🏕️ 探险营地'], ['animals', '🦊 灵兽伙伴'], ['shop', '🎒 探险补给'], ['friends', '🧭 邻近营地'], ['couple', '💞 双人探险'], ['work', '⛏️ 外出探险']];
   function mountTabs() {
     const host = document.getElementById('tabs'); host.innerHTML = '';
     for (const [id, label] of TABS) {
@@ -149,6 +149,7 @@
     P.appendChild(el('div', { class: 'farm-note', text: '点数只能买时间（加速）、扩建土地、稀有种子/动物和装饰，不能换金币，也不会提高产量。会员每月赠送 100 点。' }));
     const pp = window.CubbitPricing ? window.CubbitPricing.skuPrice('farmpoints', UI.priceLocale ? UI.priceLocale() : 'zh-CN') : null;
     P.appendChild(row('💎', `${S.cat.POINT_PACK} 点数包`, pp ? pp.text : '', btn('购买', async () => { const r = await call('buyPoints'); if (r.ok) toast(r.sandbox ? `沙盒：已发放 ${r.n} 点（不扣款）` : '购买成功'); })));
+    P.appendChild(row('👑', 'AI 陪伴会员 · 探险特权', '每月白送 100 💎 晶石 + 每日首次采集双倍 + 送角色定制', btn('领 85 折开通', () => app.openPanel('store'), true)));
     P.appendChild(el('div', { class: 'farm-h', text: '装饰' }));
     for (const [id, it] of Object.entries(D)) {
       P.appendChild(row(it.emoji, NAMES[id], '', v.decor.includes(id) ? el('span', { class: 'sub', text: '已摆放' }) : btn(`${it.points} 💎`, () => call('buyDecor', { item: id }))));
@@ -173,9 +174,9 @@
     }
     const r = await call('friends');
     P.innerHTML = '';
-    P.appendChild(el('div', { class: 'farm-h', text: '好友农场（本地演示）' }));
-    for (const f of r.friends || []) P.appendChild(row(f.emoji, f.name + (f.dog ? ' 🐕' : ''), `${f.ripe} 块成熟 · 今天还能偷 ${f.left} 次`, btn('去看看', () => { S.friend = f.id; }, true)));
-    P.appendChild(el('div', { class: 'farm-note', text: '真实好友之间互相串门、偷菜需要联机服务器（好友关系、农场同步、防作弊），接口已预留，上线后自动可用。' }));
+    P.appendChild(el('div', { class: 'farm-h', text: '邻近探险营地（本地演示）' }));
+    for (const f of r.friends || []) P.appendChild(row(f.emoji, f.name + (f.dog ? ' 🐕' : ''), `${f.ripe} 处资源可采集 · 今天还能顺手采集 ${f.left} 次`, btn('去探访', () => { S.friend = f.id; }, true)));
+    P.appendChild(el('div', { class: 'farm-note', text: '真实好友营地串门、资源互动需要联机服务器（好友关系、营地同步、防作弊），接口已预留，上线后自动可用。' }));
   }
   function panelWork(P) {
     const v = S.view, W = S.cat.WORK;
@@ -184,17 +185,17 @@
       const save = async () => { const n = window.CubbitPetDom.cleanName(inp.value); inp.value = n; PET.name = n; await app.invoke('app:settings:set', { petName: n }); updateMyPet(); toast('名字已保存'); };
       inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') save(); });
       P.appendChild(el('div', { class: 'farm-row' }, inp, btn('保存', save, true))); }
-    P.appendChild(el('div', { class: 'farm-h', text: '打工' }));
-    P.appendChild(el('div', { class: 'farm-big', text: v.work ? '⛏️ 方块仔正在农场打工' : '🏠 方块仔在桌面陪你' }));
-    P.appendChild(el('div', { class: 'farm-note', text: `你离开电脑 ${Math.round(W.idleMs / 60000)} 分钟后，方块仔会自己去农场打工（每分钟 ${W.coinsPerMin} 金币，每天最多 ${W.dailyCap}），顺手给作物浇水；你回来时它会告诉你赚了多少。` }));
-    P.appendChild(el('div', { class: 'farm-row' }, v.work ? btn('叫它回来', async () => { const r = await call('endWork'); if (r.ok) toast(`打工 ${r.report.mins} 分钟，赚了 ${r.report.coins} 金币`); }, true) : btn('去打工（15 分钟）', () => call('startWork'), true)));
-    P.appendChild(row('🪙', `今天打工收入 ${v.workToday} / ${W.dailyCap}`, ''));
+    P.appendChild(el('div', { class: 'farm-h', text: '秘境探险巡逻' }));
+    P.appendChild(el('div', { class: 'farm-big', text: v.work ? '⛏️ 方块仔正在秘境探险寻宝' : '🏠 方块仔在桌面陪你' }));
+    P.appendChild(el('div', { class: 'farm-note', text: `你离开电脑 ${Math.round(W.idleMs / 60000)} 分钟后，方块仔会自己去秘境探险巡逻（每分钟 ${W.coinsPerMin} 金币，每天最多 ${W.dailyCap}），顺手照料营地作物；你回来时它会向你汇报探险收获。` }));
+    P.appendChild(el('div', { class: 'farm-row' }, v.work ? btn('召回营地', async () => { const r = await call('endWork'); if (r.ok) toast(`探险 ${r.report.mins} 分钟，收获 ${r.report.coins} 金币`); }, true) : btn('出发探险（15 分钟）', () => call('startWork'), true)));
+    P.appendChild(row('🪙', `今日探险收获 ${v.workToday} / ${W.dailyCap}`, ''));
     const on = S.settings.farmAutoWork !== false;
-    const sw = el('label', { class: 'farm-switch' }, el('input', { type: 'checkbox' }), el('span', { text: '离开 5 分钟自动去打工' }));
+    const sw = el('label', { class: 'farm-switch' }, el('input', { type: 'checkbox' }), el('span', { text: '离开 5 分钟自动出发探险' }));
     sw.querySelector('input').checked = on;
     sw.querySelector('input').addEventListener('change', async (e) => { S.settings.farmAutoWork = e.target.checked; await app.invoke('app:settings:set', { farmAutoWork: e.target.checked }); });
     P.appendChild(el('div', { class: 'farm-row' }, sw));
-    if (v.lastReport) { const r = v.lastReport; P.appendChild(el('div', { class: 'farm-h', text: '上次打工' })); P.appendChild(row('📋', `${r.mins} 分钟 · +${r.coins} 🪙`, `浇水 ${r.watered} 块 · ${r.ripe} 块已成熟${r.capped ? ' · 今日已到上限' : ''}`)); }
+    if (v.lastReport) { const r = v.lastReport; P.appendChild(el('div', { class: 'farm-h', text: '上次探险日志' })); P.appendChild(row('📋', `${r.mins} 分钟 · +${r.coins} 🪙`, `照料营地 ${r.watered} 处 · ${r.ripe} 处已成熟${r.capped ? ' · 今日已达上限' : ''}`)); }
   }
 
   // ------------------------------------------------------------ 方块仔本体（与桌宠同一套 DOM + pet.css，放在 Shadow DOM 里隔离样式）

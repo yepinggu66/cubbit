@@ -17,25 +17,25 @@
   else root.CubbitOffers = factory();
 })(typeof self !== 'undefined' ? self : this, function () {
   const FLAGS = {
-    aiCompanion: false, // AI 服务未接通：保持 false，商店/设置里不出现 AI 订阅
+    aiCompanion: true, // 开启会员订阅（AI 陪伴月付/年付主推）
   };
 
   const OFFERS = [
-    { id: 'base', kind: 'one_time', name: '方块仔 本体', nameEn: 'Cubbit', grants: ['base'], legacyPlanId: 'base', steamItem: 'APP' },
+    { id: 'ai', kind: 'subscription', name: '会员订阅 · AI 陪伴', nameEn: 'Membership · AI Companion', grants: ['ai_unlimited', 'member_perks'], flag: 'aiCompanion',
+      periods: ['year', 'month'], legacyPlanIds: ['ai_year', 'ai_month'], primary: true },
     { id: 'couple', kind: 'one_time', name: '情侣包（两人共用）', nameEn: 'Couple Pack (for both of you)', grants: ['couple_mode', 'couple_premium'],
       sharedWithPartner: true, entitlementTier: 'couple_pack', steamItem: 'DLC_COUPLE_PACK' },
+    { id: 'base', kind: 'one_time', name: '方块仔 完整版买断', nameEn: 'Cubbit Full Buyout', grants: ['base'], legacyPlanId: 'base', steamItem: 'APP' },
     { id: 'skinpack', kind: 'one_time', name: '皮肤包', nameEn: 'Skin Pack', grants: ['skin_pack'], repeatable: true, steamItem: 'DLC_SKINPACK_*' },
-    { id: 'ai', kind: 'subscription', name: 'AI 陪伴', nameEn: 'AI Companion', grants: ['ai_unlimited', 'member_perks'], flag: 'aiCompanion',
-      periods: ['month', 'year'], legacyPlanIds: ['ai_month', 'ai_year'] },
   ];
 
   // 列顺序固定：[base, couple, skinpack, ai_month, ai_year]
   const PRICE_COLUMNS = ['base', 'couple', 'skinpack', 'ai_month', 'ai_year'];
   const PRICES = {
-    t1: { USD: [499, 999, 299, 499, 3999], EUR: [499, 999, 299, 499, 3999], GBP: [449, 899, 249, 449, 3499],
-          JPY: [700, 1500, 450, 700, 5800], KRW: [6500, 13000, 3900, 6500, 52000] },
-    t2: { CNY: [1800, 3800, 1200, 1800, 14800], USD: [299, 599, 199, 299, 2399] },
-    t3: { USD: [199, 399, 129, 199, 1599] },
+    t1: { USD: [1999, 7999, 499, 799, 5999], EUR: [1999, 7999, 499, 799, 5999], GBP: [1699, 6999, 449, 699, 4999],
+          JPY: [2980, 11800, 750, 1200, 8800], KRW: [26000, 99000, 6500, 10500, 78000] },
+    t2: { CNY: [6800, 26800, 1800, 2500, 19800], USD: [999, 3999, 299, 399, 2999] },
+    t3: { USD: [699, 2799, 199, 299, 1999] },
   };
 
   // 老版本 SKU（已停售，仅用于历史订单/农场点数展示，不进入商店）

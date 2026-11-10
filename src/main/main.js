@@ -32,6 +32,10 @@ const { WindowManager } = require('./windows');
 const { PresenceWatcher } = require('./presence');
 const { SpeechService } = require('./speech');
 const { LifeSystem } = require('./life');
+const { Ledger } = require('./ledger');
+const { PetForge } = require('./petforge');
+const { ShareKit } = require('./share');
+const { MateService } = require('./mate');
 const { AIChat } = require('./ai');
 const { UpdateChecker } = require('./updater');
 const { CrashReporter } = require('./crash');
@@ -46,6 +50,7 @@ const { Farm } = require('./farm');
 const I18N = require('../shared/i18n');
 const { createTray, refreshTray } = require('./tray');
 const { LITE_MODE } = require('../shared/nav-layout');
+const DIY = require('../shared/diy');
 const { registerIpc } = require('./ipc');
 const { isDeveloperAuthorized } = require('./dev-unlock');
 /** 深色模式：保留皮肤色相，只压暗（避免所有皮肤夜间变成同一个颜色） */
@@ -121,6 +126,33 @@ class AppRuntime {
     // 神经语音（更接近真人）：服务端 Edge TTS 合成，宠物窗口负责播放
     this.speech.onNeural = (p) => this.sendPetEvent('tts', p);
     this.life = new LifeSystem(this.settings, { entitled: () => this.entitled() });
+    // 人生账本：一天一步的长期玩法。结算后让宠物把结果说出来——
+    // 这是它和"数值面板"的区别：结果由它念给你听。
+    this.ledger = new Ledger();
+    this.ledger.on('turn', (payload) => {
+      const line = payload && payload.result && payload.result.line;
+      if (line) this.sendPetEvent('say', { text: line });
+    });
+    // 四条资源直接长在宠物身上：毛色偏暖还是发青、待机是弹的还是塌的。
+    // 不把数字推到界面上——用户看它今天什么状态，就知道这局过得怎么样。
+    this.ledger.on('mood', (mood) => {
+      if (mood && mood.ok) this.sendPetEvent('life-resource', mood);
+    });
+
+    // 照片宠物：拍一张 → 抠底 → 归一化 → 生成 idle/blink 两帧
+    this.petforge = new PetForge();
+    // 分享：落盘 PNG + 剪贴板 + 白名单外链
+    this.share = new ShareKit();
+    // 相亲角：离线候选池（配了 mateEndpoint 就走真实网络）
+    this.mate = new MateService({
+      dir: app.getPath('userData'),
+      endpoint: () => String(this.settings.get('mateEndpoint') || ''),
+      seed: () => (this.license && this.license.getDeviceId ? this.license.getDeviceId() : 'cubbit'),
+    });
+    this.mate.on('dating', (rel) => {
+      if (rel && rel.name) this.sendPetEvent('say', { text: `我和 ${rel.name} 在一起了。` });
+    });
+    this.mate.on('single', () => this.sendPetEvent('say', { text: '又回到我们俩了。' }));
     this.updater = new UpdateChecker(this.settings, {
       apiBase: () => this.apiBase,
       currentVersion: app.getVersion(),
@@ -611,7 +643,11 @@ class AppRuntime {
     if (this._skinPreviewTimer) clearTimeout(this._skinPreviewTimer);
     this._skinPreviewTimer = setTimeout(() => {
       this._skinPreviewTimer = null;
-      this.sendPetEvent('skin', { palette: this.currentPalette(), skinId: this.settings.get('skinId') || 'blaze' });
+      this.sendPetEvent('skin', {
+        palette: this.currentPalette(),
+        skinId: this.settings.get('skinId') || 'blaze',
+        diyPet: this.settings.get('diyPet'),
+      });
     }, secs * 1000);
     return { ok: true, seconds: secs, locked: !this.skinUnlocked(skin) };
   }
@@ -651,6 +687,8 @@ class AppRuntime {
     if (s.customColors && (this.entitled() || this.can('custom_character'))) {
       Object.assign(palette, s.customColors);
     }
+    const diyPet = DIY.normalize(s.diyPet);
+    if (diyPet.enabled) Object.assign(palette, DIY.palette(diyPet));
     return palette;
   }
 
@@ -779,7 +817,12 @@ class AppRuntime {
     svc.on('changed', (st) => toPanels('status', st));
     // 内测埋点（本地，不外发）
     const track = (event, data) => { try { if (this.beta) this.beta.log(event, data); } catch { /* ignore */ } };
-    svc.on('paired', (st) => track('pair_success', { partner: !!(st && st.partnerUid) }));
+    svc.on('pairIntent', (event) => track('pair_intent', event));
+    svc.on('pairFailure', (event) => track('pair_failed', event));
+    svc.on('paired', (st) => track('pair_success', {
+      role: st && st.role,
+      method: 'invite_code',
+    }));
     svc.on('note', (e) => track('msg_in', { type: 'note', catchup: !!(e && e.catchup) }));
     svc.on('voice', (e) => track('msg_in', { type: 'voice', catchup: !!(e && e.catchup) }));
     svc.on('interaction', (e) => track('interaction_in', { action: e && e.action }));
@@ -950,6 +993,9 @@ class AppRuntime {
   applySettings(patch = {}) {
     const clean = { ...patch };
     const isPro = this.entitled();
+    const previousCohort = String(this.settings.get('betaCohort') || '');
+    const previousOnboardingDone = !!this.settings.get('onboardingDone');
+    const previousAnimal = DIY.normalize(this.settings.get('diyPet')).animalId;
 
     // 机密字段永不进入通用设置补丁：API Key 只能走 INVOKE.AI_CONFIG_SET（加密落盘）
     if (clean.aiApiKey !== undefined) {
@@ -1004,6 +1050,7 @@ class AppRuntime {
     if (clean.customColors && !this.can('custom_colors') && !this.can('custom_character')) {
       return { ok: false, code: 'FEATURE_LOCKED', feature: 'custom_colors', message: '自定义配色是 Pro 功能' };
     }
+    if (clean.diyPet !== undefined) clean.diyPet = DIY.normalize(clean.diyPet);
     if (clean.multiPetCount !== undefined) {
       const n = Math.max(1, Math.min(3, Number(clean.multiPetCount) || 1));
       if (n > 1 && !this.can('multi_pet')) return { ok: false, code: 'FEATURE_LOCKED', feature: 'multi_pet', message: '多宠物同屏是完整版功能' };
@@ -1061,12 +1108,22 @@ class AppRuntime {
       clean.aiPersonality = clean.petPersonality;
     }
     if (clean.weatherCity !== undefined) clean.weatherCity = String(clean.weatherCity || '').trim().slice(0, 40);
+    if (clean.betaCohort !== undefined) {
+      const nextCohort = ['couple', 'solo'].includes(clean.betaCohort) ? clean.betaCohort : '';
+      if (nextCohort && nextCohort !== previousCohort) {
+        clean.betaCohortAt = Date.now();
+        clean.betaCohortSource = String(clean.betaCohortSource || 'onboarding').trim().slice(0, 40);
+      } else {
+        clean.betaCohortSource = String(clean.betaCohortSource || this.settings.get('betaCohortSource') || '').slice(0, 40);
+      }
+      clean.betaCohort = nextCohort;
+    }
     for (const k of ['memoryEnabled', 'proactiveCare', 'weatherEnabled', 'couplePokeSync', 'petEdgeSnap', 'petEdgeHide']) if (clean[k] !== undefined) clean[k] = !!clean[k];
     const langChanged = clean.language !== undefined && clean.language !== I18N.normLang(this.settings.get('language'));
     // v2.3：切换皮肤时清除自定义配色，避免旧配色静默覆盖新皮肤
     if (clean.skinId && clean.customColors === undefined && this.settings.get('customColors')) clean.customColors = null;
     this.settings.patch(clean);
-    if (clean.skinId || clean.customColors !== undefined) {
+    if (clean.skinId || clean.customColors !== undefined || clean.diyPet !== undefined) {
       if (this._skinPreviewTimer) { clearTimeout(this._skinPreviewTimer); this._skinPreviewTimer = null; }
       this.sendPetEvent('skin', { palette: this.currentPalette(), skinId: this.settings.get('skinId') || 'blaze' });
     }
@@ -1076,11 +1133,26 @@ class AppRuntime {
     // 大小设置变化：窗口跟着缩放，否则放大后会被裁掉（2026-11-04）
     if (clean.sizeScale !== undefined) this.windows.resizePet();
     if (clean.petEdgeHide !== undefined) this.windows.applyEdgeHide();
+    if (clean.petRoamEnabled !== undefined) this.windows.scheduleAutoRoam(1200);
     if (clean.hotkeys) this.registerHotkeys();
     if (clean.cinemaManual !== undefined && this.presence) {
       this.sendPetEvent('presence', { ...this.presence.snapshot(), cinema: !!clean.cinemaManual });
     }
     if (langChanged) setTimeout(() => this.onLanguageChanged(), 50);
+    const nextCohort = String(this.settings.get('betaCohort') || '');
+    if (this.beta && nextCohort && nextCohort !== previousCohort) {
+      this.beta.log('cohort_assigned', {
+        cohort: nextCohort,
+        source: this.settings.get('betaCohortSource') || 'unknown',
+      });
+    }
+    if (this.beta && clean.onboardingDone === true && !previousOnboardingDone) {
+      this.beta.log('onboarding_done', { pairChoice: nextCohort || 'unknown' });
+    }
+    const nextAnimal = DIY.normalize(this.settings.get('diyPet')).animalId;
+    if (this.beta && nextAnimal !== 'custom' && nextAnimal !== previousAnimal) {
+      this.beta.log('animal_selected', { animal: nextAnimal });
+    }
     this.commit();
     return { ok: true, state: this.stateSnapshot() };
   }
@@ -1368,6 +1440,23 @@ class AppRuntime {
   _startLife() {
     try {
       this.life.start();
+      // 启动时先补一次"它今天的样子"：否则每次重启毛色都回到默认，
+      // 用户会以为账本里的状态丢了（这一条是实测发现的，界面和状态对不上最伤人）。
+      const startMood = this.ledger ? this.ledger.mood() : null;
+      if (startMood) {
+        setTimeout(() => {
+          try { this.sendPetEvent('life-resource', startMood); } catch { /* 窗口没了就算了 */ }
+        }, 2400);
+      }
+      // 人生指南：今天还没体验试炼，就让它在启动 12 秒后轻声提醒一句。
+      const nudge = this.ledger ? this.ledger.nudge() : null;
+      if (nudge) {
+        setTimeout(() => {
+          try {
+            this.sendPetEvent('say', { text: nudge, emoji: '🧭', durationMs: 9000 });
+          } catch { /* 窗口已销毁就不说了 */ }
+        }, 12000);
+      }
       this.life.on('thought', ({ text, important }) => {
         if (!text) return;
         this.sendPetEvent('thought', { text, important: !!important });
@@ -1431,6 +1520,10 @@ class AppRuntime {
       { label: L('🍪 喂点吃的', '🍪 Feed it'), click: () => this.feedFromMenu() },
       { type: 'separator' },
       { label: L('皮肤', 'Skins'), submenu: skinItems },
+      { label: L('形象馆 · 换一只', 'Wardrobe · Change pet'), click: () => this.openPanel('wardrobe') },
+      { label: L('🧭 人生指南 · 三场试炼', '🧭 Life Guide · 3 Trials'), click: () => this.openPanel('ledger') },
+      { label: L('🗺️ 神秘探险', '🗺️ Mysterious Adventure'), click: () => this.openPanel('farm') },
+      { label: L('📷 拍一只 · 变成桌宠', '📷 Turn a photo into a pet'), click: () => this.openPanel('photo') },
       { label: L('🎬 观影模式（只留眼睛）', '🎬 Cinema mode (eyes only)'), click: () => this.toggleCinema() },
       {
         label: this.coupleUnread > 0
@@ -1488,6 +1581,12 @@ class AppRuntime {
       { label: '喂点吃的', click: () => this.feedFromMenu() },
       { type: 'separator' },
       { label: '皮肤', submenu: skinItems },
+      { label: '形象馆 · 换一只', click: () => this.openPanel('wardrobe') },
+      {
+        label: '🧭 人生指南 · 三场试炼',
+        click: () => this.openPanel('ledger'),
+      },
+      { label: '📷 拍一只 · 变成桌宠', click: () => this.openPanel('photo') },
       {
         label: state.ui.cinemaMode ? '退出观影模式' : '观影模式（只留发光的眼睛）',
         click: () => {
@@ -1507,7 +1606,7 @@ class AppRuntime {
         },
       },
       { type: 'separator' },
-      { label: '🌾 小农场', click: () => this.openPanel('farm') },
+      { label: '🗺️ 神秘探险', click: () => this.openPanel('farm') },
       { label: '和 TA 聊聊', click: () => this.openPanel('chat') },
       {
         label: '🧰 更多工具',
@@ -1826,10 +1925,32 @@ class AppRuntime {
       const { Retention } = require('./couple/retention');
       this.retention = new Retention({ file: require('node:path').join(app.getPath('userData'), 'couple-retention.json') });
     } catch { this.retention = null; }
-    // 内测埋点（本地 JSONL，不上传；用于统计双人同日活跃 / 配对成功率 / 互动密度）
+    // 内测埋点 v2（本地 JSONL，不上传；cohort 与配对组哈希在事件层固定）
     try {
-      this.beta = new BetaStats({ dir: app.getPath('userData'), version: APP_PKG.version, installId: this.license ? this.license.getDeviceId() : '' });
-      this.beta.log('app_open');
+      const userDataDir = app.getPath('userData');
+      const currentCoupleId = () => {
+        try {
+          if (this.coupleRt && this.coupleRt.state && this.coupleRt.state.coupleId) {
+            return this.coupleRt.state.coupleId;
+          }
+          const local = JSON.parse(
+            require('node:fs').readFileSync(require('node:path').join(userDataDir, 'couple-rt.json'), 'utf8')
+          );
+          return local && local.coupleId ? local.coupleId : '';
+        } catch {
+          return '';
+        }
+      };
+      this.beta = new BetaStats({
+        dir: userDataDir,
+        version: APP_PKG.version,
+        installId: this.license ? this.license.getDeviceId() : '',
+        cohortProvider: () => this.settings.get('betaCohort') || 'unknown',
+        groupProvider: currentCoupleId,
+        channel: 'beta',
+        experiment: 'softlaunch-2026-11',
+      });
+      this.beta.log('app_open', { cold: true });
     } catch { this.beta = null; }
     // 实时情侣联机（PubNub/Firebase；无配置时为“阿橘”演示模式）
     this._initCoupleRt();

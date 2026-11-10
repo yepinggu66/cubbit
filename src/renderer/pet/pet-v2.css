@@ -235,6 +235,19 @@
 .pet[data-ears="bear"] .acc-ears::before, .pet[data-ears="bear"] .acc-ears::after { top: 4px; width: 40px; height: 40px; border-radius: 50%; background: #2b2b2b; box-shadow: inset 0 0 0 8px #2b2b2b, inset 0 0 0 20px #4a4a4a; }
 .pet[data-ears="bear"] .acc-ears::before { left: 4px; }
 .pet[data-ears="bear"] .acc-ears::after { right: 4px; }
+
+.pet[data-ears="fox"] .acc-ears { top: -30px; height: 46px; }
+.pet[data-ears="fox"] .acc-ears::before,
+.pet[data-ears="fox"] .acc-ears::after {
+  top: 0;
+  width: 0;
+  height: 0;
+  border-left: 17px solid transparent;
+  border-right: 17px solid transparent;
+  border-bottom: 44px solid #e8904b;
+}
+.pet[data-ears="fox"] .acc-ears::before { left: 15px; transform: rotate(-10deg); }
+.pet[data-ears="fox"] .acc-ears::after { right: 15px; transform: rotate(10deg); }
 .pet[data-ears="owl"] .acc-ears::before, .pet[data-ears="owl"] .acc-ears::after { top: 10px; border-left: 12px solid transparent; border-right: 12px solid transparent; border-bottom: 28px solid var(--body3); }
 .pet[data-ears="owl"] .acc-ears::before { left: 18px; transform: rotate(-24deg); }
 .pet[data-ears="owl"] .acc-ears::after { right: 18px; transform: rotate(24deg); }
@@ -244,12 +257,68 @@
 .pet[data-ears="antenna"] .acc-ears::after { right: 50px; transform: rotate(18deg); box-shadow: 0 -2px 0 4px var(--glow); animation: antennaBob 1.6s ease-in-out infinite; }
 .pet[data-ears="frog"] .acc-ears::before, .pet[data-ears="frog"] .acc-ears::after { top: 6px; width: 46px; height: 40px; border-radius: 50%; background: var(--body2); box-shadow: inset 0 0 0 9px var(--body2), inset 0 0 0 30px #fff; }
 .pet[data-ears="frog"] .acc-ears::before { left: 14px; }
+
+/* v2.9 新增耳朵：柴犬立耳 / 小羊垂耳 / 小恐龙角（与新增动物形象对应） */
+.pet[data-ears="dog"] .acc-ears { top: -24px; height: 52px; }
+.pet[data-ears="dog"] .acc-ears::before,
+.pet[data-ears="dog"] .acc-ears::after {
+  top: 0; width: 0; height: 0;
+  border-left: 19px solid transparent; border-right: 19px solid transparent;
+  border-bottom: 40px solid var(--body2);
+}
+.pet[data-ears="dog"] .acc-ears::before { left: 6px; transform: rotate(-15deg); }
+.pet[data-ears="dog"] .acc-ears::after { right: 6px; transform: rotate(15deg); }
+
+.pet[data-ears="sheep"] .acc-ears { top: 16px; height: 28px; }
+.pet[data-ears="sheep"] .acc-ears::before,
+.pet[data-ears="sheep"] .acc-ears::after {
+  top: 0; width: 32px; height: 22px; border-radius: 50%;
+  background: linear-gradient(160deg, #f4e2ee, #d3b7ca);
+}
+.pet[data-ears="sheep"] .acc-ears::before { left: -6px; transform: rotate(-26deg); }
+.pet[data-ears="sheep"] .acc-ears::after { right: -6px; transform: rotate(26deg); }
+
+.pet[data-ears="dino"] .acc-ears { top: -22px; height: 40px; }
+.pet[data-ears="dino"] .acc-ears::before,
+.pet[data-ears="dino"] .acc-ears::after {
+  top: 0; width: 0; height: 0;
+  border-left: 11px solid transparent; border-right: 11px solid transparent;
+  border-bottom: 26px solid #4f9f74;
+}
+.pet[data-ears="dino"] .acc-ears::before { left: 22px; transform: rotate(-9deg); }
+.pet[data-ears="dino"] .acc-ears::after { right: 22px; transform: rotate(9deg); }
 .pet[data-ears="frog"] .acc-ears::after { right: 14px; }
 @keyframes earFlop { 0%, 80%, 100% { transform: rotate(12deg); } 88% { transform: rotate(48deg); } }
 @keyframes antennaBob { 50% { transform: rotate(26deg); } }
 
 /* 尾巴 / 翅膀 */
 .pet[data-tail="cat"] .acc-tail::before { left: 4px; top: 0; width: 34px; height: 40px; border: 8px solid var(--body2); border-color: transparent var(--body2) var(--body2) transparent; border-radius: 50%; transform-origin: 0% 100%; animation: tailWag 1.6s ease-in-out infinite; }
+.pet[data-tail="fox"] .acc-tail::before {
+  left: 2px;
+  top: -4px;
+  width: 48px;
+  height: 55px;
+  border-radius: 10% 65% 70% 12%;
+  background: linear-gradient(135deg, #f2a35d, #c86127 72%);
+  transform: rotate(24deg);
+  transform-origin: 10% 90%;
+  box-shadow: inset -8px -9px 0 rgba(255, 255, 255, .28);
+  animation: foxTail 2.2s ease-in-out infinite;
+}
+@keyframes foxTail {
+  0%, 100% { transform: rotate(22deg); }
+  50% { transform: rotate(31deg); }
+}
+
+.pet.is-autonomy-jump .pose {
+  animation: autonomyJump .85s cubic-bezier(.28, .82, .34, 1) 1;
+}
+@keyframes autonomyJump {
+  0%, 100% { transform: translateY(0) scale(1); }
+  18% { transform: translateY(4px) scale(1.06, .92); }
+  52% { transform: translateY(-4px) scale(.96, 1.06); }
+  78% { transform: translateY(3px) scale(1.04, .95); }
+}
 .pet[data-tail="puff"] .acc-tail::before { left: 10px; top: 10px; width: 26px; height: 26px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); }
 .pet[data-tail="stinger"] .acc-tail::before { left: 10px; top: 14px; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 20px solid #3a2a00; }
 .pet[data-tail="wings"] .acc-tail { left: -22px; right: -22px; width: auto; bottom: 96px; height: 40px; }
@@ -405,9 +474,1519 @@ body.reduce-motion .pet .skin-fx::before, body.reduce-motion .pet .skin-fx::afte
 .pet.is-walk .shadow { animation: walkshadow .34s ease-in-out infinite; }
 .pet.is-walk { transition: transform .18s ease; }
 .pet.is-walk.walk-left { transform: scaleX(-1); }
+
+/* 贴地爬：窗口沿工作区底部横移，身体压低，四肢交替扒地。 */
+.pet.is-crawl .squash {
+  transform-origin: 50% 100%;
+  transform: scale(1.04, .58);
+  animation: groundCrawlBody .56s ease-in-out infinite;
+}
+.pet.is-crawl .leg {
+  transform-origin: 50% 20%;
+  animation: groundCrawlLegA .46s ease-in-out infinite;
+}
+.pet.is-crawl .leg.r { animation-name: groundCrawlLegB; }
+.pet.is-crawl .arm {
+  transform-origin: 50% 12%;
+  animation: groundCrawlArmA .46s ease-in-out infinite;
+}
+.pet.is-crawl .arm.r { animation-name: groundCrawlArmB; }
+.pet.is-crawl .face { transform: translateY(18px); }
+.pet.is-crawl .shadow {
+  width: 184px;
+  opacity: .32;
+  animation: groundCrawlShadow .56s ease-in-out infinite;
+}
+.pet.is-crawl { transition: transform .18s ease; }
+.pet.is-crawl.walk-left { transform: scaleX(-1); }
+body.is-crawling .drag-hint { opacity: 0 !important; }
+
+@keyframes groundCrawlBody {
+  0%, 100% { transform: translateY(0) scale(1.04, .58); }
+  50% { transform: translateY(-2px) scale(1.1, .54); }
+}
+@keyframes groundCrawlLegA {
+  0%, 100% { transform: rotate(-28deg) translateX(5px); }
+  50% { transform: rotate(26deg) translateX(-3px); }
+}
+@keyframes groundCrawlLegB {
+  0%, 100% { transform: rotate(26deg) translateX(-3px); }
+  50% { transform: rotate(-28deg) translateX(5px); }
+}
+@keyframes groundCrawlArmA {
+  0%, 100% { transform: rotate(66deg) translateY(8px); }
+  50% { transform: rotate(82deg) translateY(5px); }
+}
+@keyframes groundCrawlArmB {
+  0%, 100% { transform: rotate(-82deg) translateY(5px); }
+  50% { transform: rotate(-66deg) translateY(8px); }
+}
+@keyframes groundCrawlShadow {
+  0%, 100% { transform: translateX(-50%) scaleX(1); opacity: .32; }
+  50% { transform: translateX(-50%) scaleX(.9); opacity: .24; }
+}
+
 @keyframes walkbob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 @keyframes walklegA { 0%,100% { transform: rotate(-18deg); } 50% { transform: rotate(20deg); } }
 @keyframes walklegB { 0%,100% { transform: rotate(20deg); } 50% { transform: rotate(-18deg); } }
 @keyframes walkswingA { 0%,100% { transform: rotate(14deg); } 50% { transform: rotate(-16deg); } }
 @keyframes walkswingB { 0%,100% { transform: rotate(-16deg); } 50% { transform: rotate(14deg); } }
 @keyframes walkshadow { 0%,100% { transform: scaleX(1); opacity: .22; } 50% { transform: scaleX(.86); opacity: .16; } }
+
+/* ===== DIY 呆萌待机动作 ===== */
+.pet.idle-tiptoe .pose { animation: diyTiptoe 2.4s cubic-bezier(.28, .82, .34, 1) 1; }
+@keyframes diyTiptoe {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  18% { transform: translate(-3px, -7px) rotate(-3deg); }
+  36% { transform: translate(8px, -13px) rotate(4deg); }
+  54% { transform: translate(4px, -5px) rotate(-2deg); }
+  66% { transform: translate(18px, 0) rotate(11deg) scale(.98, 1.02); }
+  76% { transform: translate(10px, 1px) rotate(-4deg) scale(1.03, .96); }
+}
+
+.pet.idle-bonk .pose { animation: diyBonk 1.65s cubic-bezier(.2, .9, .35, 1) 1; }
+@keyframes diyBonk {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  22% { transform: translate(-4px, -2px) rotate(-6deg); }
+  44% { transform: translate(7px, 0) rotate(10deg) scale(1.04, .96); }
+  52% { transform: translate(8px, 1px) rotate(4deg) scale(.97, 1.02); }
+  70% { transform: translate(1px, -5px) rotate(-3deg); }
+}
+
+.pet.idle-peek .pose { animation: diyPeek 2.45s cubic-bezier(.25, .8, .35, 1) 1; }
+@keyframes diyPeek {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  24% { transform: translate(26px, 1px) rotate(8deg) scale(.96, 1.02); }
+  46% { transform: translate(29px, -2px) rotate(10deg) scale(.94, 1.01); }
+  58% { transform: translate(20px, 0) rotate(-3deg) scale(1.02, .98); }
+  78% { transform: translate(7px, 0) rotate(2deg); }
+}
+
+.pet.idle-flop .squash { animation: diyFlop 2.8s cubic-bezier(.25, .9, .3, 1) 1; }
+@keyframes diyFlop {
+  0%, 100% { transform: translateY(0) scale(1); }
+  18% { transform: translateY(-4px) scale(1.04, .96); }
+  44%, 64% { transform: translateY(15px) scale(1.15, .68) rotate(-2deg); }
+  78% { transform: translateY(-5px) scale(.94, 1.08); }
+}
+
+.pet.idle-wave .arm.r { animation: diyWave .48s ease-in-out 4; transform-origin: 20% 70%; }
+@keyframes diyWave {
+  0%, 100% { transform: rotate(-48deg) translate(-3px, -10px); }
+  50% { transform: rotate(-72deg) translate(-6px, -14px); }
+}
+
+.pet.idle-sneeze .pose { animation: diySneeze 1.35s cubic-bezier(.22, .82, .35, 1) 1; }
+@keyframes diySneeze {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  28% { transform: translate(-4px, -5px) rotate(-8deg) scale(.94, 1.04); }
+  48% { transform: translate(2px, 2px) rotate(4deg) scale(.96, 1.08); }
+  58% { transform: translate(12px, -7px) rotate(12deg) scale(1.08, .9); }
+  76% { transform: translate(2px, 0) rotate(-3deg) scale(.98, 1.02); }
+}
+
+.pet.idle-sniff .pet-bob { animation: diySniff 2.2s cubic-bezier(.3, .8, .35, 1) 1; transform-origin: 50% 100%; }
+@keyframes diySniff {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  20% { transform: translate(-7px, 2px) rotate(-5deg); }
+  42% { transform: translate(12px, 5px) rotate(9deg) scale(1.03, .98); }
+  56% { transform: translate(15px, 3px) rotate(12deg) scale(1.05, .96); }
+  72% { transform: translate(7px, -2px) rotate(2deg); }
+}
+
+.pet.idle-melt .squash { animation: diyMelt 2.6s ease-in-out 1; }
+@keyframes diyMelt {
+  0%, 100% { transform: translateY(0) scale(1); }
+  30% { transform: translateY(4px) scale(1.03, .96); }
+  58%, 74% { transform: translateY(22px) scale(1.22, .55); }
+  86% { transform: translateY(-4px) scale(.94, 1.08); }
+}
+
+body.reduce-motion .pet[class*="idle-"] .pose,
+body.reduce-motion .pet[class*="idle-"] .squash,
+body.reduce-motion .pet[class*="idle-"] .pet-bob,
+body.reduce-motion .pet[class*="idle-"] .arm {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pet[class*="idle-"] .pose,
+  .pet[class*="idle-"] .squash,
+  .pet[class*="idle-"] .pet-bob,
+  .pet[class*="idle-"] .arm {
+    animation: none !important;
+  }
+}
+
+/* ============================================================
+   v2.8 动物形态
+   动物预设不再复用方块机身，而是由头、身体、耳、尾和四肢组成。
+   ============================================================ */
+.animal-shape {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: none;
+  pointer-events: none;
+}
+
+.pet.animal-form .animal-shape { display: block; }
+.pet.animal-form .body,
+.pet.animal-form .arm,
+.pet.animal-form .leg { visibility: hidden; opacity: 0 !important; }
+.pet.animal-form .acc-ears,
+.pet.animal-form .acc-tail { display: none !important; }
+.pet.animal-form .face { z-index: 5; }
+
+.animal-head,
+.animal-body,
+.animal-ear,
+.animal-muzzle,
+.animal-mark,
+.animal-paw,
+.animal-wing,
+.animal-tail,
+.animal-nose,
+.animal-belly {
+  position: absolute;
+  pointer-events: none;
+}
+
+.animal-head,
+.animal-body {
+  background: linear-gradient(155deg, var(--body1) 0%, var(--body2) 58%, var(--body3) 100%);
+  box-shadow:
+    inset 0 8px 14px rgba(255, 255, 255, 0.24),
+    inset 0 -14px 22px rgba(0, 0, 0, 0.16),
+    0 12px 20px -12px rgba(0, 0, 0, 0.32);
+}
+
+.animal-head { z-index: 3; }
+.animal-body { z-index: 2; }
+.animal-ear { z-index: 1; transform-origin: 50% 92%; animation: animalEarTwitch 5.2s ease-in-out infinite; }
+.animal-ear.r { animation-delay: -1.8s; }
+.animal-mark { z-index: 1; opacity: 0; }
+.animal-muzzle { z-index: 2; }
+.animal-nose { z-index: 3; }
+.animal-belly { z-index: 1; }
+.animal-paw { z-index: 4; }
+.animal-wing { z-index: 1; }
+.animal-tail {
+  z-index: 0;
+  transform-origin: 12% 88%;
+  animation: animalTailWag 2.1s ease-in-out infinite;
+}
+
+@keyframes animalEarTwitch {
+  0%, 82%, 100% { transform: rotate(var(--ear-angle, 0deg)); }
+  88% { transform: rotate(calc(var(--ear-angle, 0deg) - 7deg)); }
+  94% { transform: rotate(calc(var(--ear-angle, 0deg) + 4deg)); }
+}
+
+@keyframes animalTailWag {
+  0%, 100% { transform: rotate(var(--tail-angle, 0deg)); }
+  50% { transform: rotate(calc(var(--tail-angle, 0deg) + 13deg)); }
+}
+
+.pet.animal-form.is-walk .animal-paw.front.l,
+.pet.animal-form.is-walk .animal-paw.hind.r { animation: animalStepA 0.42s ease-in-out infinite; }
+.pet.animal-form.is-walk .animal-paw.front.r,
+.pet.animal-form.is-walk .animal-paw.hind.l { animation: animalStepB 0.42s ease-in-out infinite; }
+.pet.animal-form.is-walk .animal-body { animation: animalBodyWalk 0.42s ease-in-out infinite; }
+.pet.animal-form.is-walk .animal-tail { animation-duration: 0.58s; }
+.pet.animal-form.is-climb .animal-paw.front.l { animation: animalClimbA 0.34s ease-in-out infinite alternate; }
+.pet.animal-form.is-climb .animal-paw.front.r { animation: animalClimbB 0.34s ease-in-out infinite alternate; }
+.pet.animal-form.is-climb .animal-paw.hind.l { animation: animalClimbB 0.34s ease-in-out infinite alternate; }
+.pet.animal-form.is-climb .animal-paw.hind.r { animation: animalClimbA 0.34s ease-in-out infinite alternate; }
+
+@keyframes animalStepA {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-8px) rotate(12deg); }
+}
+@keyframes animalStepB {
+  0%, 100% { transform: translateY(-8px) rotate(12deg); }
+  50% { transform: translateY(0) rotate(-4deg); }
+}
+@keyframes animalBodyWalk {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-2px) scale(1.02, 0.98); }
+}
+@keyframes animalClimbA {
+  from { transform: translateY(0) rotate(-16deg); }
+  to { transform: translateY(-13px) rotate(20deg); }
+}
+@keyframes animalClimbB {
+  from { transform: translateY(-13px) rotate(20deg); }
+  to { transform: translateY(0) rotate(-16deg); }
+}
+
+/* 小猫：圆脑袋、尖耳、卷尾巴和四只软爪。 */
+.pet.animal-form[data-animal="cat"] .animal-body {
+  left: 38px; top: 103px; width: 114px; height: 78px;
+  border-radius: 48% 48% 42% 42%;
+}
+.pet.animal-form[data-animal="cat"] .animal-head {
+  left: 23px; top: 21px; width: 144px; height: 108px;
+  border-radius: 50% 50% 45% 45%;
+}
+.pet.animal-form[data-animal="cat"] .animal-ear {
+  top: 10px; width: 0; height: 0;
+  border-left: 23px solid transparent;
+  border-right: 23px solid transparent;
+  border-bottom: 54px solid var(--body2);
+  filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.1));
+}
+.pet.animal-form[data-animal="cat"] .animal-ear::after {
+  content: ""; position: absolute; left: -12px; top: 18px;
+  border-left: 12px solid transparent; border-right: 12px solid transparent;
+  border-bottom: 30px solid #ffc7d3;
+}
+.pet.animal-form[data-animal="cat"] .animal-ear.l { left: 8px; --ear-angle: -13deg; }
+.pet.animal-form[data-animal="cat"] .animal-ear.r { right: 8px; --ear-angle: 13deg; }
+.pet.animal-form[data-animal="cat"] .animal-muzzle {
+  left: 42px; bottom: 6px; width: 60px; height: 40px;
+  border-radius: 50%; background: rgba(255, 255, 255, 0.88);
+}
+.pet.animal-form[data-animal="cat"] .animal-nose {
+  left: 66px; bottom: 34px; width: 12px; height: 8px;
+  border-radius: 50% 50% 60% 60%; background: #ef7f95;
+}
+/* v2.9 修复：原先用 border 描边做尾巴，渲染出来是一根细铁丝，改成实心渐细尾巴。 */
+.pet.animal-form[data-animal="cat"] .animal-tail {
+  right: 9px; top: 92px; width: 28px; height: 64px;
+  border-radius: 58% 42% 38% 62% / 64% 56% 44% 36%;
+  background: linear-gradient(168deg, var(--body2) 0%, var(--body3) 82%);
+  box-shadow: inset -5px -3px 0 rgba(255, 255, 255, 0.26);
+  --tail-angle: 20deg;
+}
+.pet.animal-form[data-animal="cat"] .animal-paw {
+  bottom: 7px; width: 35px; height: 24px; border-radius: 50%;
+  background: linear-gradient(180deg, var(--body2), var(--body3));
+  box-shadow: inset 0 -4px 7px rgba(0, 0, 0, 0.16);
+}
+.pet.animal-form[data-animal="cat"] .animal-paw.l { left: 39px; }
+.pet.animal-form[data-animal="cat"] .animal-paw.r { right: 39px; }
+.pet.animal-form[data-animal="cat"] .animal-paw.hind { bottom: 24px; width: 28px; height: 34px; }
+.pet.animal-form[data-animal="cat"] .animal-paw.hind.l { left: 31px; }
+.pet.animal-form[data-animal="cat"] .animal-paw.hind.r { right: 31px; }
+.pet.animal-form[data-animal="cat"] .animal-wing { display: none; }
+.pet.animal-form[data-animal="cat"] .eye { top: 51px; width: 36px; height: 43px; }
+.pet.animal-form[data-animal="cat"] .eye.l { left: 55px; }
+.pet.animal-form[data-animal="cat"] .eye.r { right: 55px; }
+.pet.animal-form[data-animal="cat"] .pupil { width: 24px; height: 29px; left: 6px; top: 7px; }
+.pet.animal-form[data-animal="cat"] .hl { width: 10px; height: 9px; left: 10px; top: 11px; }
+.pet.animal-form[data-animal="cat"] .hl.small { width: 5px; height: 5px; left: 21px; top: 29px; }
+.pet.animal-form[data-animal="cat"] .blush { top: 87px; width: 27px; height: 13px; }
+.pet.animal-form[data-animal="cat"] .blush.l { left: 42px; }
+.pet.animal-form[data-animal="cat"] .blush.r { right: 42px; }
+.pet.animal-form[data-animal="cat"] .mouth { top: 106px; width: 22px; }
+
+/* 小兔：长耳、圆脸、绒球尾，身体更轻。 */
+.pet.animal-form[data-animal="bunny"] .animal-body {
+  left: 42px; top: 132px; width: 106px; height: 58px;
+  border-radius: 50% 50% 43% 43%;
+}
+.pet.animal-form[data-animal="bunny"] .animal-head {
+  left: 36px; top: 55px; width: 118px; height: 98px;
+  border-radius: 50% 50% 46% 46%;
+}
+.pet.animal-form[data-animal="bunny"] .animal-ear {
+  top: -61px; width: 27px; height: 83px; border-radius: 50%;
+  background: linear-gradient(var(--body1), var(--body2));
+  box-shadow: inset 0 0 0 7px #ffc4d4, inset 0 0 0 20px var(--body1);
+}
+.pet.animal-form[data-animal="bunny"] .animal-ear.l { left: 23px; --ear-angle: -9deg; }
+.pet.animal-form[data-animal="bunny"] .animal-ear.r { right: 23px; --ear-angle: 10deg; animation-delay: -2.6s; }
+.pet.animal-form[data-animal="bunny"] .animal-muzzle {
+  left: 34px; bottom: 4px; width: 50px; height: 35px;
+  border-radius: 50%; background: rgba(255, 255, 255, 0.9);
+}
+.pet.animal-form[data-animal="bunny"] .animal-nose {
+  left: 53px; bottom: 29px; width: 12px; height: 8px;
+  border-radius: 55% 55% 60% 60%; background: #f29bae;
+}
+.pet.animal-form[data-animal="bunny"] .animal-tail {
+  right: 20px; bottom: 23px; width: 35px; height: 35px;
+  border-radius: 50%; background: #fff;
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.13);
+  --tail-angle: 0deg;
+}
+.pet.animal-form[data-animal="bunny"] .animal-tail { animation-duration: 3.4s; }
+.pet.animal-form[data-animal="bunny"] .animal-paw {
+  bottom: 7px; width: 43px; height: 25px; border-radius: 50%;
+  background: linear-gradient(180deg, var(--body1), var(--body2));
+}
+.pet.animal-form[data-animal="bunny"] .animal-paw.l { left: 32px; }
+.pet.animal-form[data-animal="bunny"] .animal-paw.r { right: 32px; }
+.pet.animal-form[data-animal="bunny"] .animal-paw.hind { bottom: 23px; width: 35px; height: 36px; }
+.pet.animal-form[data-animal="bunny"] .animal-paw.hind.l { left: 29px; }
+.pet.animal-form[data-animal="bunny"] .animal-paw.hind.r { right: 29px; }
+.pet.animal-form[data-animal="bunny"] .animal-wing { display: none; }
+.pet.animal-form[data-animal="bunny"] .eye { top: 80px; width: 31px; height: 37px; }
+.pet.animal-form[data-animal="bunny"] .eye.l { left: 50px; }
+.pet.animal-form[data-animal="bunny"] .eye.r { right: 50px; }
+.pet.animal-form[data-animal="bunny"] .pupil { width: 21px; height: 25px; left: 5px; top: 6px; }
+.pet.animal-form[data-animal="bunny"] .hl { width: 9px; height: 8px; left: 9px; top: 9px; }
+.pet.animal-form[data-animal="bunny"] .hl.small { width: 4px; height: 4px; left: 18px; top: 25px; }
+.pet.animal-form[data-animal="bunny"] .blush { top: 111px; width: 25px; height: 12px; }
+.pet.animal-form[data-animal="bunny"] .blush.l { left: 40px; }
+.pet.animal-form[data-animal="bunny"] .blush.r { right: 40px; }
+.pet.animal-form[data-animal="bunny"] .mouth { top: 128px; width: 20px; }
+
+/* 小熊：宽圆脸、半圆耳、焦糖色厚身体。 */
+.pet.animal-form[data-animal="bear"] .animal-body {
+  left: 38px; top: 111px; width: 114px; height: 76px;
+  border-radius: 47% 47% 40% 40%;
+}
+.pet.animal-form[data-animal="bear"] .animal-head {
+  left: 25px; top: 26px; width: 140px; height: 108px;
+  border-radius: 48% 48% 46% 46%;
+}
+.pet.animal-form[data-animal="bear"] .animal-ear {
+  top: -14px; width: 42px; height: 42px; border-radius: 50%;
+  background: var(--body2); box-shadow: inset 0 0 0 10px var(--body3);
+}
+.pet.animal-form[data-animal="bear"] .animal-ear.l { left: 3px; --ear-angle: -5deg; }
+.pet.animal-form[data-animal="bear"] .animal-ear.r { right: 3px; --ear-angle: 5deg; }
+.pet.animal-form[data-animal="bear"] .animal-muzzle {
+  left: 35px; bottom: 3px; width: 70px; height: 46px;
+  border-radius: 50%; background: rgba(255, 235, 205, 0.82);
+}
+.pet.animal-form[data-animal="bear"] .animal-nose {
+  left: 59px; bottom: 36px; width: 22px; height: 14px;
+  border-radius: 48% 48% 55% 55%; background: #4b2d20;
+}
+.pet.animal-form[data-animal="bear"] .animal-paw {
+  bottom: 6px; width: 45px; height: 28px; border-radius: 48%;
+  background: linear-gradient(180deg, var(--body2), var(--body3));
+}
+.pet.animal-form[data-animal="bear"] .animal-paw.l { left: 32px; }
+.pet.animal-form[data-animal="bear"] .animal-paw.r { right: 32px; }
+.pet.animal-form[data-animal="bear"] .animal-paw.hind { bottom: 24px; width: 35px; height: 36px; }
+.pet.animal-form[data-animal="bear"] .animal-paw.hind.l { left: 27px; }
+.pet.animal-form[data-animal="bear"] .animal-paw.hind.r { right: 27px; }
+.pet.animal-form[data-animal="bear"] .animal-tail {
+  right: 23px; bottom: 24px; width: 31px; height: 31px;
+  border-radius: 50%; background: var(--body2); --tail-angle: 0deg;
+}
+.pet.animal-form[data-animal="bear"] .animal-tail { animation-duration: 3.8s; }
+.pet.animal-form[data-animal="bear"] .animal-wing { display: none; }
+.pet.animal-form[data-animal="bear"] .eye { top: 56px; width: 37px; height: 42px; }
+.pet.animal-form[data-animal="bear"] .eye.l { left: 50px; }
+.pet.animal-form[data-animal="bear"] .eye.r { right: 50px; }
+.pet.animal-form[data-animal="bear"] .pupil { width: 25px; height: 28px; left: 6px; top: 7px; }
+.pet.animal-form[data-animal="bear"] .hl { width: 10px; height: 9px; left: 10px; top: 10px; }
+.pet.animal-form[data-animal="bear"] .hl.small { width: 5px; height: 5px; left: 21px; top: 28px; }
+.pet.animal-form[data-animal="bear"] .blush { top: 91px; width: 28px; height: 14px; }
+.pet.animal-form[data-animal="bear"] .blush.l { left: 39px; }
+.pet.animal-form[data-animal="bear"] .blush.r { right: 39px; }
+.pet.animal-form[data-animal="bear"] .mouth { top: 107px; width: 23px; }
+
+/* 小狐狸：尖耳、尖脸、白口鼻和大尾巴。 */
+.pet.animal-form[data-animal="fox"] .animal-body {
+  left: 41px; top: 104px; width: 108px; height: 78px;
+  border-radius: 46% 46% 39% 39%;
+}
+/* v2.9 修复：原 clip-path 把脸切成梯形，像纸袋。改回圆脸，靠耳朵和口鼻表达狐狸。 */
+.pet.animal-form[data-animal="fox"] .animal-head {
+  left: 28px; top: 31px; width: 134px; height: 98px;
+  border-radius: 50% 50% 44% 44% / 52% 52% 48% 48%;
+}
+.pet.animal-form[data-animal="fox"] .animal-ear {
+  top: -20px; width: 0; height: 0;
+  border-left: 24px solid transparent; border-right: 24px solid transparent;
+  border-bottom: 62px solid #d66c2f;
+}
+.pet.animal-form[data-animal="fox"] .animal-ear::after {
+  content: ""; position: absolute; left: -12px; top: 21px;
+  border-left: 12px solid transparent; border-right: 12px solid transparent;
+  border-bottom: 31px solid #542f28;
+}
+.pet.animal-form[data-animal="fox"] .animal-ear.l { left: 8px; --ear-angle: -8deg; }
+.pet.animal-form[data-animal="fox"] .animal-ear.r { right: 8px; --ear-angle: 8deg; }
+.pet.animal-form[data-animal="fox"] .animal-muzzle {
+  left: 34px; bottom: -3px; width: 66px; height: 49px;
+  border-radius: 46% 46% 50% 50%; background: #fff7ee;
+}
+.pet.animal-form[data-animal="fox"] .animal-nose {
+  left: 61px; bottom: 34px; width: 12px; height: 9px;
+  border-radius: 50%; background: #3d2922;
+}
+.pet.animal-form[data-animal="fox"] .animal-tail {
+  right: -1px; top: 94px; width: 51px; height: 63px;
+  border-radius: 12% 68% 70% 16%;
+  background: linear-gradient(135deg, #f5ad67, #c95d27 78%);
+  box-shadow: inset -9px -11px 0 rgba(255, 255, 255, 0.36);
+  --tail-angle: 21deg;
+}
+.pet.animal-form[data-animal="fox"] .animal-tail { transform-origin: 9% 88%; }
+.pet.animal-form[data-animal="fox"] .animal-paw {
+  bottom: 6px; width: 38px; height: 24px; border-radius: 50%;
+  background: #5d3528;
+}
+.pet.animal-form[data-animal="fox"] .animal-paw.l { left: 39px; }
+.pet.animal-form[data-animal="fox"] .animal-paw.r { right: 39px; }
+.pet.animal-form[data-animal="fox"] .animal-paw.hind { bottom: 23px; width: 29px; height: 35px; }
+.pet.animal-form[data-animal="fox"] .animal-paw.hind.l { left: 31px; }
+.pet.animal-form[data-animal="fox"] .animal-paw.hind.r { right: 31px; }
+.pet.animal-form[data-animal="fox"] .animal-wing { display: none; }
+.pet.animal-form[data-animal="fox"] .eye { top: 56px; width: 34px; height: 40px; }
+.pet.animal-form[data-animal="fox"] .eye.l { left: 52px; }
+.pet.animal-form[data-animal="fox"] .eye.r { right: 52px; }
+.pet.animal-form[data-animal="fox"] .pupil { width: 23px; height: 26px; left: 5px; top: 7px; }
+.pet.animal-form[data-animal="fox"] .hl { width: 9px; height: 9px; left: 9px; top: 10px; }
+.pet.animal-form[data-animal="fox"] .hl.small { width: 4px; height: 4px; left: 19px; top: 27px; }
+.pet.animal-form[data-animal="fox"] .blush { top: 89px; width: 27px; height: 13px; }
+.pet.animal-form[data-animal="fox"] .blush.l { left: 40px; }
+.pet.animal-form[data-animal="fox"] .blush.r { right: 40px; }
+.pet.animal-form[data-animal="fox"] .mouth { top: 104px; width: 20px; }
+
+/* 熊猫：黑白头身、黑眼圈、圆耳和厚爪。 */
+/* v2.9 修复：原来整个身体是黑块，远看像一坨墨。改成白身子 + 黑色肩带（熊猫真实配色）。 */
+.pet.animal-form[data-animal="panda"] .animal-body {
+  left: 36px; top: 104px; width: 118px; height: 83px;
+  border-radius: 48% 48% 42% 42%;
+  background: linear-gradient(155deg, #ffffff, #e9e7e4 74%);
+}
+.pet.animal-form[data-animal="panda"] .animal-belly {
+  left: 14px; top: 2px; width: 90px; height: 44px;
+  border-radius: 50% 50% 46% 46%;
+  background: linear-gradient(155deg, #3a3a3a, #1d1d1d 78%);
+  opacity: 0.92;
+}
+.pet.animal-form[data-animal="panda"] .animal-head {
+  left: 22px; top: 23px; width: 146px; height: 112px;
+  border-radius: 50% 50% 46% 46%;
+  background: linear-gradient(155deg, #ffffff, #ecebea 70%);
+}
+.pet.animal-form[data-animal="panda"] .animal-ear {
+  top: -11px; width: 43px; height: 43px; border-radius: 50%;
+  background: #202020;
+}
+.pet.animal-form[data-animal="panda"] .animal-ear.l { left: 2px; --ear-angle: -4deg; }
+.pet.animal-form[data-animal="panda"] .animal-ear.r { right: 2px; --ear-angle: 4deg; }
+/* v2.9 修复：眼圈原来 47×52 且旋转 24°，整张脸糊成强盗面罩。缩小并扶正成杏仁形。 */
+.pet.animal-form[data-animal="panda"] .animal-mark {
+  top: 47px; width: 42px; height: 46px; opacity: 1;
+  background: radial-gradient(circle at 50% 46%, #2b2b2b 0%, #1b1b1b 74%);
+  border-radius: 52% 48% 50% 50% / 58% 58% 42% 42%;
+  transform: rotate(13deg);
+}
+.pet.animal-form[data-animal="panda"] .animal-mark.l { left: 33px; }
+.pet.animal-form[data-animal="panda"] .animal-mark.r { right: 33px; transform: rotate(-13deg); }
+.pet.animal-form[data-animal="panda"] .animal-muzzle {
+  left: 38px; bottom: 2px; width: 70px; height: 40px;
+  border-radius: 50%; background: rgba(255, 255, 255, 0.9);
+}
+.pet.animal-form[data-animal="panda"] .animal-nose {
+  left: 62px; bottom: 31px; width: 22px; height: 13px;
+  border-radius: 48%; background: #151515;
+}
+.pet.animal-form[data-animal="panda"] .animal-paw {
+  bottom: 7px; width: 48px; height: 28px; border-radius: 47%;
+  background: #202020;
+}
+.pet.animal-form[data-animal="panda"] .animal-paw.l { left: 29px; }
+.pet.animal-form[data-animal="panda"] .animal-paw.r { right: 29px; }
+.pet.animal-form[data-animal="panda"] .animal-paw.hind { bottom: 22px; width: 36px; height: 37px; }
+.pet.animal-form[data-animal="panda"] .animal-paw.hind.l { left: 23px; }
+.pet.animal-form[data-animal="panda"] .animal-paw.hind.r { right: 23px; }
+.pet.animal-form[data-animal="panda"] .animal-tail {
+  right: 20px; bottom: 25px; width: 31px; height: 31px;
+  border-radius: 50%; background: #fafafa; --tail-angle: 0deg;
+}
+.pet.animal-form[data-animal="panda"] .animal-tail { animation-duration: 3.6s; }
+.pet.animal-form[data-animal="panda"] .animal-wing { display: none; }
+.pet.animal-form[data-animal="panda"] .eye { top: 56px; width: 31px; height: 36px; }
+.pet.animal-form[data-animal="panda"] .eye.l { left: 47px; }
+.pet.animal-form[data-animal="panda"] .eye.r { right: 47px; }
+.pet.animal-form[data-animal="panda"] .sclera { background: radial-gradient(circle at 36% 28%, #ffffff, #dfe8ed 76%); }
+.pet.animal-form[data-animal="panda"] .pupil { width: 21px; height: 24px; left: 5px; top: 6px; }
+.pet.animal-form[data-animal="panda"] .hl { width: 9px; height: 8px; left: 9px; top: 9px; }
+.pet.animal-form[data-animal="panda"] .hl.small { width: 4px; height: 4px; left: 18px; top: 24px; }
+.pet.animal-form[data-animal="panda"] .blush { top: 92px; width: 27px; height: 13px; opacity: 0.9; }
+.pet.animal-form[data-animal="panda"] .blush.l { left: 35px; }
+.pet.animal-form[data-animal="panda"] .blush.r { right: 35px; }
+.pet.animal-form[data-animal="panda"] .mouth { top: 106px; width: 21px; }
+
+/* 小青蛙：宽扁头、顶部眼睛、长后腿。 */
+.pet.animal-form[data-animal="frog"] .animal-body {
+  left: 30px; top: 109px; width: 130px; height: 66px;
+  border-radius: 47% 47% 38% 38%;
+  background: linear-gradient(155deg, #b8ef9e, #5abf6e 64%, #348c56);
+}
+.pet.animal-form[data-animal="frog"] .animal-head {
+  left: 18px; top: 38px; width: 154px; height: 86px;
+  border-radius: 48% 48% 46% 46% / 54% 54% 46% 46%;
+  background: linear-gradient(155deg, #c8f7ab, #6acd73 64%, #3b9e58);
+}
+.pet.animal-form[data-animal="frog"] .animal-ear {
+  top: -18px; width: 48px; height: 48px; border-radius: 50%;
+  background: #73d175; box-shadow: inset 0 -8px 12px rgba(0, 0, 0, 0.12);
+}
+.pet.animal-form[data-animal="frog"] .animal-ear.l { left: 21px; --ear-angle: 0deg; }
+.pet.animal-form[data-animal="frog"] .animal-ear.r { right: 21px; --ear-angle: 0deg; animation-delay: -2.8s; }
+.pet.animal-form[data-animal="frog"] .animal-muzzle {
+  left: 27px; bottom: 4px; width: 100px; height: 37px;
+  border-radius: 50%; background: rgba(225, 255, 188, 0.5);
+}
+.pet.animal-form[data-animal="frog"] .animal-nose {
+  left: 58px; bottom: 28px; width: 6px; height: 5px; border-radius: 50%;
+  background: #3c8354; box-shadow: 28px 0 0 #3c8354;
+}
+.pet.animal-form[data-animal="frog"] .animal-paw {
+  bottom: 4px; width: 55px; height: 25px; border-radius: 45%;
+  background: linear-gradient(180deg, #79d77f, #3f9d5a);
+}
+.pet.animal-form[data-animal="frog"] .animal-paw.l { left: 22px; transform: rotate(-8deg); }
+.pet.animal-form[data-animal="frog"] .animal-paw.r { right: 22px; transform: rotate(8deg); }
+.pet.animal-form[data-animal="frog"] .animal-paw.hind { bottom: 19px; width: 45px; height: 47px; }
+.pet.animal-form[data-animal="frog"] .animal-paw.hind.l { left: 11px; }
+.pet.animal-form[data-animal="frog"] .animal-paw.hind.r { right: 11px; }
+.pet.animal-form[data-animal="frog"] .animal-tail,
+.pet.animal-form[data-animal="frog"] .animal-wing { display: none; }
+.pet.animal-form[data-animal="frog"] .eye { top: 52px; width: 39px; height: 43px; }
+.pet.animal-form[data-animal="frog"] .eye.l { left: 44px; }
+.pet.animal-form[data-animal="frog"] .eye.r { right: 44px; }
+.pet.animal-form[data-animal="frog"] .pupil { width: 25px; height: 29px; left: 7px; top: 7px; }
+.pet.animal-form[data-animal="frog"] .hl { width: 11px; height: 10px; left: 10px; top: 10px; }
+.pet.animal-form[data-animal="frog"] .hl.small { width: 5px; height: 5px; left: 22px; top: 29px; }
+.pet.animal-form[data-animal="frog"] .blush { top: 85px; width: 30px; height: 12px; }
+.pet.animal-form[data-animal="frog"] .blush.l { left: 35px; }
+.pet.animal-form[data-animal="frog"] .blush.r { right: 35px; }
+.pet.animal-form[data-animal="frog"] .mouth { top: 101px; width: 34px; }
+
+/* 小企鹅：椭圆深色身体、白肚皮、橘色脚和鳍状翅。 */
+.pet.animal-form[data-animal="penguin"] .animal-body {
+  left: 32px; top: 82px; width: 126px; height: 101px;
+  border-radius: 48% 48% 43% 43%;
+  background: linear-gradient(155deg, #688ba5, #29475f 72%);
+}
+.pet.animal-form[data-animal="penguin"] .animal-head {
+  left: 42px; top: 12px; width: 106px; height: 93px;
+  border-radius: 50% 50% 45% 45%;
+  background: linear-gradient(155deg, #7397b0, #2b4a62 74%);
+}
+.pet.animal-form[data-animal="penguin"] .animal-belly {
+  left: 20px; top: 20px; width: 86px; height: 76px;
+  border-radius: 50% 50% 45% 45%;
+  background: linear-gradient(180deg, #ffffff, #e7f4f8 74%);
+  box-shadow: inset 0 -7px 12px rgba(96, 145, 164, 0.12);
+}
+.pet.animal-form[data-animal="penguin"] .animal-ear { display: none; }
+.pet.animal-form[data-animal="penguin"] .animal-muzzle { display: none; }
+/* v2.9 修复：喙改成居中的小菱形。注意 nose 相对 head 定位，head 宽 106 → 局部中心 53。 */
+.pet.animal-form[data-animal="penguin"] .animal-nose {
+  left: 38px; top: 84px; width: 30px; height: 24px;
+  border: 0; background: linear-gradient(180deg, #ffcb6b 0%, #f29a2c 74%);
+  border-radius: 40% 40% 46% 46% / 34% 34% 58% 58%;
+  clip-path: polygon(50% 100%, 2% 32%, 50% 0%, 98% 32%);
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.16));
+}
+.pet.animal-form[data-animal="penguin"] .animal-wing {
+  top: 95px; width: 33px; height: 73px; display: block;
+  border-radius: 60% 30% 55% 45%;
+  background: linear-gradient(155deg, #587b94, #203b51);
+  transform-origin: 50% 10%;
+  animation: penguinFlipperL 2.8s ease-in-out infinite;
+}
+.pet.animal-form[data-animal="penguin"] .animal-wing.l { left: 13px; transform: rotate(12deg); }
+.pet.animal-form[data-animal="penguin"] .animal-wing.r { right: 13px; transform: rotate(-12deg); animation-name: penguinFlipperR; }
+.pet.animal-form[data-animal="penguin"] .animal-tail { display: none; }
+.pet.animal-form[data-animal="penguin"] .animal-paw {
+  bottom: 4px; width: 47px; height: 19px; border-radius: 50% 50% 42% 42%;
+  background: linear-gradient(180deg, #ffc05e, #e9902c);
+  box-shadow: inset 0 -3px 5px rgba(0, 0, 0, 0.12);
+}
+.pet.animal-form[data-animal="penguin"] .animal-paw.l { left: 36px; transform: rotate(-8deg); }
+.pet.animal-form[data-animal="penguin"] .animal-paw.r { right: 36px; transform: rotate(8deg); }
+.pet.animal-form[data-animal="penguin"] .animal-paw.hind { display: none; }
+.pet.animal-form[data-animal="penguin"] .eye { top: 47px; width: 32px; height: 38px; }
+.pet.animal-form[data-animal="penguin"] .eye.l { left: 51px; }
+.pet.animal-form[data-animal="penguin"] .eye.r { right: 51px; }
+.pet.animal-form[data-animal="penguin"] .pupil { width: 22px; height: 26px; left: 5px; top: 6px; }
+.pet.animal-form[data-animal="penguin"] .hl { width: 9px; height: 8px; left: 9px; top: 9px; }
+.pet.animal-form[data-animal="penguin"] .hl.small { width: 4px; height: 4px; left: 19px; top: 26px; }
+.pet.animal-form[data-animal="penguin"] .blush { top: 82px; width: 27px; height: 13px; }
+.pet.animal-form[data-animal="penguin"] .blush.l { left: 39px; }
+.pet.animal-form[data-animal="penguin"] .blush.r { right: 39px; }
+.pet.animal-form[data-animal="penguin"] .mouth { display: none; }
+
+@keyframes penguinFlipperL {
+  0%, 100% { transform: rotate(12deg); }
+  50% { transform: rotate(19deg) translateY(-2px); }
+}
+@keyframes penguinFlipperR {
+  0%, 100% { transform: rotate(-12deg); }
+  50% { transform: rotate(-19deg) translateY(-2px); }
+}
+
+/* ============================================================
+   v2.9 新增形象：柴犬 / 小羊 / 小恐龙 / 小黄鸭
+   与已有 7 个形象共用同一套头身耳爪尾骨架。
+   ============================================================ */
+
+/* 小柴犬：立耳、奶油口鼻、蓬松卷尾。 */
+.pet.animal-form[data-animal="dog"] .animal-body {
+  left: 40px; top: 112px; width: 110px; height: 76px;
+  border-radius: 46% 46% 40% 40%;
+}
+.pet.animal-form[data-animal="dog"] .animal-head {
+  left: 27px; top: 36px; width: 136px; height: 100px;
+  border-radius: 50% 50% 45% 45%;
+}
+.pet.animal-form[data-animal="dog"] .animal-ear {
+  top: 4px; width: 0; height: 0;
+  border-left: 22px solid transparent; border-right: 22px solid transparent;
+  border-bottom: 50px solid var(--body2);
+  filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.1));
+}
+.pet.animal-form[data-animal="dog"] .animal-ear::after {
+  content: ""; position: absolute; left: -11px; top: 16px;
+  border-left: 11px solid transparent; border-right: 11px solid transparent;
+  border-bottom: 27px solid #fff4e6;
+  opacity: 0.92;
+}
+.pet.animal-form[data-animal="dog"] .animal-ear.l { left: 10px; --ear-angle: -17deg; }
+.pet.animal-form[data-animal="dog"] .animal-ear.r { right: 10px; --ear-angle: 17deg; }
+.pet.animal-form[data-animal="dog"] .animal-muzzle {
+  left: 36px; bottom: 4px; width: 68px; height: 40px;
+  border-radius: 50%; background: rgba(255, 250, 242, 0.95);
+}
+.pet.animal-form[data-animal="dog"] .animal-nose {
+  left: 59px; bottom: 31px; width: 18px; height: 12px;
+  border-radius: 48% 48% 56% 56%; background: #3b2117;
+}
+.pet.animal-form[data-animal="dog"] .animal-tail {
+  right: 12px; top: 104px; width: 34px; height: 42px;
+  border-radius: 54% 46% 44% 56%;
+  background: linear-gradient(150deg, var(--body1), var(--body2) 82%);
+  box-shadow: inset -4px -4px 0 rgba(0, 0, 0, 0.06);
+  --tail-angle: 14deg;
+}
+.pet.animal-form[data-animal="dog"] .animal-paw {
+  bottom: 6px; width: 42px; height: 25px; border-radius: 48%;
+  background: linear-gradient(180deg, #fff8ee, var(--body2));
+}
+.pet.animal-form[data-animal="dog"] .animal-paw.l { left: 34px; }
+.pet.animal-form[data-animal="dog"] .animal-paw.r { right: 34px; }
+.pet.animal-form[data-animal="dog"] .animal-paw.hind { bottom: 23px; width: 33px; height: 34px; }
+.pet.animal-form[data-animal="dog"] .animal-paw.hind.l { left: 29px; }
+.pet.animal-form[data-animal="dog"] .animal-paw.hind.r { right: 29px; }
+.pet.animal-form[data-animal="dog"] .animal-wing { display: none; }
+.pet.animal-form[data-animal="dog"] .eye { top: 62px; width: 34px; height: 40px; }
+.pet.animal-form[data-animal="dog"] .eye.l { left: 51px; }
+.pet.animal-form[data-animal="dog"] .eye.r { right: 51px; }
+.pet.animal-form[data-animal="dog"] .pupil { width: 23px; height: 27px; left: 5px; top: 7px; }
+.pet.animal-form[data-animal="dog"] .hl { width: 10px; height: 9px; left: 9px; top: 10px; }
+.pet.animal-form[data-animal="dog"] .hl.small { width: 4px; height: 4px; left: 19px; top: 27px; }
+.pet.animal-form[data-animal="dog"] .blush { top: 94px; width: 27px; height: 13px; }
+.pet.animal-form[data-animal="dog"] .blush.l { left: 38px; }
+.pet.animal-form[data-animal="dog"] .blush.r { right: 38px; }
+.pet.animal-form[data-animal="dog"] .mouth { top: 116px; width: 22px; }
+
+/* 小羊：云朵绒毛、垂耳、深色小短腿。 */
+.pet.animal-form[data-animal="sheep"] .animal-body {
+  left: 36px; top: 108px; width: 118px; height: 80px;
+  border-radius: 50% 50% 44% 44%;
+  background: radial-gradient(circle at 50% 32%, #ffffff 0%, #f4f0f8 62%, #ded7e8 100%);
+  box-shadow:
+    -17px 10px 0 -4px #ffffff,
+    17px 10px 0 -4px #ffffff,
+    -11px -9px 0 -5px #ffffff,
+    11px -9px 0 -5px #ffffff,
+    inset 0 8px 14px rgba(255, 255, 255, 0.3),
+    inset 0 -14px 22px rgba(0, 0, 0, 0.07),
+    0 12px 20px -12px rgba(0, 0, 0, 0.3);
+}
+.pet.animal-form[data-animal="sheep"] .animal-head {
+  left: 41px; top: 40px; width: 108px; height: 94px;
+  border-radius: 50% 50% 46% 46%;
+  background: radial-gradient(circle at 46% 28%, #ffffff 0%, #f8f5fb 66%, #e6e0ee 100%);
+  box-shadow:
+    -11px -9px 0 -6px #ffffff,
+    11px -9px 0 -6px #ffffff,
+    0 -13px 0 -7px #ffffff,
+    inset 0 8px 14px rgba(255, 255, 255, 0.3),
+    0 12px 20px -12px rgba(0, 0, 0, 0.28);
+}
+.pet.animal-form[data-animal="sheep"] .animal-ear {
+  top: 44px; width: 34px; height: 24px; border-radius: 50%;
+  background: linear-gradient(160deg, #f4e2ee, #d3b7ca);
+  box-shadow: inset 0 3px 5px rgba(255, 255, 255, 0.55);
+}
+.pet.animal-form[data-animal="sheep"] .animal-ear.l { left: -16px; --ear-angle: -28deg; }
+.pet.animal-form[data-animal="sheep"] .animal-ear.r { right: -16px; --ear-angle: 28deg; }
+.pet.animal-form[data-animal="sheep"] .animal-muzzle {
+  left: 31px; bottom: 4px; width: 46px; height: 34px;
+  border-radius: 50%; background: rgba(250, 232, 240, 0.96);
+}
+.pet.animal-form[data-animal="sheep"] .animal-nose {
+  left: 48px; bottom: 28px; width: 12px; height: 8px;
+  border-radius: 55% 55% 60% 60%; background: #d98ba6;
+}
+.pet.animal-form[data-animal="sheep"] .animal-tail {
+  right: 16px; bottom: 26px; width: 30px; height: 30px;
+  border-radius: 50%; background: #ffffff;
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.12);
+  --tail-angle: 0deg;
+}
+.pet.animal-form[data-animal="sheep"] .animal-tail { animation-duration: 3.6s; }
+.pet.animal-form[data-animal="sheep"] .animal-paw {
+  bottom: 5px; width: 25px; height: 24px;
+  border-radius: 42% 42% 34% 34%;
+  background: linear-gradient(180deg, #7d6c8a, #4a3f56);
+}
+.pet.animal-form[data-animal="sheep"] .animal-paw.l { left: 44px; }
+.pet.animal-form[data-animal="sheep"] .animal-paw.r { right: 44px; }
+.pet.animal-form[data-animal="sheep"] .animal-paw.hind { bottom: 20px; width: 20px; height: 26px; }
+.pet.animal-form[data-animal="sheep"] .animal-paw.hind.l { left: 28px; }
+.pet.animal-form[data-animal="sheep"] .animal-paw.hind.r { right: 28px; }
+.pet.animal-form[data-animal="sheep"] .animal-wing { display: none; }
+.pet.animal-form[data-animal="sheep"] .eye { top: 66px; width: 32px; height: 37px; }
+.pet.animal-form[data-animal="sheep"] .eye.l { left: 52px; }
+.pet.animal-form[data-animal="sheep"] .eye.r { right: 52px; }
+.pet.animal-form[data-animal="sheep"] .pupil { width: 21px; height: 25px; left: 5px; top: 6px; }
+.pet.animal-form[data-animal="sheep"] .hl { width: 9px; height: 8px; left: 9px; top: 9px; }
+.pet.animal-form[data-animal="sheep"] .hl.small { width: 4px; height: 4px; left: 18px; top: 25px; }
+.pet.animal-form[data-animal="sheep"] .blush { top: 97px; width: 26px; height: 12px; }
+.pet.animal-form[data-animal="sheep"] .blush.l { left: 39px; }
+.pet.animal-form[data-animal="sheep"] .blush.r { right: 39px; }
+.pet.animal-form[data-animal="sheep"] .mouth { top: 113px; width: 19px; }
+
+/* 小恐龙：圆头、头顶双角、粗尾巴、浅色肚皮。 */
+.pet.animal-form[data-animal="dino"] .animal-body {
+  left: 34px; top: 104px; width: 122px; height: 84px;
+  border-radius: 48% 48% 42% 42%;
+}
+.pet.animal-form[data-animal="dino"] .animal-head {
+  left: 32px; top: 30px; width: 126px; height: 98px;
+  border-radius: 50% 50% 44% 44% / 52% 52% 48% 48%;
+}
+.pet.animal-form[data-animal="dino"] .animal-ear {
+  top: -13px; width: 0; height: 0;
+  border-left: 13px solid transparent; border-right: 13px solid transparent;
+  border-bottom: 31px solid #4f9f74;
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.1));
+}
+.pet.animal-form[data-animal="dino"] .animal-ear.l { left: 20px; --ear-angle: -10deg; }
+.pet.animal-form[data-animal="dino"] .animal-ear.r { right: 20px; --ear-angle: 10deg; }
+.pet.animal-form[data-animal="dino"] .animal-belly {
+  left: 22px; top: 6px; width: 78px; height: 66px;
+  border-radius: 50% 50% 46% 46%;
+  background: linear-gradient(180deg, rgba(226, 255, 236, 0.92), rgba(200, 244, 214, 0.7));
+}
+.pet.animal-form[data-animal="dino"] .animal-muzzle {
+  left: 36px; bottom: 2px; width: 54px; height: 34px;
+  border-radius: 50%; background: rgba(232, 255, 240, 0.6);
+}
+.pet.animal-form[data-animal="dino"] .animal-nose {
+  left: 58px; bottom: 24px; width: 7px; height: 6px; border-radius: 50%;
+  background: #35805a; box-shadow: 20px 0 0 #35805a;
+}
+.pet.animal-form[data-animal="dino"] .animal-tail {
+  right: -10px; top: 114px; width: 62px; height: 42px;
+  border-radius: 14% 76% 66% 20%;
+  background: linear-gradient(140deg, #9fe3bd, #3f8f68 86%);
+  box-shadow: inset 8px 6px 0 rgba(255, 255, 255, 0.22);
+  transform-origin: 6% 64%;
+  --tail-angle: 8deg;
+}
+.pet.animal-form[data-animal="dino"] .animal-paw {
+  bottom: 6px; width: 44px; height: 24px; border-radius: 46%;
+  background: linear-gradient(180deg, #86d5a8, #3f8f68);
+}
+.pet.animal-form[data-animal="dino"] .animal-paw.l { left: 32px; }
+.pet.animal-form[data-animal="dino"] .animal-paw.r { right: 32px; }
+.pet.animal-form[data-animal="dino"] .animal-paw.hind { bottom: 22px; width: 36px; height: 36px; }
+.pet.animal-form[data-animal="dino"] .animal-paw.hind.l { left: 26px; }
+.pet.animal-form[data-animal="dino"] .animal-paw.hind.r { right: 26px; }
+.pet.animal-form[data-animal="dino"] .animal-wing { display: none; }
+.pet.animal-form[data-animal="dino"] .eye { top: 56px; width: 34px; height: 40px; }
+.pet.animal-form[data-animal="dino"] .eye.l { left: 50px; }
+.pet.animal-form[data-animal="dino"] .eye.r { right: 50px; }
+.pet.animal-form[data-animal="dino"] .pupil { width: 23px; height: 26px; left: 5px; top: 7px; }
+.pet.animal-form[data-animal="dino"] .hl { width: 10px; height: 9px; left: 9px; top: 10px; }
+.pet.animal-form[data-animal="dino"] .hl.small { width: 4px; height: 4px; left: 19px; top: 27px; }
+.pet.animal-form[data-animal="dino"] .blush { top: 89px; width: 27px; height: 13px; }
+.pet.animal-form[data-animal="dino"] .blush.l { left: 38px; }
+.pet.animal-form[data-animal="dino"] .blush.r { right: 38px; }
+.pet.animal-form[data-animal="dino"] .mouth { top: 108px; width: 26px; }
+
+/* 小黄鸭：圆头、扁橙嘴、小翅膀、蒲扇脚。 */
+.pet.animal-form[data-animal="duck"] .animal-body {
+  left: 46px; top: 118px; width: 100px; height: 68px;
+  border-radius: 50% 50% 44% 44%;
+  background: linear-gradient(155deg, #fff8cd 0%, #ffe066 62%, #e8b52f 100%);
+}
+.pet.animal-form[data-animal="duck"] .animal-head {
+  left: 47px; top: 32px; width: 98px; height: 94px;
+  border-radius: 50% 50% 46% 46%;
+  background: linear-gradient(155deg, #fffbdd 0%, #ffe680 60%, #efbe3c 100%);
+}
+.pet.animal-form[data-animal="duck"] .animal-ear { display: none; }
+.pet.animal-form[data-animal="duck"] .animal-muzzle { display: none; }
+/* 扁嘴：注意 nose 相对 head 定位，head 宽 98 → 局部中心 49。 */
+.pet.animal-form[data-animal="duck"] .animal-nose {
+  left: 27px; top: 56px; width: 44px; height: 22px;
+  border-radius: 44% 44% 54% 54% / 38% 38% 62% 62%;
+  background: linear-gradient(180deg, #ffd166 0%, #ef9a1c 100%);
+  box-shadow: inset 0 -3px 5px rgba(0, 0, 0, 0.12);
+}
+.pet.animal-form[data-animal="duck"] .animal-wing {
+  top: 126px; width: 24px; height: 42px; display: block;
+  border-radius: 58% 34% 52% 46%;
+  background: linear-gradient(155deg, #ffe88f, #e6ac2b);
+  transform-origin: 50% 12%;
+}
+.pet.animal-form[data-animal="duck"] .animal-wing.l { left: 38px; transform: rotate(14deg); }
+.pet.animal-form[data-animal="duck"] .animal-wing.r { right: 38px; transform: rotate(-14deg); }
+.pet.animal-form[data-animal="duck"] .animal-tail {
+  right: 26px; top: 138px; width: 26px; height: 22px;
+  border-radius: 20% 72% 40% 30%;
+  background: linear-gradient(150deg, #ffe066, #e0a52a);
+  --tail-angle: 14deg;
+}
+.pet.animal-form[data-animal="duck"] .animal-paw {
+  bottom: 3px; width: 38px; height: 17px;
+  border-radius: 46% 46% 40% 40%;
+  background: linear-gradient(180deg, #ffc65c, #e88f1e);
+  box-shadow: inset 0 -3px 5px rgba(0, 0, 0, 0.1);
+}
+.pet.animal-form[data-animal="duck"] .animal-paw.l { left: 40px; transform: rotate(-7deg); }
+.pet.animal-form[data-animal="duck"] .animal-paw.r { right: 40px; transform: rotate(7deg); }
+.pet.animal-form[data-animal="duck"] .animal-paw.hind { display: none; }
+.pet.animal-form[data-animal="duck"] .eye { top: 46px; width: 30px; height: 36px; }
+.pet.animal-form[data-animal="duck"] .eye.l { left: 57px; }
+.pet.animal-form[data-animal="duck"] .eye.r { right: 57px; }
+.pet.animal-form[data-animal="duck"] .pupil { width: 21px; height: 25px; left: 5px; top: 6px; }
+.pet.animal-form[data-animal="duck"] .hl { width: 9px; height: 8px; left: 9px; top: 9px; }
+.pet.animal-form[data-animal="duck"] .hl.small { width: 4px; height: 4px; left: 18px; top: 25px; }
+.pet.animal-form[data-animal="duck"] .blush { top: 76px; width: 25px; height: 12px; }
+.pet.animal-form[data-animal="duck"] .blush.l { left: 42px; }
+.pet.animal-form[data-animal="duck"] .blush.r { right: 42px; }
+.pet.animal-form[data-animal="duck"] .mouth { display: none; }
+
+.pet.animal-form[data-animal="cat"] .shadow { width: 154px; }
+.pet.animal-form[data-animal="bunny"] .shadow { width: 128px; }
+.pet.animal-form[data-animal="bear"] .shadow { width: 151px; }
+.pet.animal-form[data-animal="fox"] .shadow { width: 156px; }
+.pet.animal-form[data-animal="panda"] .shadow { width: 160px; }
+.pet.animal-form[data-animal="frog"] .shadow { width: 171px; }
+.pet.animal-form[data-animal="penguin"] .shadow { width: 139px; }
+.pet.animal-form[data-animal="dog"] .shadow { width: 150px; }
+.pet.animal-form[data-animal="sheep"] .shadow { width: 156px; }
+.pet.animal-form[data-animal="dino"] .shadow { width: 162px; }
+.pet.animal-form[data-animal="duck"] .shadow { width: 133px; }
+
+body.reduce-motion .pet.animal-form .animal-ear,
+body.reduce-motion .pet.animal-form .animal-tail,
+body.reduce-motion .pet.animal-form .animal-wing,
+body.reduce-motion .pet.animal-form .animal-paw,
+body.reduce-motion .pet.animal-form .animal-body {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pet.animal-form .animal-ear,
+  .pet.animal-form .animal-tail,
+  .pet.animal-form .animal-wing,
+  .pet.animal-form .animal-paw,
+  .pet.animal-form .animal-body {
+    animation: none !important;
+  }
+}
+
+/* ---------------------------------------------------------- 位图形象（v3.1）
+ * 配了 art 的形象改用渲染级位图：隐藏整块 CSS 轮廓层（.pose）与皮肤特效层，
+ * 只保留位图本体和地面阴影。没配 art 的形象不受影响，仍然走上面的 CSS 造型。
+ *
+ * 结构：.pet-art-wrap 是唯一的动画载体，内部叠两帧——
+ *       .pet-art    待机帧（睁眼）
+ *       .pet-art-fx 叠加帧（闭眼，靠 opacity 切换，不重新解码所以不会闪）
+ *       水平居中用 margin 而不是 translateX，把 transform 完整留给动画。
+ */
+.pet-art-wrap {
+  display: none;
+}
+
+/* 位图形象下隐藏立方体身体与五官底层，但保留头顶配饰 (.acc-hat)、手持物 (.acc-held) 与表情符号 (.emote-fx) */
+.pet.art-form > .skin-fx,
+.pet.art-form > .pose > .body,
+.pet.art-form > .pose > .arm,
+.pet.art-form > .pose > .leg,
+.pet.art-form > .pose > .animal-shape,
+.pet.art-form > .pose > .acc-ears,
+.pet.art-form > .pose > .acc-tail,
+.pet.art-form > .pose > .face > .eye,
+.pet.art-form > .pose > .face > .brow,
+.pet.art-form > .pose > .face > .mouth,
+.pet.art-form > .pose > .face > .blush,
+.pet.art-form > .pose > .face > .tear,
+.pet.art-form > .pose > .face > .sweat,
+.pet.art-form > .pose > .face > .drool,
+.pet.art-form > .pose > .face > .snot {
+  visibility: hidden;
+}
+
+.pet.art-form > .pose {
+  z-index: 4;
+  pointer-events: none;
+}
+
+.pet.art-form > .pose > .acc-hat {
+  top: -12px;
+  z-index: 5;
+}
+
+.pet.art-form > .pose > .acc-held {
+  right: 8px;
+  bottom: 24px;
+  z-index: 5;
+}
+
+.pet.art-form > .pose > .face > .emote-fx {
+  visibility: visible;
+  z-index: 6;
+}
+
+/* 观影模式：位图形象同样隐去身体，只露出夜光眼睛 */
+body.cinema .pet.art-form > .pet-art-wrap,
+body.cinema .pet.art-form > .pose > .acc-hat,
+body.cinema .pet.art-form > .pose > .acc-held {
+  opacity: 0;
+  pointer-events: none;
+}
+
+body.cinema .pet.art-form > .pose > .face > .eye {
+  visibility: visible;
+}
+
+.pet.art-form > .pet-art-wrap {
+  display: block;
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 202px;
+  height: 202px;
+  margin-left: -101px;
+  pointer-events: none;
+  transform-origin: bottom center;
+  animation: artIdle calc(4.2s * var(--life-tempo, 1)) ease-in-out infinite;
+  will-change: transform;
+  backface-visibility: hidden;
+  z-index: 2;
+}
+
+.pet.art-form > .pet-art-wrap > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* 位图自带 AO，地面阴影收窄压淡，避免和图片里的接触阴影打架 */
+.pet.art-form .shadow {
+  width: 136px;
+  opacity: 0.42;
+}
+
+/* ---- 闭眼帧：眨眼、眯眼笑、打瞌睡、睡觉都共用这一帧 ---- */
+.pet.art-form .pet-art-fx {
+  opacity: 0;
+  transition: opacity 45ms linear;
+}
+
+/* 谁能点亮闭眼帧，只认这两条：眨眼（art-blink）和睡着（is-sleep）。
+ * 心情层挂的 eyes--crescent / eyes--half / m-happy 不参与 —— 那些类几乎一直是
+ * 生效状态，挂上去就等于把闭眼帧永久点亮，桌宠会看起来"没有眼睛"。 */
+.pet.art-form.art-blink .pet-art-fx,
+.pet.art-form.is-sleep .pet-art-fx {
+  opacity: 1;
+}
+
+/* ============================================================ 动作层
+ * 每个 keyframe 首尾都回到中性姿势，这样 JS 移除类名时不会突然跳回。
+ */
+
+/* 待机：呼吸起伏（默认） */
+@keyframes artIdle {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  50%      { transform: translateY(-2.5px) scale(1.012, 0.994); }
+}
+
+/* 深吸一口气（打哈欠 / 叹气） */
+@keyframes artBreathe {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  35%      { transform: translateY(-2px) scale(0.985, 1.035); }
+  70%      { transform: translateY(0.5px) scale(1.01, 0.99); }
+}
+
+/* 伸展：先压扁蓄力，再拔高 */
+@keyframes artStretch {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  30%      { transform: translateY(1px) scale(1.04, 0.95); }
+  62%      { transform: translateY(-5px) scale(0.955, 1.075); }
+}
+
+/* 蹦一下：蓄力 → 腾空拉长 → 落地压扁 */
+@keyframes artHop {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  16%      { transform: translateY(1.5px) scale(1.07, 0.915); }
+  44%      { transform: translateY(-15px) scale(0.955, 1.065); }
+  72%      { transform: translateY(0) scale(1.055, 0.935); }
+  88%      { transform: translateY(-1.5px) scale(0.99, 1.01); }
+}
+
+/* 抖动（笑 / 甩头） */
+@keyframes artShake {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  18%      { transform: rotate(-4deg) translateY(-1px); }
+  38%      { transform: rotate(3.4deg); }
+  58%      { transform: rotate(-2.2deg); }
+  78%      { transform: rotate(1.1deg); }
+}
+
+/* 左右摇摆（哼歌 / 晃腿） */
+@keyframes artSway {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  25%      { transform: rotate(2.6deg) translateY(-1.2px); }
+  75%      { transform: rotate(-2.6deg) translateY(-1.2px); }
+}
+
+/* 点头 */
+@keyframes artNod {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  28%      { transform: translateY(3.5px) rotate(1.4deg); }
+  56%      { transform: translateY(-1.5px) rotate(-0.9deg); }
+}
+
+/* 转身（追尾巴）
+ * 注意：2D 精灵整圈旋转会把身体甩到底座下方，桌宠窗口只有 470 高，
+ *      会被直接裁掉。改成绕垂直轴翻面，占位始终在窗口内。 */
+@keyframes artSpin {
+  0%   { transform: scaleX(1) translateY(0); }
+  25%  { transform: scaleX(0.5) translateY(-3px); }
+  50%  { transform: scaleX(-1) translateY(-5px); }
+  75%  { transform: scaleX(-0.5) translateY(-3px); }
+  100% { transform: scaleX(1) translateY(0); }
+}
+
+/* 踮脚 */
+@keyframes artTiptoe {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  22%      { transform: translateY(-4px) scale(0.975, 1.045); }
+  70%      { transform: translateY(-3px) scale(0.978, 1.04); }
+}
+
+/* 探头张望 */
+@keyframes artPeek {
+  0%, 100% { transform: translateX(0) rotate(0deg) scale(1); }
+  30%      { transform: translateX(-9px) rotate(-3.5deg) scale(0.985); }
+  60%      { transform: translateX(-7px) rotate(-3deg) scale(0.985); }
+}
+
+/* 磕一下 */
+@keyframes artBonk {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  22%      { transform: translateY(4.5px) scale(1.045, 0.94); }
+  48%      { transform: translateY(-2px) scale(0.985, 1.02); }
+}
+
+/* 瘫软 / 融化 */
+@keyframes artFlop {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  40%      { transform: translateY(6px) scale(1.07, 0.845); }
+  78%      { transform: translateY(6px) scale(1.075, 0.838); }
+}
+
+/* 打喷嚏：先往后缩，再弹回来 */
+@keyframes artSneeze {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  25%      { transform: translateY(-4px) rotate(-3deg) scale(0.96, 1.03); }
+  48%      { transform: translateY(3px) rotate(4.5deg) scale(1.05, 0.95); }
+  70%      { transform: translateY(0) rotate(-1.5deg); }
+}
+
+/* 被拎起来悬空：荡来荡去 */
+@keyframes artDangle {
+  0%, 100% { transform: rotate(0deg) scale(1, 1); }
+  30%      { transform: rotate(3.4deg) scale(0.975, 1.045); }
+  70%      { transform: rotate(-3.4deg) scale(0.975, 1.045); }
+}
+
+/* 落地：重重压扁再弹回 */
+@keyframes artLand {
+  0%   { transform: translateY(-4px) scale(0.95, 1.05); }
+  28%  { transform: translateY(0) scale(1.13, 0.85); }
+  58%  { transform: translateY(-2px) scale(0.98, 1.025); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+
+/* 吓了一跳 */
+@keyframes artSurprise {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  18%      { transform: translateY(-8px) scale(0.94, 1.09); }
+  45%      { transform: translateY(0) scale(1.05, 0.96); }
+  72%      { transform: translateY(-1.5px) scale(0.99, 1.01); }
+}
+
+/* 睡着：很慢的呼吸 + 轻微歪头 */
+@keyframes artSleep {
+  0%, 100% { transform: rotate(-2.4deg) translateY(1px) scale(0.995, 1.005); }
+  50%      { transform: rotate(-3.2deg) translateY(-1px) scale(0.985, 1.022); }
+}
+
+/* 说话：小幅点头，配合气泡节奏 */
+@keyframes artTalk {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  25%      { transform: translateY(-1.6px) scale(0.998, 1.012); }
+  50%      { transform: translateY(0) scale(1.004, 0.998); }
+  75%      { transform: translateY(-1.1px) scale(0.999, 1.008); }
+}
+
+/* ---- 待机动作绑定 ---- */
+.pet.art-form.idle-breathe > .pet-art-wrap { animation: artBreathe calc(3.4s * var(--life-tempo, 1)) ease-in-out both; }
+.pet.art-form.idle-stretch > .pet-art-wrap { animation: artStretch calc(1.5s * var(--life-tempo, 1)) ease-in-out both; }
+.pet.art-form.idle-hop     > .pet-art-wrap { animation: artHop calc(0.95s * var(--life-tempo, 1)) cubic-bezier(0.32, 0.72, 0.36, 1) both; }
+.pet.art-form.idle-shake   > .pet-art-wrap { animation: artShake calc(0.85s * var(--life-tempo, 1)) ease-in-out 2 both; }
+.pet.art-form.idle-sway    > .pet-art-wrap { animation: artSway calc(2s * var(--life-tempo, 1)) ease-in-out infinite; }
+.pet.art-form.idle-nod     > .pet-art-wrap { animation: artNod calc(1.3s * var(--life-tempo, 1)) ease-in-out infinite; }
+.pet.art-form.idle-spin    > .pet-art-wrap { animation: artSpin calc(1.4s * var(--life-tempo, 1)) cubic-bezier(0.5, 0, 0.5, 1) both; }
+.pet.art-form.idle-tiptoe  > .pet-art-wrap { animation: artTiptoe calc(2.4s * var(--life-tempo, 1)) ease-in-out infinite; }
+.pet.art-form.idle-peek    > .pet-art-wrap { animation: artPeek calc(1.5s * var(--life-tempo, 1)) ease-in-out infinite; }
+.pet.art-form.idle-bonk    > .pet-art-wrap { animation: artBonk calc(1.1s * var(--life-tempo, 1)) ease-in-out both; }
+.pet.art-form.idle-flop    > .pet-art-wrap,
+.pet.art-form.idle-melt    > .pet-art-wrap { animation: artFlop calc(2.4s * var(--life-tempo, 1)) ease-in-out both; }
+.pet.art-form.idle-sneeze  > .pet-art-wrap { animation: artSneeze calc(1.1s * var(--life-tempo, 1)) ease-in-out both; }
+.pet.art-form.idle-daze    > .pet-art-wrap { animation: artBreathe calc(3.8s * var(--life-tempo, 1)) ease-in-out infinite; }
+
+/* ---- 状态绑定 ---- */
+.pet.art-form.is-drag      > .pet-art-wrap { animation: artDangle calc(1.5s * var(--life-tempo, 1)) ease-in-out infinite; }
+.pet.art-form.is-land      > .pet-art-wrap { animation: artLand calc(0.55s * var(--life-tempo, 1)) cubic-bezier(0.3, 0.8, 0.3, 1) both; }
+.pet.art-form.is-surprised > .pet-art-wrap { animation: artSurprise calc(0.7s * var(--life-tempo, 1)) ease-out both; }
+.pet.art-form.is-poked     > .pet-art-wrap { animation: artSurprise 0.55s cubic-bezier(0.28, 0.84, 0.42, 1) both; }
+.pet.art-form.is-sleep     > .pet-art-wrap { animation: artSleep calc(5.6s * var(--life-tempo, 1)) ease-in-out infinite; }
+.pet.art-form.art-talk     > .pet-art-wrap { animation: artTalk calc(1.1s * var(--life-tempo, 1)) ease-in-out infinite; }
+.pet.art-form.is-autonomy-jump > .pet-art-wrap { animation: artHop 0.72s cubic-bezier(0.32, 0.72, 0.36, 1) infinite; }
+
+/* 爬行（位图版）：压低身体贴地蠕动前进 */
+@keyframes artCrawl {
+  0%, 100% { transform: translateY(5px) scale(1.09, 0.86) rotate(1.5deg); }
+  50%      { transform: translateY(2px) scale(0.96, 0.94) rotate(-1.5deg) translateX(3px); }
+}
+
+.pet.art-form.is-crawl > .pet-art-wrap {
+  animation: artCrawl 0.46s ease-in-out infinite;
+  transform-origin: 50% 98%;
+}
+
+/* 攀爬（位图版）：向上提拉蓄力 */
+@keyframes artClimb {
+  0%, 100% { transform: translateY(0) scale(0.98, 1.03) rotate(-2deg); }
+  50%      { transform: translateY(-8px) scale(0.94, 1.07) rotate(2deg); }
+}
+
+.pet.art-form.is-climb > .pet-art-wrap {
+  animation: artClimb 0.48s ease-in-out infinite;
+  transform-origin: 50% 90%;
+}
+
+/* ---- 行走步态（位图版）
+ * 位图把 .pose（含腿/手）整层藏掉了，原有的 walkbob/walkleg 对位图无效。
+ * 这里用"整只上下颠 + 左右摆 + 落地压扁"代替腿部循环：毛绒玩偶本来也没膝盖，
+ * 一颠一摆反而比硬画两条腿更像那只玩偶在走。
+ * 周期 .34s 与窗口移动速度 190px/s 对齐（≈65px 一个步幅），避免"滑步"。
+ * 朝向沿用外层 .pet.walk-left 的 scaleX(-1)，所以这里不能再翻一次（否则会抵消）。
+ */
+@keyframes artWalk {
+  0%   { transform: translateY(0) rotate(2.8deg) scale(1.032, 0.963); }
+  18%  { transform: translateY(-6.5px) rotate(1.5deg) scale(0.974, 1.04); }
+  36%  { transform: translateY(-9.5px) rotate(0deg) scale(0.960, 1.058); }
+  58%  { transform: translateY(-3px) rotate(-1.5deg) scale(1.002, 1.008); }
+  78%  { transform: translateY(0) rotate(-2.6deg) scale(1.038, 0.960); }
+  100% { transform: translateY(0) rotate(2.8deg) scale(1.032, 0.963); }
+}
+
+.pet.art-form.is-walk > .pet-art-wrap {
+  animation: artWalk 0.34s ease-in-out infinite;
+  transform-origin: 50% 96%;
+}
+
+/* 走起来时地面阴影跟着脚步收放，不然会像贴纸飘*/
+.pet.art-form.is-walk .shadow {
+  animation: artWalkShadow 0.34s ease-in-out infinite;
+}
+
+@keyframes artWalkShadow {
+  0%, 36%, 100% { transform: scaleX(1); opacity: 0.42; }
+  18%, 58%      { transform: scaleX(0.86); opacity: 0.3; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pet.art-form > .pet-art-wrap {
+    animation: none !important;
+    transform: none;
+  }
+}
+
+/* 用户在设置里关掉动效时同样停掉整套动作（body.reduce-motion 是应用层的开关） */
+body.reduce-motion .pet.art-form > .pet-art-wrap {
+  animation: none !important;
+  transform: none;
+}
+
+/* ============================================================ 人生账本的资源状态
+ * 四条资源（寿命 / 现金 / 精力 / 自由）不显示成数字，而是长在宠物身上：
+ *   毛色 —— hue-rotate + saturate + brightness 三个滤镜，材料不变只改色温
+ *   待机 —— --life-tempo 乘在各个 idle 动画的时长上，累了就慢下来
+ *
+ * 为什么只改这两样：12 只 × 2 帧已经按同一套基准对齐（角色高 86%、脚底 96%），
+ * 任何几何或尺寸改动都会让它们互相对不上，而颜色和节奏是免费的。
+ */
+.pet {
+  --life-hue: 0deg;
+  --life-sat: 1;
+  --life-bright: 1;
+  --life-tempo: 1;
+}
+
+.pet.art-form > .pet-art-wrap > img {
+  filter:
+    hue-rotate(var(--life-hue))
+    saturate(var(--life-sat))
+    brightness(var(--life-bright))
+    drop-shadow(0 6px 16px var(--glow, rgba(0, 0, 0, 0.18)));
+  transition: filter 900ms ease;
+}
+
+/* 状态好：暖一点、精神一点，待机稍快（0.92 倍速） */
+.pet.life-steady { --life-hue: 4deg; --life-sat: 1.12; --life-bright: 1.04; --life-tempo: 0.92; }
+
+/* 累了：颜色褪掉一档，动作慢下来 */
+.pet.life-tired { --life-hue: -6deg; --life-sat: 0.78; --life-bright: 0.92; --life-tempo: 1.42; }
+
+/* 没钱：偏青，是"发虚"的颜色，不是好看的青色 */
+.pet.life-broke { --life-hue: 32deg; --life-sat: 0.58; --life-bright: 0.9; --life-tempo: 1.26; }
+
+/* 不自由：偏冷紫，明显"闷" */
+.pet.life-caged { --life-hue: 190deg; --life-sat: 0.45; --life-bright: 0.93; --life-tempo: 1.32; }
+
+/* 命快没了：几乎退到灰度，动作最慢。这是最该被看见的状态 */
+.pet.life-danger { --life-hue: 0deg; --life-sat: 0.22; --life-bright: 0.8; --life-tempo: 1.6; }
+
+/* 关掉动效的用户只看颜色，不再额外加慢动作 */
+.reduce-motion .pet.art-form > .pet-art-wrap {
+  animation-duration: 1ms !important;
+}
+
+/* ============================================================
+   方块仔签名外观：橙红圆角方块 + 头顶小灯 + 探险小包
+   只作用在 CSS 方块本体，位图/动物形态与观影模式不显示。
+   ============================================================ */
+.pet:not(.art-form):not(.animal-form) .body {
+  border-radius: 42px;
+}
+
+.pet .sig {
+  pointer-events: none;
+}
+.pet.art-form .sig,
+.pet.animal-form .sig {
+  display: none !important;
+}
+
+.sig-lamp {
+  position: absolute;
+  left: 50%;
+  top: -26px;
+  width: 44px;
+  height: 54px;
+  transform: translateX(-50%);
+  z-index: 6;
+}
+.sig-lamp .lamp-glow {
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  width: 42px;
+  height: 42px;
+  margin-left: -21px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 247, 176, 0.95) 0%, rgba(255, 227, 107, 0.45) 42%, rgba(255, 227, 107, 0) 72%);
+  animation: lampGlowPulse 2.8s ease-in-out infinite;
+}
+.sig-lamp .lamp-stem {
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 3px;
+  height: 28px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: #c45c3a;
+}
+.sig-lamp .lamp-bulb {
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  border-radius: 50%;
+  background: #ffe36b;
+  box-shadow:
+    inset -2px -2px 0 rgba(224, 185, 58, 0.45),
+    inset 2px 2px 0 rgba(255, 255, 255, 0.7),
+    0 0 10px 3px rgba(255, 227, 107, 0.75);
+  border: 2px solid #e0b93a;
+  animation: lampBulbPulse 2.8s ease-in-out infinite;
+}
+@keyframes lampGlowPulse {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+@keyframes lampBulbPulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.12); }
+}
+
+.pet.is-sleep .sig-lamp .lamp-bulb {
+  background: #e6d79a;
+  border-color: #c4b06a;
+  box-shadow: 0 0 4px 1px rgba(255, 227, 107, 0.25);
+  animation: none;
+}
+.pet.is-sleep .sig-lamp .lamp-glow {
+  opacity: 0.3;
+  animation: none;
+}
+.pet.is-happy .sig-lamp .lamp-glow,
+.pet.idle-hop .sig-lamp .lamp-glow {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+/* 戴帽子时收起小灯，避免和帽子叠在一起 */
+.pet[data-hat]:not([data-hat=""]) .sig-lamp {
+  opacity: 0;
+}
+
+.sig-strap {
+  position: absolute;
+  left: -6%;
+  right: -6%;
+  top: 22%;
+  height: 10px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #e0b06a, #c98b4e 55%, #a8723f);
+  box-shadow: 0 1px 0 rgba(255, 230, 190, 0.45), 0 2px 3px rgba(80, 30, 10, 0.2);
+  transform: rotate(-6deg);
+  z-index: 3;
+}
+
+.sig-pack {
+  position: absolute;
+  right: -4px;
+  top: 46%;
+  width: 26px;
+  height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(160deg, #e8b07a, #c4844a);
+  border: 2px solid #a8723f;
+  z-index: 4;
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.28),
+    0 3px 6px rgba(80, 30, 10, 0.22);
+}
+.sig-pack::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: 8px;
+  height: 2px;
+  border-radius: 1px;
+  background: #a8723f;
+  opacity: 0.7;
+}
+
+/* ============================================================
+   v3.2 插画方块仔（.sprite-form，叠在 .art-form 之上）
+   插画自带小灯、小包、背带和五官；CSS 方块层（身体/五官/手脚/灯/包）以及
+   帽子、耳朵、尾巴整层隐藏，避免两只叠在一起或配饰飘在插画上。
+   动作帧由 shared/pet-sprite.js 按状态类切换，外层沿用上面的 art* 动画（呼吸/走路/睡觉/弹跳）。
+   ============================================================ */
+.pet.sprite-form > .skin-fx,
+.pet.sprite-form .acc-hat,
+.pet.sprite-form .acc-ears,
+.pet.sprite-form .acc-tail,
+.pet.sprite-form .sig,
+.pet.sprite-form .body,
+.pet.sprite-form .arm,
+.pet.sprite-form .leg,
+.pet.sprite-form .animal-shape {
+  display: none !important;
+}
+
+/* 五官用 visibility 藏：观影模式还要把夜光眼睛单独亮出来 */
+.pet.sprite-form .face > .eye,
+.pet.sprite-form .face > .brow,
+.pet.sprite-form .face > .mouth,
+.pet.sprite-form .face > .blush,
+.pet.sprite-form .face > .tear,
+.pet.sprite-form .face > .sweat,
+.pet.sprite-form .face > .drool,
+.pet.sprite-form .face > .snot {
+  visibility: hidden !important;
+}
+.pet.sprite-form .face > .emote-fx {
+  visibility: visible;
+}
+/* 观影模式（探险方块仔）：不再借用经典方块的 CSS 夜光眼——插画本身半透明留在原地，
+   变暗、不抢画面；命中区域仍按（隐藏的）眼睛位置上报，拖动/退出不受影响。 */
+body.cinema .pet.sprite-form .face > .eye {
+  visibility: hidden !important;
+}
+body.cinema .pet.sprite-form > .pet-art-wrap {
+  opacity: 0.34 !important;
+  animation: artSleep 6s ease-in-out infinite !important;
+}
+body.cinema .pet.sprite-form > .pet-art-wrap > img {
+  filter: saturate(0.7) brightness(0.72) !important;
+}
+.pet.sprite-form > .pose {
+  z-index: 4;
+  pointer-events: none;
+}
+
+.pet.sprite-form > .pet-art-wrap > .pet-art-fx {
+  opacity: 0;
+}
+/* 探险方块仔眨眼：只在站着发呆（idle 帧）时点亮闭眼叠加帧；其它动作帧自带眼神，不叠 */
+.pet.sprite-form.art-blink[data-sprite-pose="idle"] > .pet-art-wrap > .pet-art-fx[src] {
+  opacity: 1;
+}
+.pet.sprite-form:not([data-sprite-pose="idle"]) > .pet-art-wrap > .pet-art-fx,
+.pet.sprite-form > .pet-art-wrap > .pet-art-fx:not([src]) {
+  display: none;
+}
+
+.pet.sprite-form > .pet-art-wrap > .pet-art:not([src]) {
+  visibility: hidden;
+}
+
+/* 插画四周留白比旧位图少，阴影再收一点 */
+.pet.sprite-form .shadow {
+  width: 128px;
+  opacity: 0.36;
+}
+
+/* v3.3：经典方块仔回到原来的样子——亮橙方块、大眼睛、小手小脚，不带小灯和小包。
+   小灯/小包只属于「探险方块仔」插画版（.sprite-form，自带在插画里）。CSS 签名层保留但不显示。 */
+.pet:not(.sprite-form) .sig {
+  display: none !important;
+}

@@ -1,0 +1,58 @@
+{
+  "product": "方块仔 Cubbit",
+  "version": "2.9.1-soft",
+  "channel": "beta",
+  "status": "internal-beta",
+  "officiallyLaunched": false,
+  "releaseDate": "2026-11-10",
+  "experimentId": "softlaunch-2026-11",
+  "stableWindowsUrl": "https://pingguye.cn/cubbit/dl/windows/latest",
+  "downloadDeployment": {
+    "status": "deployed",
+    "deployedAt": "2026-11-10",
+    "host": "pingguye.cn",
+    "note": "Windows 安装包已上传到 /cubbit/dl/（版本文件 + Cubbit-Setup-latest.exe）；本版本不提供便携版"
+  },
+  "artifacts": [
+    {
+      "kind": "nsis",
+      "url": "https://pingguye.cn/cubbit/dl/Cubbit-Setup-2.9.1-soft.exe",
+      "size": 126371518,
+      "sha256": "DD6DC1F83249C5BBB197B844473A1077FB7D22394036DD25A8574FB67CBF30CB"
+    }
+  ],
+  "metricsSchemaVersion": 2,
+  "cohorts": {
+    "couple": {
+      "label": "情侣双人测试",
+      "assignmentSource": "onboarding_or_invite_link",
+      "primaryMetrics": [
+        "pair_completion_rate",
+        "pair_attempt_rate",
+        "shared_day_7d",
+        "couple_d1_d7"
+      ]
+    },
+    "solo": {
+      "label": "单人体验测试",
+      "assignmentSource": "onboarding_or_skip",
+      "primaryMetrics": [
+        "solo_activation_rate",
+        "solo_d1_d7",
+        "average_open_days"
+      ]
+    }
+  },
+  "gate": {
+    "dualMachineAcceptance": {
+      "status": "pending",
+      "completedAt": null,
+      "operator": null,
+      "evidence": []
+    },
+    "recruitment": {
+      "status": "blocked",
+      "reason": "双机验收尚未完成，禁止发起下一批招募"
+    }
+  }
+}

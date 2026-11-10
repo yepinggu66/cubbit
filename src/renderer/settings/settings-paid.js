@@ -229,6 +229,9 @@
     c.id = 'paid-custom';
     const headEl = sec.querySelector('.sec-head');
     if (headEl && headEl.nextSibling) sec.insertBefore(c, headEl.nextSibling); else sec.appendChild(c);
+    // 将免费的 DIY 工坊放在付费角色定制之后，避免被长长的皮肤列表淹没。
+    const diyCard = sec.querySelector('.diy-card');
+    if (diyCard && c.nextSibling !== diyCard) sec.insertBefore(diyCard, c.nextSibling);
   }
   function showCandidates(cands, baseName) {
     if (!R.cusPick) return;

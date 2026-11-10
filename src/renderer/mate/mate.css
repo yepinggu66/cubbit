@@ -1,0 +1,198 @@
+/* 相亲角 —— 同一套暗底暖光。这里刻意不用粉红浪漫风：
+   相亲是个"判断"的动作，卡片要能读，不能被滤镜糊住。 */
+
+:root {
+  --bg: #0b0d13;
+  --card: rgba(255, 255, 255, 0.035);
+  --card-2: rgba(255, 255, 255, 0.06);
+  --line: rgba(255, 255, 255, 0.075);
+  --line-2: rgba(255, 255, 255, 0.14);
+  --text: #eef1f8;
+  --text-2: #9aa2b5;
+  --text-3: #6d768a;
+  --accent: #ffb469;
+  --accent-2: #ff8f6b;
+  --good: #8fe0c4;
+  --bad: #ffb08f;
+  --warn: #ffd08a;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%; margin: 0; overflow: hidden;
+  background:
+    radial-gradient(980px 460px at 24% -12%, rgba(255, 172, 112, 0.1), transparent 62%),
+    radial-gradient(820px 420px at 96% 108%, rgba(255, 120, 150, 0.07), transparent 60%),
+    var(--bg);
+  color: var(--text);
+  font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  user-select: none;
+}
+
+.shell { display: flex; flex-direction: column; height: 100%; }
+
+.bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 15px 22px 13px; border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent);
+  -webkit-app-region: drag;
+}
+.bar__left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.bar__dot {
+  width: 11px; height: 11px; border-radius: 50%;
+  background: linear-gradient(160deg, var(--accent), var(--accent-2));
+  box-shadow: 0 0 0 4px rgba(255, 170, 110, 0.14);
+}
+.bar h1 { margin: 0; font-size: 16px; font-weight: 650; letter-spacing: 0.4px; }
+.bar p { margin: 2px 0 0; font-size: 11.5px; color: var(--text-3); }
+.bar__right { display: flex; align-items: center; gap: 10px; -webkit-app-region: no-drag; }
+
+.pill {
+  font-size: 11.5px; color: var(--text-2); padding: 5px 11px; border-radius: 999px;
+  border: 1px solid var(--line-2); background: rgba(255, 255, 255, 0.03);
+}
+.pill--dating { color: #ffd9b3; border-color: rgba(255, 176, 110, 0.5); background: rgba(255, 176, 110, 0.1); }
+
+.btn {
+  appearance: none; border: 1px solid var(--line-2); border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04); color: var(--text);
+  font: inherit; font-size: 12.5px; padding: 8px 14px; cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, transform 90ms ease;
+}
+.btn:hover { background: rgba(255, 255, 255, 0.075); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn--primary {
+  border-color: rgba(255, 176, 110, 0.5);
+  background: linear-gradient(180deg, rgba(255, 178, 112, 0.95), rgba(255, 143, 107, 0.9));
+  color: #201207; font-weight: 650;
+}
+.btn--primary:hover { filter: brightness(1.06); }
+.btn--wide { width: 100%; padding: 11px 14px; font-size: 13.5px; }
+.btn--ghost { background: rgba(255, 255, 255, 0.03); }
+.btn--icon { width: 30px; height: 30px; padding: 0; display: grid; place-items: center; border-radius: 8px; font-size: 13px; color: var(--text-2); }
+.btn--danger { border-color: rgba(255, 122, 122, 0.4); color: #ffb3b3; }
+
+.body {
+  flex: 1; min-height: 0; display: grid; grid-template-columns: 400px 1fr;
+  gap: 16px; padding: 16px 20px 8px;
+}
+.col { min-height: 0; min-width: 0; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 12px; }
+
+/* ------------------------------------------------------------------ 卡片 */
+.card {
+  border: 1px solid var(--line); border-radius: 14px;
+  background: var(--card); padding: 14px 15px;
+}
+.card--self { display: flex; gap: 14px; align-items: center; }
+.card--self .self__art {
+  width: 84px; height: 84px; flex: 0 0 auto; border-radius: 12px;
+  background: rgba(0, 0, 0, 0.25); border: 1px solid var(--line);
+  display: grid; place-items: center; overflow: hidden;
+}
+.card--self .self__art img { width: 100%; height: 100%; object-fit: contain; }
+.self__meta { min-width: 0; }
+.self__meta b { font-size: 14px; }
+.self__meta p { margin: 4px 0 0; font-size: 11.5px; line-height: 1.7; color: var(--text-3); }
+.self__bars { margin-top: 8px; display: flex; gap: 10px; flex-wrap: wrap; }
+.mini { font-size: 10.5px; color: var(--text-3); }
+.mini i { display: block; height: 4px; margin-top: 3px; border-radius: 3px; background: rgba(255, 255, 255, 0.08); width: 62px; overflow: hidden; }
+.mini i em { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+
+/* ------------------------------------------------------------------ 需求 */
+.wish { border: 1px solid var(--line); border-radius: 14px; background: var(--card); padding: 14px 15px; }
+.wish__head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.wish__head b { font-size: 13px; }
+.wish__head span { font-size: 10.5px; color: var(--text-3); }
+textarea {
+  width: 100%; resize: vertical; min-height: 84px;
+  border: 1px solid var(--line-2); border-radius: 10px;
+  background: rgba(0, 0, 0, 0.25); color: var(--text); font: inherit; font-size: 12.5px;
+  line-height: 1.7; padding: 10px 12px; outline: none;
+}
+textarea:focus { border-color: rgba(255, 176, 110, 0.55); }
+.sliders { display: flex; flex-direction: column; gap: 9px; margin: 12px 0 12px; }
+.slider { display: grid; grid-template-columns: 60px 1fr 74px; align-items: center; gap: 10px; font-size: 11.5px; color: var(--text-2); }
+.slider input { accent-color: var(--accent); }
+.slider span:last-child { font-size: 10.5px; color: var(--text-3); text-align: right; }
+.tip { margin: 8px 0 0; font-size: 10.5px; line-height: 1.7; color: var(--text-3); }
+
+/* ------------------------------------------------------------------ 候选 */
+.listHead { display: flex; align-items: baseline; justify-content: space-between; }
+.listHead b { font-size: 13px; }
+.listHead span { font-size: 10.5px; color: var(--text-3); max-width: 56%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.cand {
+  display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 13px; min-width: 0;
+  border: 1px solid var(--line); border-radius: 14px; background: var(--card);
+  padding: 13px; transition: border-color 140ms ease, background 140ms ease;
+}
+.cand:hover { border-color: rgba(255, 176, 110, 0.28); background: var(--card-2); }
+.cand__art {
+  border-radius: 12px; background: rgba(0, 0, 0, 0.28); border: 1px solid var(--line);
+  display: grid; place-items: center; overflow: hidden; aspect-ratio: 1/1;
+}
+.cand__art img { width: 100%; height: 100%; object-fit: contain; }
+.cand__head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.cand__main { min-width: 0; }
+.cand__head .species { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cand__head b { font-size: 14px; }
+.cand__head .species { font-size: 10.5px; color: var(--text-3); }
+.fit {
+  margin-left: auto; font-size: 12px; font-variant-numeric: tabular-nums;
+  padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--text-2);
+}
+.fit--high { color: #ffd9b3; border-color: rgba(255, 176, 110, 0.55); background: rgba(255, 176, 110, 0.12); }
+.fit--mid { color: #cfe0ff; border-color: rgba(150, 180, 255, 0.35); }
+.fit--low { color: var(--text-3); }
+
+.cand__bio { margin: 6px 0 8px; font-size: 12px; line-height: 1.7; color: var(--text-2); }
+.why { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+.why li { font-size: 11px; line-height: 1.6; color: var(--good); }
+.why--bad li { color: var(--bad); }
+.cand__acts { display: flex; gap: 8px; }
+
+/* ------------------------------------------------------------------ 回信 */
+.reply { border: 1px solid var(--line-2); border-radius: 14px; background: rgba(255, 255, 255, 0.04); padding: 15px 16px; }
+.reply__from { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.reply__from img { width: 40px; height: 40px; object-fit: contain; }
+.reply__from b { font-size: 13.5px; }
+.reply__line { font-size: 13px; line-height: 1.85; color: var(--text); }
+.reply__pact {
+  margin: 12px 0; border: 1px dashed rgba(255, 176, 110, 0.4); border-radius: 10px;
+  padding: 10px 12px; background: rgba(255, 176, 110, 0.06);
+}
+.reply__pact b { font-size: 11px; color: var(--warn); display: block; margin-bottom: 5px; }
+.reply__pact label { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; line-height: 1.7; color: var(--text); cursor: pointer; }
+.reply__pact input { margin-top: 3px; accent-color: var(--accent); }
+.reply__acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.hint { font-size: 11px; line-height: 1.7; color: var(--text-3); margin: 8px 0 0; }
+
+/* ------------------------------------------------------------------ 恋爱 */
+.couple { border: 1px solid rgba(255, 176, 110, 0.3); border-radius: 16px; padding: 18px; background: radial-gradient(420px 200px at 50% 0%, rgba(255, 176, 110, 0.12), transparent 70%), var(--card); }
+.couple__arts { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.couple__arts img { width: 118px; height: 118px; object-fit: contain; }
+.couple__heart { font-size: 20px; opacity: 0.9; }
+.couple__name { text-align: center; margin: 10px 0 2px; font-size: 15px; font-weight: 650; }
+.couple__sub { text-align: center; font-size: 11.5px; color: var(--text-3); }
+.couple__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0 4px; }
+.couple__cell { border: 1px solid var(--line); border-radius: 12px; padding: 10px; text-align: center; background: rgba(0, 0, 0, 0.18); }
+.couple__cell span { display: block; font-size: 10.5px; color: var(--text-3); }
+.couple__cell b { display: block; margin-top: 4px; font-size: 15px; font-variant-numeric: tabular-nums; }
+.couple__pact { margin: 14px 0 0; font-size: 11.5px; line-height: 1.7; color: var(--text-2); border-left: 2px solid rgba(255, 176, 110, 0.5); padding-left: 10px; }
+
+.empty {
+  border: 1px dashed var(--line-2); border-radius: 14px; padding: 30px 20px;
+  text-align: center; color: var(--text-3); font-size: 12px; line-height: 1.9;
+}
+.empty b { display: block; color: var(--text-2); font-size: 13px; margin-bottom: 6px; }
+
+.foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 9px 22px 11px; border-top: 1px solid var(--line); font-size: 11px; color: var(--text-3);
+}
+
+@media (max-width: 760px) {
+  .body { grid-template-columns: 1fr; }
+}
