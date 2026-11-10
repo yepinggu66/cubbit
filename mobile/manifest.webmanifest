@@ -1,0 +1,15 @@
+{
+  "name": "方块仔 · 手机伴侣",
+  "short_name": "方块仔",
+  "description": "和电脑上的方块仔连起来，传悄悄话。",
+  "start_url": "/cubbit/m/",
+  "scope": "/cubbit/m/",
+  "display": "standalone",
+  "background_color": "#0c0e14",
+  "theme_color": "#0c0e14",
+  "lang": "zh-CN",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

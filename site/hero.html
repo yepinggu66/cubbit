@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../src/renderer/pet/pet.css" />
+    <link rel="stylesheet" href="../src/renderer/pet/pet-v2.css" />
+    <style>
+      html, body { margin: 0; background: transparent; }
+      body { display: grid; place-items: center; width: 520px; height: 540px; }
+      .big { transform: scale(2.1); transform-origin: 50% 60%; }
+    </style>
+  </head>
+  <body>
+    <div class="big" id="host"></div>
+    <script src="../src/shared/expressions.js"></script>
+    <script src="../src/shared/pet-dom.js"></script>
+    <script>
+      const PAL = { body1: '#ff8a50', body2: '#ff5a1f', body3: '#e8440c', eye: '#2a1610', pupil: '#120805', blush: '#ffb199', rim: '#ffd2bd', glow: 'rgba(255,110,50,.45)' };
+      const pet = window.CubbitPetDom.build(PAL, {});
+      const e = window.CUBBIT_EXPR.EXPRESSIONS.happy;
+      for (const k of ['eyes', 'mouth', 'body', 'fx']) if (e[k]) pet.classList.add(k + '--' + e[k]);
+      document.getElementById('host').appendChild(pet);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>方块仔 · 人生指南（三场试炼）</title>
+    <link rel="stylesheet" href="ledger.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="bar">
+        <div class="bar__left">
+          <span class="bar__dot"></span>
+          <div>
+            <h1>人生指南 · 三场试炼</h1>
+            <p>三场 5 步短试炼随时可玩：高分生成分享卡与「保持清单」，中低分定制「专属健康方案」。</p>
+          </div>
+        </div>
+        <div class="bar__right">
+          <button class="btn btn--primary" id="trialsBtn" type="button">⚡ 三场短试炼</button>
+          <button class="btn btn--ghost" id="longBtn" type="button">📅 四十步长局</button>
+          <button class="btn btn--ghost" id="findBtn" type="button">🔍 健康检索 · 分享</button>
+          <button class="btn btn--ghost" id="handoffBtn" type="button">📱 手机上想</button>
+          <div class="step" id="step"><b>第 1</b> / 40 步</div>
+          <button class="btn btn--icon" id="closeBtn" type="button" aria-label="关闭">✕</button>
+        </div>
+      </header>
+
+      <section class="duo" id="duo" hidden></section>
+
+      <section class="meters" id="meters" aria-label="四条资源"></section>
+
+      <main class="stage" id="stage" aria-live="polite"></main>
+
+      <footer class="foot">
+        <span class="foot__note" id="insight">正在读取这一局……</span>
+        <span class="foot__credit">内容来自《高性价比人生指南》(CC BY 4.0) · 游戏化换算，不构成医疗/法律/投资建议</span>
+      </footer>
+    </div>
+
+    <script src="../../shared/life-cards.js"></script>
+    <script src="../../shared/lifegame.js"></script>
+    <script src="../../shared/share.js"></script>
+    <script src="ledger.js"></script>
+  </body>
+</html>

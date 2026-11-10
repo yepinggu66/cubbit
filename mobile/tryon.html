@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0c0e14" />
+    <title>试衣 · 方块仔</title>
+    <style>
+      :root { --bg:#0c0e14; --panel:#161923; --line:#262b38; --text:#f3eef2; --dim:#a9a2b0; --pink:#f0708a; --orange:#ff8a50; }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; min-height: 100%; }
+      body { background: radial-gradient(420px 320px at 50% -6%, #3a2030 0%, transparent 62%), var(--bg); color: var(--text);
+        font: 15px/1.6 "PingFang SC","Microsoft YaHei",system-ui,sans-serif; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+      header { display:flex; align-items:center; gap:10px; padding:14px 18px 6px; }
+      .back { color: var(--dim); text-decoration:none; font-size:20px; }
+      .brand { font-weight:800; }
+      .brand span { color: var(--dim); font-weight:500; font-size:13px; margin-left:6px; }
+      main { padding: 6px 18px 40px; }
+      .card { background: var(--panel); border:1px solid var(--line); border-radius:18px; padding:16px; margin-bottom:14px; }
+      .card h2 { margin:0 0 4px; font-size:16px; }
+      .card p { margin:0 0 12px; color:var(--dim); font-size:13px; }
+      .pick { display:flex; gap:12px; }
+      .slot { flex:1; aspect-ratio:3/4; border:1px dashed #3a4050; border-radius:14px; display:grid; place-items:center; color:#6f6879; font-size:13px; overflow:hidden; position:relative; text-align:center; padding:8px; }
+      .slot img { width:100%; height:100%; object-fit:cover; }
+      .slot input { position:absolute; inset:0; opacity:0; }
+      .cats { display:flex; gap:8px; flex-wrap:wrap; }
+      .cat { padding:8px 12px; border-radius:12px; border:1px solid var(--line); background:#171b26; color:var(--text); font-size:13px; }
+      .cat.on { background: linear-gradient(135deg,#ff9a6b,#f0708a); border-color:transparent; color:#fff; font-weight:700; }
+      .consent { display:flex; gap:10px; align-items:flex-start; font-size:13px; color:var(--dim); }
+      .consent input { margin-top:3px; }
+      .btn { width:100%; border:0; border-radius:14px; padding:15px; font:700 16px system-ui; color:#fff; background: linear-gradient(135deg,#ff9a6b,#f0708a); }
+      .btn:disabled { opacity:.45; }
+      .price { text-align:center; color:#ffb37a; font-size:13px; margin:6px 0 12px; }
+      .result img { width:100%; border-radius:14px; display:block; }
+      .toast { position:fixed; left:50%; bottom:90px; transform:translateX(-50%); background:#262b38; border:1px solid #3a4050; color:var(--text); padding:10px 16px; border-radius:12px; font-size:13.5px; opacity:0; transition:.2s; max-width:82vw; text-align:center; }
+      .toast.show { opacity:1; }
+      .hidden { display:none !important; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a class="back" href="/cubbit/m/">←</a>
+      <div class="brand">试衣间<span>beta</span></div>
+    </header>
+    <main>
+      <div class="card">
+        <h2>两张照片</h2>
+        <p>人像：全身、正面、光线均匀；衣服：平铺或挂拍，背景干净。</p>
+        <div class="pick">
+          <label class="slot" id="slotPerson">人像照<input type="file" accept="image/*" id="filePerson" /></label>
+          <label class="slot" id="slotGarment">衣服照<input type="file" accept="image/*" id="fileGarment" /></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>衣物类型</h2>
+        <p>只支持上身类效果；内衣、泳衣、鞋袜暂不提供生成。</p>
+        <div class="cats" id="cats">
+          <button class="cat on" data-cat="top">上衣 / T 恤</button>
+          <button class="cat" data-cat="outer">外套 / 风衣 / 羽绒</button>
+          <button class="cat" data-cat="dress">连衣裙</button>
+          <button class="cat" data-cat="bottom">裤子</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <label class="consent">
+          <input type="checkbox" id="consent" />
+          <span>我确认这张人像是我本人，或已获得照片本人同意用于试衣生成；生成结果仅供我们两人参考，不会公开展示。</span>
+        </label>
+      </div>
+
+      <div class="price" id="price">内测免费：每人 3 次</div>
+      <button class="btn" id="go" disabled>生成试衣预览</button>
+
+      <div class="card result hidden" id="resultCard" style="margin-top:16px">
+        <h2>预览</h2>
+        <div id="result"></div>
+        <p id="resultNote" style="margin-top:10px"></p>
+      </div>
+    </main>
+    <div class="toast" id="toast"></div>
+
+    <script>
+      (function () {
+        const BASE = location.origin + '/cubbit/api';
+        const S = { token: '', person: '', garment: '', cat: 'top', busy: false };
+        const $ = (id) => document.getElementById(id);
+
+        function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove('show'), 2600); }
+
+        function load() { try { return JSON.parse(localStorage.getItem('cubbit_mobile_v1') || '{}'); } catch { return {}; } }
+
+        async function login() {
+          if (S.token) return;
+          const saved = load();
+          if (saved.token) { S.token = saved.token; return; }
+          const res = await fetch(BASE + '/auth/anonymous', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
+          const b = await res.json();
+          S.token = b.result.idToken;
+          localStorage.setItem('cubbit_mobile_v1', JSON.stringify({ token: S.token, refresh: b.result.refreshToken, uid: b.result.uid }));
+        }
+
+        function compress(file) {
+          return new Promise((resolve, reject) => {
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.onload = () => {
+              const max = 1024;
+              let w = img.width, h = img.height;
+              if (w > h && w > max) { h = Math.round(h * max / w); w = max; }
+              else if (h >= w && h > max) { w = Math.round(w * max / h); h = max; }
+              const c = document.createElement('canvas');
+              c.width = w; c.height = h;
+              c.getContext('2d').drawImage(img, 0, 0, w, h);
+              URL.revokeObjectURL(url);
+              resolve(c.toDataURL('image/jpeg', 0.85));
+            };
+            img.onerror = reject;
+            img.src = url;
+          });
+        }
+
+        async function onFile(ev, which) {
+          const f = ev.target.files && ev.target.files[0];
+          if (!f) return;
+          try {
+            const dataUrl = await compress(f);
+            if (which === 'person') { S.person = dataUrl; $('slotPerson').innerHTML = '<img src="' + dataUrl + '" />'; }
+            else { S.garment = dataUrl; $('slotGarment').innerHTML = '<img src="' + dataUrl + '" />'; }
+            update();
+          } catch { toast('这张图读不出来，换一张'); }
+        }
+
+        function update() {
+          $('go').disabled = !(S.person && S.garment && $('consent').checked) || S.busy;
+        }
+
+        $('filePerson').addEventListener('change', (e) => onFile(e, 'person'));
+        $('fileGarment').addEventListener('change', (e) => onFile(e, 'garment'));
+        $('consent').addEventListener('change', update);
+
+        $('cats').addEventListener('click', (e) => {
+          const b = e.target.closest('button[data-cat]');
+          if (!b) return;
+          S.cat = b.getAttribute('data-cat');
+          Array.from(document.querySelectorAll('.cat')).forEach((x) => x.classList.toggle('on', x === b));
+        });
+
+        $('go').addEventListener('click', async () => {
+          if (S.busy) return;
+          S.busy = true; $('go').disabled = true; $('go').textContent = '生成中…（约 20 秒）';
+          try {
+            await login();
+            const res = await fetch(BASE + '/tryon', {
+              method: 'POST',
+              headers: { 'content-type': 'application/json', authorization: 'Bearer ' + S.token },
+              body: JSON.stringify({ data: { person: S.person, garment: S.garment, category: S.cat, consent: true } }),
+            });
+            const body = await res.json().catch(() => null);
+            if (!res.ok) throw new Error((body && body.error && body.error.message) || '生成失败');
+            const r = body.result;
+            $('resultCard').classList.remove('hidden');
+            $('result').innerHTML = r.demo
+              ? '<p style="color:#ffb37a">演示模式：还没接生成服务，下面是你的原图。接上 key 后这里会是穿上效果。</p><img src="' + r.image + '" />'
+              : '<img src="' + (r.url || r.image) + '" />';
+            $('resultNote').textContent = '剩余次数：' + r.creditsLeft + ' 次';
+          } catch (err) {
+            toast(err.message || '生成失败');
+          } finally {
+            S.busy = false; $('go').textContent = '生成试衣预览'; update();
+          }
+        });
+
+        update();
+      })();
+    </script>
+  </body>
+</html>

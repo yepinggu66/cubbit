@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../src/renderer/pet/pet.css" />
+    <link rel="stylesheet" href="../src/renderer/pet/pet-v2.css" />
+    <style>
+      * { box-sizing: border-box; }
+      html, body { margin: 0; width: 1280px; height: 720px; overflow: hidden; }
+      /* 一张「桌面」：渐变壁纸 + 一个窗口 + 桌宠 */
+      .wall {
+        position: absolute; inset: 0;
+        background:
+          radial-gradient(900px 500px at 78% 12%, rgba(120,120,255,.35), transparent 60%),
+          radial-gradient(700px 500px at 18% 88%, rgba(255,120,90,.28), transparent 62%),
+          linear-gradient(150deg, #1a1f3a 0%, #12162a 45%, #0b0d18 100%);
+      }
+      .win {
+        position: absolute; left: 90px; top: 96px; width: 760px; height: 470px;
+        border-radius: 14px; overflow: hidden;
+        background: #12141c; border: 1px solid rgba(255,255,255,.10);
+        box-shadow: 0 40px 80px rgba(0,0,0,.55);
+      }
+      .win__bar { height: 36px; display: flex; align-items: center; gap: 7px; padding: 0 14px; background: #1a1d27; border-bottom: 1px solid rgba(255,255,255,.06); }
+      .dot { width: 10px; height: 10px; border-radius: 50%; background: #3a3f52; }
+      .win__body { padding: 22px 26px; color: #6d7488; font: 14px/1.9 "Microsoft YaHei", system-ui, sans-serif; }
+      .win__body b { color: #9aa2b8; font-weight: 600; }
+      .line { height: 10px; border-radius: 5px; background: #1e2230; margin: 12px 0; }
+      .line.s { width: 62%; } .line.m { width: 82%; } .line.l { width: 44%; }
+      .petwrap { position: absolute; left: 812px; top: 452px; }
+      .petwrap .pet { cursor: default; transform: scale(1.32); transform-origin: 50% 100%; }
+      .bubble {
+        position: absolute; left: 1076px; top: 322px;
+        background: #fff; color: #2a2118; border-radius: 16px; padding: 10px 16px;
+        font: 600 17px/1.4 "Microsoft YaHei", system-ui, sans-serif;
+        box-shadow: 0 14px 30px rgba(0,0,0,.35);
+      }
+      .bubble::after {
+        content: ""; position: absolute; left: 18px; bottom: -9px;
+        width: 0; height: 0; border: 9px solid transparent; border-top-color: #fff;
+      }
+      .taskbar {
+        position: absolute; left: 0; right: 0; bottom: 0; height: 44px;
+        background: rgba(10,12,20,.72); border-top: 1px solid rgba(255,255,255,.07);
+        backdrop-filter: blur(14px);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wall"></div>
+    <div class="win">
+      <div class="win__bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+      <div class="win__body">
+        <b>Today</b>
+        <div class="line m"></div><div class="line"></div><div class="line s"></div>
+        <div class="line l"></div><div class="line m"></div>
+        <div class="line s"></div><div class="line"></div><div class="line l"></div>
+      </div>
+    </div>
+    <div class="bubble">❤</div>
+    <div class="petwrap" id="host"></div>
+    <div class="taskbar"></div>
+    <script src="../src/shared/expressions.js"></script>
+    <script src="../src/shared/pet-dom.js"></script>
+    <script>
+      const PAL = { body1: '#ff8a50', body2: '#ff5a1f', body3: '#e8440c', eye: '#2a1610', pupil: '#120805', blush: '#ffb199', rim: '#ffd2bd', glow: 'rgba(255,110,50,.45)' };
+      const pet = window.CubbitPetDom.build(PAL, {});
+      const e = window.CUBBIT_EXPR.EXPRESSIONS.happy;
+      for (const k of ['eyes', 'mouth', 'body', 'fx']) if (e[k]) pet.classList.add(k + '--' + e[k]);
+      document.getElementById('host').appendChild(pet);
+    </script>
+  </body>
+</html>

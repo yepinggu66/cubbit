@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../src/renderer/pet/pet.css" />
+    <link rel="stylesheet" href="../src/renderer/pet/pet-v2.css" />
+    <style>
+      * { box-sizing: border-box; }
+      html, body { margin: 0; }
+      body {
+        background: radial-gradient(circle at 50% 0%, #241a20 0%, #0c0e14 55%);
+        font-family: "Microsoft YaHei", system-ui, sans-serif; color: #f3eef2;
+        padding: 26px 20px 22px; width: 1040px;
+      }
+      .row { display: flex; gap: 18px; justify-content: center; }
+      .cell { width: 158px; text-align: center; }
+      .stage { width: 158px; height: 190px; display: grid; place-items: center; }
+      .pet { cursor: default; transform: scale(0.82); }
+      .label { font-size: 13px; color: #b9b2bd; margin-top: 2px; }
+    </style>
+  </head>
+  <body>
+    <div class="row" id="row"></div>
+    <script src="../src/shared/expressions.js"></script>
+    <script src="../src/shared/pet-dom.js"></script>
+    <script>
+      const SKINS = [
+        ['橙红经典', { body1: '#ff8a50', body2: '#ff5a1f', body3: '#e8440c', eye: '#2a1610', pupil: '#120805', blush: '#ffb199', rim: '#ffd2bd', glow: 'rgba(255,110,50,.45)' }],
+        ['蜜橘', { body1: '#ffd9bf', body2: '#ef7a52', body3: '#c9482a', eye: '#2b1a14', pupil: '#140c08', blush: '#ff8d78', rim: '#ffe6d4', glow: 'rgba(255,150,110,.45)' }],
+        ['薄荷', { body1: '#e8fff6', body2: '#7fd9bb', body3: '#3f9e83', eye: '#123028', pupil: '#081a15', blush: '#ffb3c2', rim: '#f4fffb', glow: 'rgba(120,230,200,.45)' }],
+        ['樱花', { body1: '#ffe1ec', body2: '#f497b6', body3: '#c85f83', eye: '#3a1622', pupil: '#1c0a10', blush: '#ff6f9c', rim: '#fff2f7', glow: 'rgba(255,140,180,.5)' }],
+        ['极光', { body1: '#c8f8ff', body2: '#5b8cff', body3: '#4356c9', eye: '#0b1233', pupil: '#050914', blush: '#a37bff', rim: '#e8f6ff', glow: 'rgba(120,180,255,.6)' }],
+        ['夜光', { body1: '#5a5aa0', body2: '#2a2a55', body3: '#14142c', eye: '#9ff2ff', pupil: '#e6feff', blush: '#7c5cff', rim: '#c9c9ff', glow: 'rgba(120,200,255,.75)' }],
+      ];
+      const row = document.getElementById('row');
+      for (const [name, pal] of SKINS) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        const stage = document.createElement('div');
+        stage.className = 'stage';
+        const pet = window.CubbitPetDom.build(pal, {});
+        const e = window.CUBBIT_EXPR.EXPRESSIONS.happy;
+        for (const k of ['eyes', 'mouth', 'body', 'fx']) if (e[k]) pet.classList.add(k + '--' + e[k]);
+        stage.appendChild(pet);
+        const label = document.createElement('div'); if (false)
+        label.className = 'label';
+        label.textContent = name;
+        cell.append(stage, label);
+        row.appendChild(cell);
+      }
+    </script>
+  </body>
+</html>

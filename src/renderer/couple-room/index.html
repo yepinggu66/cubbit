@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>方块仔 · 情侣空间</title>
+    <link rel="stylesheet" href="../ui/ui.css" />
+    <link rel="stylesheet" href="couple-room.css" />
+  </head>
+  <body data-scene="coffee" data-light="light">
+    <div class="app">
+      <div id="titlebar-host"></div>
+
+      <main class="room" id="room">
+        <!-- 场景背景与道具 -->
+        <div class="scene" id="scene">
+          <div class="scene__sky"></div>
+          <div class="scene__wall"></div>
+          <div class="scene__glow"></div>
+          <div class="scene__window"><span class="scene__rain"></span><span class="scene__moon"></span><span class="scene__stars"></span></div>
+          <div class="scene__screen"></div>
+          <div class="scene__lamp"></div>
+          <div class="scene__table"></div>
+          <div class="scene__cups"><span></span><span></span></div>
+          <div class="scene__counter"></div>
+          <div class="scene__bed"></div>
+          <div class="scene__floor"></div>
+          <div class="scene__particles" id="particles"></div>
+        </div>
+
+        <!-- 顶部信息（diegetic 铭牌） -->
+        <div class="room__plate">
+          <span class="room__plate-emoji" id="plateEmoji">☕</span>
+          <div class="room__plate-text">
+            <strong id="plateName">咖啡约会</strong>
+            <span id="plateDesc">两杯热咖啡，慢慢聊</span>
+          </div>
+          <span class="room__partner hidden" id="partnerHere">TA 也在这里</span>
+        </div>
+
+        <!-- 两只方块仔 -->
+        <div class="pets" id="pets">
+          <div class="rpet rpet--a" data-expr="smile">
+            <div class="rpet__shadow"></div>
+            <div class="rpet__body">
+              <span class="rpet__ear l"></span><span class="rpet__ear r"></span>
+              <div class="rpet__eyes"><span class="rpet__eye"><i></i></span><span class="rpet__eye"><i></i></span></div>
+              <div class="rpet__mouth"></div>
+              <div class="rpet__blush l"></div><div class="rpet__blush r"></div>
+            </div>
+            <div class="rpet__name" id="petNameA">方块仔</div>
+          </div>
+          <div class="rpet rpet--b" data-expr="smile">
+            <div class="rpet__shadow"></div>
+            <div class="rpet__body">
+              <span class="rpet__ear l"></span><span class="rpet__ear r"></span>
+              <div class="rpet__eyes"><span class="rpet__eye"><i></i></span><span class="rpet__eye"><i></i></span></div>
+              <div class="rpet__mouth"></div>
+              <div class="rpet__blush l"></div><div class="rpet__blush r"></div>
+            </div>
+            <div class="rpet__name" id="petNameB">TA</div>
+          </div>
+        </div>
+
+        <!-- diegetic 控制台 -->
+        <div class="console" id="console">
+          <div class="console__scenes" id="sceneTabs" role="tablist" aria-label="场景"></div>
+          <div class="console__divider"></div>
+          <div class="console__light" role="group" aria-label="明暗">
+            <button class="light-btn" data-light="light" type="button">Light</button>
+            <button class="light-btn" data-light="dark" type="button">Dark</button>
+          </div>
+          <div class="console__divider"></div>
+          <button class="timer" id="timerBtn" type="button" title="一起待 25 分钟">
+            <span class="timer__ring" id="timerRing"></span>
+            <span class="timer__time" id="timerTime">25:00</span>
+            <span class="timer__label" id="timerLabel">一起待一会儿</span>
+          </button>
+          <div class="console__actions">
+            <button class="cbtn" id="captureBtn" type="button" title="保存这一刻">📷<span>保存这一刻</span></button>
+            <button class="cbtn cbtn--accent" id="shareBtn" type="button" title="分享给 TA">💌<span>分享给 TA</span></button>
+          </div>
+        </div>
+
+        <!-- 锁定浮层 -->
+        <div class="locked hidden" id="locked">
+          <div class="locked__card">
+            <div class="locked__lock">🔒</div>
+            <div class="locked__title">情侣场景 · 双人版权益</div>
+            <div class="locked__desc">
+              6 个一起待着的场景：咖啡约会、深夜电影、阳台看星星、一起做饭、雨天窗边、晚安故事。<br />
+              场景同步、明暗同步、一起计时、还能保存这一刻。
+            </div>
+            <div class="locked__perks">
+              <span>☕ 6 个场景</span><span>🌙 Light / Dark</span><span>⏳ 一起计时</span><span>📷 保存这一刻</span>
+            </div>
+            <div class="locked__actions">
+              <button class="btn btn--primary" id="upgradeBtn" type="button">升级情侣双人版</button>
+              <button class="btn btn--ghost" id="pairBtn" type="button">先去配对</button>
+              <button class="btn btn--ghost" id="previewBtn" type="button">👀 先预览场景</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="../ui/mock.js"></script>
+    <script src="../../shared/i18n-dict.js"></script>
+    <script src="../../shared/i18n.js"></script>
+    <script src="../../shared/offer-config.js"></script>
+    <script src="../../shared/pricing.js"></script>
+    <script src="../ui/ui.js"></script>
+    <script src="couple-room.js"></script>
+  </body>
+</html>

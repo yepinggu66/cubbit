@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>方块仔 商店</title>
+    <link rel="stylesheet" href="../ui/ui.css" />
+    <link rel="stylesheet" href="store.css" />
+  </head>
+  <body>
+    <div class="app">
+      <!-- 自定义标题栏由 store.js 注入（frame:false） -->
+      <div id="titlebar-host"></div>
+
+      <div class="store-shell">
+        <header class="store-head" id="storeHead">
+          <div class="store-head__text">
+            <div class="eyebrow">CUBBIT PRO</div>
+            <h1 class="h1 mt-6" id="headTitle">让方块仔更像它自己</h1>
+            <p class="store-head__sub" id="headSub">
+              升级 Pro，解锁 20 套手工皮肤、专注模式、成长系统与多宠物同屏。
+            </p>
+          </div>
+          <div class="store-head__side" id="headSide"></div>
+        </header>
+
+        <nav class="store-tabs" id="storeTabs" role="tablist" aria-label="商店分区"></nav>
+
+        <main class="store-body scroll" id="storeBody">
+          <section class="panel" id="panel-upgrade" role="tabpanel" aria-label="升级方案"></section>
+          <section class="panel hidden" id="panel-dlc" role="tabpanel" aria-label="角色包"></section>
+          <section class="panel hidden" id="panel-skins" role="tabpanel" aria-label="皮肤"></section>
+          <section class="panel hidden" id="panel-license" role="tabpanel" aria-label="我的授权"></section>
+        </main>
+      </div>
+    </div>
+
+    <script src="../ui/mock.js"></script>
+    <script src="../../shared/i18n-dict.js"></script>
+    <script src="../../shared/i18n.js"></script>
+    <script src="../../shared/offer-config.js"></script>
+    <script src="../../shared/pricing.js"></script>
+    <script src="../ui/ui.js"></script>
+    <script src="store.js"></script>
+  </body>
+</html>

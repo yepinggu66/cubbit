@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b0d13" />
+    <title>人生账本 · 手机上想这一步</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0d13;
+        --card: rgba(255, 255, 255, 0.035);
+        --line: rgba(255, 255, 255, 0.09);
+        --line-2: rgba(255, 255, 255, 0.16);
+        --text: #f2f4f9;
+        --text-2: #b6bdcc;
+        --text-3: #7b8496;
+        --accent: #ffb469;
+      }
+      * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+      html, body { margin: 0; background: var(--bg); color: var(--text); }
+      body {
+        font: 15px/1.65 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        padding: max(16px, env(safe-area-inset-top)) 16px calc(132px + env(safe-area-inset-bottom));
+        max-width: 520px; margin: 0 auto;
+        background:
+          radial-gradient(620px 320px at 80% -8%, rgba(255, 176, 110, 0.13), transparent 70%),
+          var(--bg);
+      }
+      header h1 { font-size: 19px; margin: 0 0 4px; letter-spacing: 0.01em; }
+      header p { margin: 0; color: var(--text-3); font-size: 12px; }
+
+      .meters { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 16px 0 18px; }
+      .m {
+        border: 1px solid var(--line); border-radius: 11px; background: var(--card);
+        padding: 8px 9px;
+      }
+      .m span { display: block; font-size: 10px; color: var(--text-3); }
+      .m b { font-size: 16px; font-weight: 650; color: var(--text); }
+      .m small { font-size: 10px; color: var(--text-3); margin-left: 2px; }
+
+      .hint {
+        border: 1px dashed var(--line-2); border-radius: 12px; padding: 16px;
+        color: var(--text-2); font-size: 13px; line-height: 1.8;
+      }
+      .hint b { color: var(--accent); }
+
+      .card {
+        display: block; width: 100%; text-align: left;
+        border: 1px solid var(--line); border-radius: 14px; background: var(--card);
+        padding: 14px 15px; margin-bottom: 10px; color: inherit; font: inherit;
+        transition: border-color 0.18s, background 0.18s, transform 0.18s;
+      }
+      .card:active { transform: scale(0.99); }
+      .card.is-sel { border-color: rgba(255, 176, 110, 0.6); background: rgba(255, 176, 110, 0.09); }
+      .card__head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+      .sec { font-size: 10px; color: var(--text-3); }
+      .ev {
+        font-size: 9.5px; padding: 1px 6px; border-radius: 999px;
+        border: 1px solid var(--line-2); color: var(--text-3);
+      }
+      .ev--A { color: #9fe3c0; border-color: rgba(120, 220, 170, 0.4); }
+      .ev--C { color: #f0b3b3; border-color: rgba(240, 150, 150, 0.4); }
+      .card h2 { font-size: 16px; margin: 0 0 7px; line-height: 1.5; font-weight: 650; }
+      .card p {
+        margin: 0; font-size: 12.5px; line-height: 1.75; color: var(--text-2);
+        display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+      }
+      .costs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+      .cost { font-size: 10.5px; color: var(--text-2); border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; }
+      .cost--hint { color: var(--accent); border-color: rgba(255, 176, 110, 0.35); }
+
+      .bar {
+        position: fixed; left: 0; right: 0; bottom: 0;
+        padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+        background: linear-gradient(180deg, rgba(11, 13, 19, 0.7), rgba(11, 13, 19, 0.98) 40%);
+        border-top: 1px solid var(--line);
+        backdrop-filter: blur(12px);
+      }
+      .bar__inner { max-width: 520px; margin: 0 auto; display: flex; gap: 9px; }
+      .btn {
+        flex: 1; border: 1px solid var(--line-2); border-radius: 12px; background: transparent;
+        color: var(--text); font: inherit; font-size: 14px; padding: 12px 14px;
+      }
+      .btn--primary {
+        background: linear-gradient(180deg, #ffbe7d, #f09a4f); color: #2a1708;
+        border: 0; font-weight: 650;
+      }
+      .btn[disabled] { opacity: 0.45; }
+
+      .done { text-align: center; padding-top: 24px; }
+      .done h2 { font-size: 17px; margin: 0 0 6px; }
+      .done p { color: var(--text-2); font-size: 13px; margin: 0 0 18px; }
+      .code {
+        font: 700 30px/1.2 ui-monospace, Menlo, Consolas, monospace;
+        letter-spacing: 0.16em; color: var(--accent);
+        border: 1px dashed rgba(255, 176, 110, 0.55); border-radius: 14px;
+        padding: 18px 10px; margin-bottom: 10px; user-select: all;
+      }
+      .pick { font-size: 13px; color: var(--text-2); margin-bottom: 16px; }
+      .pick b { color: var(--text); }
+      .foot { color: var(--text-3); font-size: 11px; line-height: 1.9; margin-top: 22px; }
+      .foot a { color: var(--text-2); }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>人生账本</h1>
+      <p id="sub">手机上想这一步，回电脑上按。</p>
+    </header>
+
+    <main id="app"></main>
+
+    <div class="bar" id="bar" hidden><div class="bar__inner" id="barInner"></div></div>
+
+    <script>
+      (function () {
+        'use strict';
+
+        var app = document.getElementById('app');
+        var bar = document.getElementById('bar');
+        var barInner = document.getElementById('barInner');
+        var sub = document.getElementById('sub');
+
+        function b64decode(text) {
+          var clean = String(text || '').replace(/-/g, '+').replace(/_/g, '/').replace(/[^A-Za-z0-9+/=]/g, '');
+          if (!clean) return '';
+          var pad = clean.length % 4 ? new Array(5 - (clean.length % 4)).join('=') : '';
+          var bin = atob(clean + pad);
+          var bytes = new Uint8Array(bin.length);
+          for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+          return new TextDecoder().decode(bytes);
+        }
+
+        function parse(token) {
+          try {
+            var o = JSON.parse(b64decode(token));
+            if (!o || o.v !== 1 || !o.k || !o.k.length) return null;
+            return {
+              day: o.d,
+              turn: o.t,
+              age: o.a,
+              cash: o.c,
+              energy: o.e,
+              free: o.f,
+              lifeYears: o.l,
+              duo: o.n && o.n.length === 2 ? o.n : null,
+              cards: o.k.slice(0, 3).map(function (k) {
+                return { id: k[0], title: k[1], ev: k[2], secName: k[3], money: k[4], time: k[5], will: k[6], plain: k[7] || '' };
+              }),
+            };
+          } catch (e) {
+            return null;
+          }
+        }
+
+        function el(tag, cls, text) {
+          var n = document.createElement(tag);
+          if (cls) n.className = cls;
+          if (text != null) n.textContent = text;
+          return n;
+        }
+
+        var COST = {
+          money: { 0: '不花钱', 少: '花点钱', 多: '花大钱' },
+          time: { 少: '耗点时间', 中: '耗时间', 多: '很耗时间' },
+          will: { 否: '不用硬撑', 些: '要一点毅力', 是: '很要毅力' },
+        };
+
+        var token = (location.hash || '').replace(/^#(h=)?/, '');
+        var hand = token ? parse(token) : null;
+
+        if (!hand) {
+          app.appendChild(el('div', 'hint')).innerHTML =
+            '<b>这个链接没有带内容。</b><br>请回到桌面版的「人生账本」，点右上角 <b>📱 手机上想</b> 生成链接，再用手机打开。';
+          document.getElementById('bar').hidden = true;
+          return;
+        }
+
+        sub.textContent = '第 ' + (hand.turn + 1) + '/40 步' + (hand.duo ? ' · 同命局：' + hand.duo[0] + ' 与 ' + hand.duo[1] : '');
+
+        var meters = el('div', 'meters');
+        [
+          ['寿命', hand.lifeYears.toFixed(1), '年'],
+          ['现金', (hand.cash / 10000).toFixed(1), '万'],
+          ['精力', String(Math.round(hand.energy)), ''],
+          ['自由', String(Math.round(hand.free)), ''],
+        ].forEach(function (m) {
+          var box = el('div', 'm');
+          box.appendChild(el('span', null, m[0]));
+          var b = el('b', null, m[1]);
+          box.appendChild(b);
+          if (m[2]) box.appendChild(el('small', null, m[2]));
+          meters.appendChild(box);
+        });
+        app.appendChild(meters);
+
+        var picked = null;
+        var cards = [];
+
+        hand.cards.forEach(function (c, i) {
+          var node = el('button', 'card');
+          node.type = 'button';
+          var head = el('div', 'card__head');
+          head.appendChild(el('span', 'sec', c.secName));
+          var ev = el('span', 'ev ev--' + c.ev, '证据 ' + c.ev);
+          head.appendChild(ev);
+          node.appendChild(head);
+          node.appendChild(el('h2', null, c.title));
+          node.appendChild(el('p', null, c.plain ? c.plain + (c.plain.length >= 58 ? '…' : '') : '成本摆在明面上，收益要等你选完才知道。'));
+
+          var costs = el('div', 'costs');
+          costs.appendChild(el('span', 'cost', COST.money[c.money] || '不花钱'));
+          costs.appendChild(el('span', 'cost', COST.time[c.time] || '耗点时间'));
+          costs.appendChild(el('span', 'cost', COST.will[c.will] || '不用硬撑'));
+          costs.appendChild(el('span', 'cost cost--hint', '收益 ？'));
+          node.appendChild(costs);
+
+          node.addEventListener('click', function () {
+            picked = i;
+            cards.forEach(function (n, j) { n.classList.toggle('is-sel', j === i); });
+            renderBar();
+          });
+          cards.push(node);
+          app.appendChild(node);
+        });
+
+        function decide(action) {
+          if (picked == null) return;
+          var code = 'D1.' + picked + '.' + (action === 'skip' ? 's' : 'd');
+          var card = hand.cards[picked];
+          app.innerHTML = '';
+          bar.hidden = true;
+
+          var box = el('div', 'done');
+          box.appendChild(el('h2', null, '想好了'));
+          box.appendChild(el('div', 'pick')).innerHTML =
+            '你选了 <b>' + (action === 'skip' ? '这一年什么也不做' : card.title) + '</b>。';
+          var codeBox = el('div', 'code', code);
+          box.appendChild(codeBox);
+          box.appendChild(el('p', null, '把这个码带回电脑，贴在「手机上想」里，这一步就落账。'));
+
+          var again = el('button', 'btn', '我还想再改一下');
+          again.type = 'button';
+          again.style.maxWidth = '260px';
+          again.addEventListener('click', function () { location.reload(); });
+          box.appendChild(again);
+
+          var copy = el('button', 'btn btn--primary', '复制决定码');
+          copy.type = 'button';
+          copy.style.maxWidth = '260px';
+          copy.style.marginTop = '10px';
+          copy.addEventListener('click', function () {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(code).then(function () {
+                copy.textContent = '已复制';
+              }, function () {
+                copy.textContent = '长按上面的码手动复制';
+              });
+            } else {
+              copy.textContent = '长按上面的码手动复制';
+            }
+          });
+          box.appendChild(copy);
+
+          var foot = el('div', 'foot');
+          foot.innerHTML = '决定码只有 8 个字符，因为它只需要说清"我选第几张、做还是不做"。<br>真正的账还在那台电脑上，这里不保存任何东西。';
+          box.appendChild(foot);
+
+          app.appendChild(box);
+        }
+
+        function renderBar() {
+          bar.hidden = false;
+          barInner.innerHTML = '';
+          var skip = el('button', 'btn', '什么也不做');
+          skip.type = 'button';
+          skip.addEventListener('click', function () { decide('skip'); });
+          var go = el('button', 'btn btn--primary', '执行这条');
+          go.type = 'button';
+          go.disabled = picked == null;
+          go.addEventListener('click', function () { decide('do'); });
+          barInner.appendChild(skip);
+          barInner.appendChild(go);
+        }
+
+        renderBar();
+        bar.hidden = false;
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>方块仔 · 和 TA 聊聊</title>
+    <link rel="stylesheet" href="../ui/ui.css" />
+    <link rel="stylesheet" href="chat.css" />
+  </head>
+  <body>
+    <div class="app">
+      <div id="titlebar-host"></div>
+
+      <main class="chat-shell">
+        <!-- 顶部：TA 的头像 / 名字 / 状态 / 操作 -->
+        <header class="chat-head" id="chatHead"></header>
+
+        <!-- 消息流 -->
+        <section class="chat-stream scroll" id="chatStream" aria-live="polite" aria-label="对话内容"></section>
+
+        <!-- 错误提示（可重试） -->
+        <div class="chat-errorbar hidden" id="chatErrorBar"></div>
+
+        <!-- 快捷短语 -->
+        <div class="chat-quick" id="chatQuick"></div>
+
+        <!-- 输入区 -->
+        <div class="chat-composer" id="chatComposer"></div>
+
+        <!-- 未解锁 Pro 的遮罩 -->
+        <section class="chat-locked hidden" id="chatLocked"></section>
+      </main>
+    </div>
+
+    <script src="../ui/mock.js"></script>
+    <script src="../../shared/i18n-dict.js"></script>
+    <script src="../../shared/i18n.js"></script>
+    <script src="../../shared/offer-config.js"></script>
+    <script src="../../shared/pricing.js"></script>
+    <script src="../ui/ui.js"></script>
+    <script src="chat.js"></script>
+  </body>
+</html>

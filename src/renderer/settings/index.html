@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>方块仔 设置</title>
+    <link rel="stylesheet" href="../ui/ui.css" />
+    <link rel="stylesheet" href="settings.css" />
+  </head>
+  <body>
+    <div class="app">
+      <div id="titlebar-host"></div>
+
+      <div class="settings-shell">
+        <aside class="side">
+          <nav class="side__nav" id="sideNav" aria-label="设置分区"></nav>
+          <div class="side__bottom" id="sideBottom"></div>
+        </aside>
+
+        <main class="content scroll" id="content">
+          <section class="sec" id="sec-appearance" role="region" aria-label="外观"></section>
+          <section class="sec hidden" id="sec-interaction" role="region" aria-label="交互"></section>
+          <section class="sec hidden" id="sec-focus" role="region" aria-label="专注"></section>
+          <section class="sec hidden" id="sec-growth" role="region" aria-label="成长"></section>
+          <section class="sec hidden" id="sec-couple" role="region" aria-label="情侣"></section>
+          <section class="sec hidden" id="sec-office" role="region" aria-label="办公助手"></section>
+          <section class="sec hidden" id="sec-member" role="region" aria-label="会员与商店"></section>
+          <section class="sec hidden" id="sec-life" role="region" aria-label="生命"></section>
+          <section class="sec hidden" id="sec-ai" role="region" aria-label="AI 陪伴"></section>
+          <section class="sec hidden" id="sec-backup" role="region" aria-label="数据与备份"></section>
+          <section class="sec hidden" id="sec-system" role="region" aria-label="系统"></section>
+          <section class="sec hidden" id="sec-about" role="region" aria-label="关于"></section>
+        </main>
+      </div>
+    </div>
+
+    <script src="../ui/mock.js"></script>
+    <script src="../../shared/i18n-dict.js"></script>
+    <script src="../../shared/i18n.js"></script>
+    <script src="../../shared/nav-layout.js"></script>
+    <script src="../pet/sprites/sprite-data.js"></script>
+    <script src="../../shared/pet-sprite.js"></script>
+    <script src="../../shared/diy.js"></script>
+    <script src="../../shared/offer-config.js"></script>
+    <script src="../../shared/pricing.js"></script>
+    <script src="../ui/ui.js"></script>
+    <script src="settings.js"></script>
+    <script src="settings-plus.js"></script>
+    <script src="../../shared/pet-dom.js"></script>
+    <script src="settings-paid.js"></script>
+  </body>
+</html>

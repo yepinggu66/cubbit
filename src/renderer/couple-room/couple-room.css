@@ -1,0 +1,1114 @@
+/* ============================================================================
+ * Cubbit 情侣空间（couple-room，1000×700）
+ * 6 个 CSS 场景 + 两只方块仔 + diegetic 控制台 + Light/Dark
+ * 动画只用 transform / opacity；明暗切换 360ms 过渡
+ * ========================================================================== */
+
+:root {
+  --room-transition: 360ms cubic-bezier(0.22, 1, 0.36, 1);
+  --rp-a1: #ffd9bf;
+  --rp-a2: #ef7a52;
+  --rp-a3: #c9482a;
+  --rp-b1: #f9d7e6;
+  --rp-b2: #f497b6;
+  --rp-b3: #b76689;
+  --rp-eye: #2b1a14;
+  --rp-pupil: #140c08;
+  --rp-glow: rgba(255, 150, 110, 0.45);
+  --warm: rgba(255, 176, 110, 0.42);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: #0a0c12;
+  color: var(--text);
+  font-family: "Microsoft YaHei UI", "PingFang SC", "Segoe UI", sans-serif;
+  overflow: hidden;
+  user-select: none;
+  color-scheme: dark;
+}
+
+.app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------------------------------------------------------------- 舞台 */
+.room {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  background: #0d1017;
+  transition: background var(--room-transition);
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transition: filter var(--room-transition), opacity var(--room-transition);
+}
+
+/* 通用层 */
+.scene__sky,
+.scene__wall,
+.scene__glow,
+.scene__window,
+.scene__screen,
+.scene__lamp,
+.scene__table,
+.scene__cups,
+.scene__counter,
+.scene__bed,
+.scene__floor {
+  position: absolute;
+  transition: opacity var(--room-transition), transform var(--room-transition), background var(--room-transition),
+    box-shadow var(--room-transition);
+}
+
+.scene__floor {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 34%;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.24));
+}
+
+.scene__particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.scene__particles span {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  animation: particle-float 9s ease-in-out infinite;
+}
+
+@keyframes particle-float {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.15;
+  }
+  50% {
+    transform: translateY(-46px) scale(1.25);
+    opacity: 0.75;
+  }
+}
+
+/* ---------------------------------------------------------------- 每个场景 */
+/* ☕ 咖啡约会：暖墙 + 木桌 + 两杯咖啡 + 小吊灯 */
+body[data-scene="coffee"] .scene__wall {
+  inset: 0 0 34% 0;
+  background: linear-gradient(180deg, #3b2b25 0%, #2c211d 55%, #241a17 100%);
+}
+
+body[data-scene="coffee"] .scene__glow {
+  left: -10%;
+  top: -20%;
+  width: 70%;
+  height: 90%;
+  background: radial-gradient(50% 50% at 50% 40%, rgba(255, 176, 110, 0.32), transparent 70%);
+  filter: blur(6px);
+}
+
+body[data-scene="coffee"] .scene__lamp {
+  left: 22%;
+  top: 0;
+  width: 2px;
+  height: 26%;
+  background: linear-gradient(180deg, rgba(255, 210, 160, 0.5), rgba(255, 210, 160, 0.05));
+}
+
+body[data-scene="coffee"] .scene__lamp::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -16px;
+  width: 74px;
+  height: 30px;
+  transform: translateX(-50%);
+  border-radius: 50% 50% 20% 20%;
+  background: linear-gradient(180deg, #d79a5f, #8e5a2c);
+  box-shadow: 0 8px 26px rgba(255, 176, 110, 0.35);
+}
+
+body[data-scene="coffee"] .scene__table {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 34%;
+  background: linear-gradient(180deg, #6b4a33, #4a3223 40%, #2f2016);
+  border-top: 2px solid rgba(255, 214, 170, 0.18);
+}
+
+body[data-scene="coffee"] .scene__cups {
+  left: 50%;
+  bottom: 26%;
+  width: 210px;
+  height: 40px;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: space-between;
+  opacity: 1;
+}
+
+body[data-scene="coffee"] .scene__cups span {
+  position: relative;
+  width: 46px;
+  height: 34px;
+  border-radius: 6px 6px 14px 14px;
+  background: linear-gradient(180deg, #f6efe6, #cdbfae);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+}
+
+body[data-scene="coffee"] .scene__cups span::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 30px;
+  width: 8px;
+  height: 26px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  filter: blur(2px);
+  animation: steam 3.4s ease-in-out infinite;
+}
+
+body[data-scene="coffee"] .scene__cups span:nth-child(2)::before {
+  animation-delay: -1.6s;
+}
+
+@keyframes steam {
+  0% {
+    transform: translate(-50%, 6px) scaleY(0.7);
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(-50%, -22px) scaleY(1.2);
+    opacity: 0;
+  }
+}
+
+/* 🎬 深夜电影：暗房 + 屏幕光 */
+body[data-scene="movie"] .scene__wall {
+  inset: 0;
+  background: radial-gradient(70% 60% at 50% 30%, #1b2740 0%, #0c1120 60%, #06080f 100%);
+}
+
+body[data-scene="movie"] .scene__screen {
+  left: 18%;
+  right: 18%;
+  top: 8%;
+  height: 42%;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(120, 190, 255, 0.55), rgba(80, 120, 220, 0.25) 60%, rgba(30, 40, 80, 0.4));
+  box-shadow: 0 0 80px rgba(90, 160, 255, 0.35), inset 0 0 40px rgba(255, 255, 255, 0.12);
+  animation: screen-flicker 6.4s ease-in-out infinite;
+}
+
+body[data-scene="movie"] .scene__glow {
+  left: 8%;
+  right: 8%;
+  top: 40%;
+  height: 40%;
+  background: radial-gradient(60% 70% at 50% 0%, rgba(120, 190, 255, 0.28), transparent 70%);
+  filter: blur(10px);
+}
+
+body[data-scene="movie"] .scene__floor {
+  background: linear-gradient(180deg, rgba(60, 110, 200, 0.1), rgba(0, 0, 0, 0.5));
+}
+
+@keyframes screen-flicker {
+  0%,
+  100% {
+    opacity: 0.82;
+  }
+  38% {
+    opacity: 1;
+  }
+  62% {
+    opacity: 0.9;
+  }
+  78% {
+    opacity: 0.96;
+  }
+}
+
+/* 🌟 阳台看星星：夜空 + 星星 + 栏杆 */
+body[data-scene="stars"] .scene__sky {
+  inset: 0;
+  background: radial-gradient(80% 70% at 50% 10%, #1d2a52 0%, #101732 48%, #070a16 100%);
+}
+
+body[data-scene="stars"] .scene__stars {
+  position: absolute;
+  inset: 0;
+  opacity: 1;
+  background-image: radial-gradient(1.6px 1.6px at 12% 18%, rgba(255, 255, 255, 0.95), transparent 60%),
+    radial-gradient(1.4px 1.4px at 28% 32%, rgba(210, 230, 255, 0.85), transparent 60%),
+    radial-gradient(2px 2px at 46% 14%, rgba(255, 255, 255, 0.9), transparent 60%),
+    radial-gradient(1.4px 1.4px at 62% 26%, rgba(200, 225, 255, 0.8), transparent 60%),
+    radial-gradient(1.8px 1.8px at 78% 16%, rgba(255, 255, 255, 0.95), transparent 60%),
+    radial-gradient(1.2px 1.2px at 88% 36%, rgba(210, 235, 255, 0.8), transparent 60%),
+    radial-gradient(1.4px 1.4px at 36% 44%, rgba(255, 255, 255, 0.7), transparent 60%);
+  animation: stars-twinkle 4.8s ease-in-out infinite;
+}
+
+body[data-scene="stars"] .scene__moon {
+  position: absolute;
+  right: 14%;
+  top: 10%;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 34%, #fff8e6, #ffe7b0 58%, #d8b46a);
+  box-shadow: 0 0 40px rgba(255, 230, 170, 0.45);
+}
+
+body[data-scene="stars"] .scene__window {
+  left: 6%;
+  right: 6%;
+  bottom: 16%;
+  height: 2px;
+  background: rgba(190, 210, 255, 0.35);
+  box-shadow: 0 -54px 0 rgba(190, 210, 255, 0.22);
+  opacity: 1;
+}
+
+body[data-scene="stars"] .scene__floor {
+  background: linear-gradient(180deg, rgba(90, 120, 200, 0.12), rgba(2, 4, 10, 0.7));
+}
+
+@keyframes stars-twinkle {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 🍳 一起做饭：厨房台面 + 蒸汽 + 暖灯 */
+body[data-scene="cooking"] .scene__wall {
+  inset: 0 0 30% 0;
+  background: linear-gradient(180deg, #3a2f27 0%, #2a211b 100%);
+}
+
+body[data-scene="cooking"] .scene__glow {
+  right: -6%;
+  top: -10%;
+  width: 54%;
+  height: 70%;
+  background: radial-gradient(50% 50% at 50% 40%, rgba(255, 200, 120, 0.3), transparent 70%);
+}
+
+body[data-scene="cooking"] .scene__counter {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 30%;
+  background: linear-gradient(180deg, #8a7258, #5c4a39 40%, #3a2d22);
+  border-top: 2px solid rgba(255, 224, 180, 0.2);
+}
+
+body[data-scene="cooking"] .scene__cups {
+  left: 50%;
+  bottom: 24%;
+  width: 150px;
+  height: 34px;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  opacity: 1;
+}
+
+body[data-scene="cooking"] .scene__cups span {
+  position: relative;
+  flex: 1;
+  height: 30px;
+  border-radius: 4px 4px 12px 12px;
+  background: linear-gradient(180deg, #e8e0d4, #a89a88);
+}
+
+body[data-scene="cooking"] .scene__cups span::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 30px;
+  width: 10px;
+  height: 30px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  filter: blur(3px);
+  animation: steam 3s ease-in-out infinite;
+}
+
+/* 🌧 雨天窗边：窗户 + 雨丝 + 灰蓝 */
+body[data-scene="rain"] .scene__wall {
+  inset: 0;
+  background: linear-gradient(180deg, #2b3440 0%, #1b222c 60%, #131920 100%);
+}
+
+body[data-scene="rain"] .scene__window {
+  left: 12%;
+  right: 12%;
+  top: 8%;
+  height: 46%;
+  border: 3px solid rgba(190, 210, 230, 0.28);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(150, 180, 210, 0.22), rgba(70, 95, 120, 0.24));
+  overflow: hidden;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.35);
+}
+
+body[data-scene="rain"] .scene__window::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(190, 210, 230, 0.28);
+}
+
+body[data-scene="rain"] .scene__rain {
+  position: absolute;
+  inset: -20% 0;
+  background-image: repeating-linear-gradient(
+    100deg,
+    rgba(200, 225, 255, 0) 0px,
+    rgba(200, 225, 255, 0) 18px,
+    rgba(200, 225, 255, 0.34) 19px,
+    rgba(200, 225, 255, 0) 21px
+  );
+  background-size: 120px 120px;
+  animation: rain-fall 0.9s linear infinite;
+  opacity: 0.7;
+}
+
+body[data-scene="rain"] .scene__glow {
+  left: 50%;
+  bottom: 8%;
+  width: 60%;
+  height: 40%;
+  transform: translateX(-50%);
+  background: radial-gradient(50% 50% at 50% 50%, rgba(255, 200, 140, 0.14), transparent 70%);
+}
+
+@keyframes rain-fall {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: -18px 120px;
+  }
+}
+
+/* 🌙 晚安故事：床 + 月亮 + 床头灯 */
+body[data-scene="bedtime"] .scene__wall {
+  inset: 0;
+  background: linear-gradient(180deg, #2a2340 0%, #1a1730 60%, #100e1d 100%);
+}
+
+body[data-scene="bedtime"] .scene__glow {
+  left: -8%;
+  top: 10%;
+  width: 50%;
+  height: 70%;
+  background: radial-gradient(50% 50% at 50% 40%, rgba(255, 200, 140, 0.22), transparent 70%);
+}
+
+body[data-scene="bedtime"] .scene__moon {
+  position: absolute;
+  right: 12%;
+  top: 8%;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 34%, #fff8e6, #ffe7b0 60%, #d8b46a);
+  box-shadow: 0 0 34px rgba(255, 230, 170, 0.4);
+}
+
+body[data-scene="bedtime"] .scene__bed {
+  left: 8%;
+  right: 8%;
+  bottom: 0;
+  height: 30%;
+  border-radius: 18px 18px 0 0;
+  background: linear-gradient(180deg, #5a4a72, #3b2f4d 55%, #2a2136);
+  border-top: 2px solid rgba(210, 200, 255, 0.18);
+  box-shadow: inset 0 12px 30px rgba(255, 255, 255, 0.04);
+}
+
+body[data-scene="bedtime"] .scene__bed::before {
+  content: "";
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: 14px;
+  height: 26px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+body[data-scene="bedtime"] .scene__floor {
+  background: linear-gradient(180deg, rgba(120, 100, 180, 0.12), rgba(2, 2, 8, 0.6));
+}
+
+/* Dark 模式：整体压暗 + 道具发光更明显 */
+body[data-light="dark"] .scene {
+  filter: brightness(0.52) saturate(1.15) contrast(1.05);
+}
+
+body[data-light="dark"] .scene__glow,
+body[data-light="dark"] .scene__screen,
+body[data-light="dark"] .scene__moon {
+  filter: brightness(1.6) saturate(1.2);
+}
+
+body[data-light="dark"] .scene__floor {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.6));
+}
+
+/* ---------------------------------------------------------------- 顶部铭牌 */
+.room__plate {
+  position: absolute;
+  left: 22px;
+  top: 18px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px 9px 11px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(10, 12, 18, 0.46);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
+}
+
+.room__plate-emoji {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.room__plate-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.room__plate-text strong {
+  font-size: 13px;
+  letter-spacing: 0.2px;
+}
+
+.room__plate-text span {
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+
+.room__partner {
+  margin-left: 10px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(244, 151, 182, 0.42);
+  background: rgba(244, 151, 182, 0.14);
+  color: #ffd3e2;
+  font-size: 10.5px;
+  white-space: nowrap;
+  animation: partner-in 2s ease-in-out infinite;
+}
+
+@keyframes partner-in {
+  0%,
+  100% {
+    opacity: 0.75;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ---------------------------------------------------------------- 两只宠物 */
+.pets {
+  position: absolute;
+  left: 50%;
+  bottom: 130px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-end;
+  gap: 120px;
+  z-index: 3;
+}
+
+.rpet {
+  position: relative;
+  width: 132px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  animation: rpet-bob 4.4s ease-in-out infinite;
+}
+
+.rpet--b {
+  animation-delay: -2.1s;
+}
+
+@keyframes rpet-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.rpet__shadow {
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  width: 96px;
+  height: 16px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.32);
+  filter: blur(4px);
+}
+
+.rpet__body {
+  position: relative;
+  width: 116px;
+  height: 106px;
+  border-radius: 26px;
+  background: linear-gradient(155deg, var(--rp-a1), var(--rp-a2) 56%, var(--rp-a3));
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.45), 0 16px 30px rgba(0, 0, 0, 0.34),
+    0 0 34px var(--rp-glow);
+  transition: background 420ms ease, box-shadow 420ms ease, transform 200ms ease, filter 420ms ease;
+}
+
+.rpet--b .rpet__body {
+  background: linear-gradient(155deg, var(--rp-b1), var(--rp-b2) 56%, var(--rp-b3));
+}
+
+.rpet__ear {
+  position: absolute;
+  top: -7px;
+  width: 20px;
+  height: 16px;
+  border-radius: 10px 10px 3px 3px;
+  background: inherit;
+  opacity: 0.9;
+}
+
+.rpet__ear.l {
+  left: 18px;
+  transform: rotate(-14deg);
+}
+
+.rpet__ear.r {
+  right: 18px;
+  transform: rotate(14deg);
+}
+
+.rpet__eyes {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  gap: 26px;
+}
+
+.rpet__eye {
+  position: relative;
+  width: 20px;
+  height: 24px;
+  border-radius: 50%;
+  background: transparent;
+  transition: all 180ms ease;
+}
+
+.rpet__eye i {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 30%, var(--rp-pupil) 0%, var(--rp-eye) 78%);
+  transition: all 180ms ease;
+}
+
+.rpet__eye::after {
+  content: "★";
+  position: absolute;
+  inset: 0;
+  display: none;
+  place-items: center;
+  font-size: 22px;
+  line-height: 1;
+  color: #ffd166;
+  text-shadow: 0 0 10px rgba(255, 209, 102, 0.8);
+}
+
+.rpet__mouth {
+  position: absolute;
+  left: 50%;
+  bottom: 24%;
+  width: 26px;
+  height: 12px;
+  transform: translateX(-50%);
+  border-bottom: 4px solid var(--rp-eye);
+  border-radius: 0 0 60% 60% / 0 0 100% 100%;
+  transition: all 180ms ease;
+}
+
+.rpet__mouth::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  width: 12px;
+  height: 8px;
+  transform: translateX(-50%);
+  border-radius: 0 0 50% 50%;
+  background: rgba(255, 120, 140, 0.85);
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.rpet__blush {
+  position: absolute;
+  bottom: 30%;
+  width: 18px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 130, 130, 0.34);
+  filter: blur(2px);
+  opacity: 0.8;
+}
+
+.rpet__blush.l {
+  left: 14px;
+}
+
+.rpet__blush.r {
+  right: 14px;
+}
+
+.rpet__name {
+  font-size: 11px;
+  color: var(--text-2);
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.34);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  white-space: nowrap;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- 表情：smile（默认） */
+.rpet[data-expr="smile"] .rpet__mouth {
+  border-bottom-width: 4px;
+}
+
+/* ---- 星星眼 */
+.rpet[data-expr="starry"] .rpet__eye i {
+  opacity: 0;
+}
+
+.rpet[data-expr="starry"] .rpet__eye::after {
+  display: grid;
+}
+
+.rpet[data-expr="starry"] .rpet__body {
+  transform: translateY(-6px) scale(1.02);
+}
+
+/* ---- 吐舌 */
+.rpet[data-expr="tongue"] .rpet__mouth::after {
+  opacity: 1;
+  bottom: -11px;
+  height: 11px;
+}
+
+.rpet[data-expr="tongue"] .rpet__mouth {
+  height: 14px;
+  border-bottom-width: 5px;
+}
+
+/* ---- 困倦：半闭眼 + 小 Z */
+.rpet[data-expr="sleepy"] .rpet__eye {
+  height: 10px;
+  top: 7px;
+}
+
+.rpet[data-expr="sleepy"] .rpet__eye i {
+  border-radius: 40%;
+  background: var(--rp-eye);
+}
+
+.rpet[data-expr="sleepy"] .rpet__mouth {
+  width: 16px;
+  border-bottom-width: 3px;
+}
+
+.rpet[data-expr="sleepy"] .rpet__body::after {
+  content: "z";
+  position: absolute;
+  right: -10px;
+  top: -22px;
+  font-size: 16px;
+  color: rgba(200, 220, 255, 0.8);
+  animation: zzz 2.6s ease-in-out infinite;
+}
+
+@keyframes zzz {
+  0%,
+  100% {
+    transform: translateY(0) scale(0.9);
+    opacity: 0.2;
+  }
+  50% {
+    transform: translateY(-8px) scale(1.1);
+    opacity: 0.9;
+  }
+}
+
+/* ---- Dark：暗色剪影 + 发光眼 */
+body[data-light="dark"] .rpet__body {
+  background: linear-gradient(155deg, #1a1e2a, #0e1118 60%, #05070b);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.06), 0 16px 30px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(140, 200, 255, 0.16);
+}
+
+body[data-light="dark"] .rpet__eye {
+  box-shadow: 0 0 16px var(--rp-glow);
+}
+
+body[data-light="dark"] .rpet__eye i {
+  background: radial-gradient(circle at 40% 32%, #ffffff 0%, var(--rp-eye) 62%);
+  box-shadow: 0 0 18px var(--rp-glow), inset 0 0 6px rgba(255, 255, 255, 0.5);
+}
+
+body[data-light="dark"] .rpet--b .rpet__eye i {
+  background: radial-gradient(circle at 40% 32%, #ffffff 0%, #ff9cc0 68%);
+  box-shadow: 0 0 18px rgba(255, 140, 190, 0.7);
+}
+
+body[data-light="dark"] .rpet__mouth {
+  border-bottom-color: rgba(200, 225, 255, 0.75);
+}
+
+body[data-light="dark"] .rpet__name {
+  color: #cfd8ea;
+}
+
+/* ---------------------------------------------------------------- 控制台 */
+.console {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 18px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(9, 11, 17, 0.62);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.42);
+  transition: background var(--room-transition);
+}
+
+.console__scene-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 62px;
+  padding: 7px 8px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-3);
+  font-size: 9.5px;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.console__scene-btn .emoji {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.console__scene-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+.console__scene-btn.is-active {
+  border-color: rgba(239, 122, 82, 0.5);
+  background: rgba(239, 122, 82, 0.16);
+  color: #ffd7c6;
+}
+
+.console__scenes {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.console__divider {
+  width: 1px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.console__light {
+  display: flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.light-btn {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-3);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+
+.light-btn.is-active {
+  background: linear-gradient(160deg, #ffd9bf, #ef7a52);
+  color: #2b1118;
+  box-shadow: 0 4px 12px rgba(239, 122, 82, 0.35);
+}
+
+body[data-light="dark"] .light-btn[data-light="dark"].is-active {
+  background: linear-gradient(160deg, #8ecbff, #4f7bd6);
+  color: #0a1020;
+  box-shadow: 0 4px 12px rgba(80, 140, 255, 0.4);
+}
+
+.timer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.26);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+
+.timer:hover {
+  border-color: rgba(111, 227, 210, 0.4);
+}
+
+.timer__ring {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(111, 227, 210, 0.4);
+  transition: border-color 200ms ease;
+}
+
+.timer.is-running .timer__ring {
+  border-color: var(--teal);
+  border-top-color: transparent;
+  animation: timer-spin 1.4s linear infinite;
+}
+
+@keyframes timer-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.timer__time {
+  font-family: var(--font-num);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+
+.timer__label {
+  font-size: 9.5px;
+  color: var(--text-3);
+}
+
+.console__actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.cbtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-2);
+  font-size: 10.5px;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.cbtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+}
+
+.cbtn--accent {
+  border-color: rgba(239, 122, 82, 0.45);
+  background: linear-gradient(160deg, rgba(255, 169, 133, 0.92), rgba(239, 122, 82, 0.92));
+  color: #2b1118;
+  font-weight: 800;
+}
+
+/* ---------------------------------------------------------------- 爱心 & 锁定 */
+.heart-float {
+  position: absolute;
+  z-index: 6;
+  font-size: 20px;
+  pointer-events: none;
+  animation: heart-rise 2.4s ease-out forwards;
+}
+
+@keyframes heart-rise {
+  0% {
+    transform: translate(-50%, 0) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -120px) scale(1.15);
+    opacity: 0;
+  }
+}
+
+.locked {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 8, 13, 0.55);
+  backdrop-filter: blur(12px) saturate(0.7);
+}
+
+.locked__card {
+  max-width: 470px;
+  padding: 26px 28px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(160deg, rgba(28, 32, 44, 0.95), rgba(14, 16, 24, 0.96));
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55);
+  text-align: center;
+}
+
+.locked__lock {
+  font-size: 34px;
+  line-height: 1;
+}
+
+.locked__title {
+  margin-top: 12px;
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.locked__desc {
+  margin-top: 9px;
+  font-size: 11.5px;
+  line-height: 1.75;
+  color: var(--text-2);
+}
+
+.locked__perks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.locked__perks span {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  color: var(--text-2);
+}
+
+.locked__actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rpet,
+  .scene__particles span,
+  .rpet[data-expr="sleepy"] .rpet__body::after,
+  .timer.is-running .timer__ring,
+  .room__partner,
+  .scene__rain,
+  .scene__screen {
+    animation: none !important;
+  }
+}

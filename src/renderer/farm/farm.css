@@ -1,0 +1,60 @@
+.farm-shell { display: flex; height: calc(100vh - 52px); gap: 0; }
+.farm-stage { position: relative; flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; background: radial-gradient(120% 90% at 50% 20%, #20402a 0%, #10200f 70%, #0b140a 100%); }
+.farm-hud { display: flex; gap: 8px; padding: 10px 14px 0; flex-wrap: wrap; }
+.farm-chip { background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.08); border-radius: 999px; padding: 4px 12px; font-size: 13px; color: #f4ecd8; }
+.farm-chip--work { background: rgba(255,170,60,.18); border-color: rgba(255,170,60,.4); }
+.farm-tools { display: flex; gap: 6px; padding: 8px 14px; flex-wrap: wrap; }
+.farm-tool { border: 1px solid rgba(255,255,255,.12); background: rgba(0,0,0,.3); color: #f4ecd8; border-radius: 10px; padding: 5px 10px; font-size: 13px; cursor: pointer; }
+.farm-tool.is-on { background: #f08a3c; border-color: #f08a3c; color: #1a0e05; font-weight: 600; }
+#farmCanvas { flex: 1 1 auto; width: 100%; min-height: 0; display: block; cursor: pointer; }
+.farm-tip { position: absolute; pointer-events: none; background: rgba(10,14,8,.92); color: #f4ecd8; border: 1px solid rgba(255,255,255,.12); border-radius: 8px; padding: 6px 9px; font-size: 12px; display: none; white-space: nowrap; }
+.farm-side { width: 340px; flex: 0 0 340px; border-left: 1px solid rgba(255,255,255,.06); display: flex; flex-direction: column; background: #12141b; }
+.farm-tabs { display: flex; padding: 8px; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid rgba(255,255,255,.06); }
+.farm-tab { flex: 1 1 auto; border: 0; background: transparent; color: #b9b3a6; border-radius: 8px; padding: 7px 6px; cursor: pointer; font-size: 13px; }
+.farm-tab.is-on { background: rgba(240,138,60,.16); color: #ffb37a; }
+.farm-panel { flex: 1 1 auto; overflow: auto; padding: 12px; }
+.farm-h { font-size: 13px; color: #ffb37a; margin: 12px 0 6px; font-weight: 600; }
+.farm-h:first-child { margin-top: 0; }
+.farm-row { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 10px; background: rgba(255,255,255,.03); margin-bottom: 6px; font-size: 13px; }
+.farm-row .em { font-size: 20px; width: 26px; text-align: center; }
+.farm-row .grow { flex: 1 1 auto; min-width: 0; }
+.farm-row .sub { color: #8f897d; font-size: 11.5px; }
+.farm-row.is-sel { outline: 2px solid #f08a3c; }
+.farm-btn { border: 0; border-radius: 8px; padding: 5px 10px; background: #2a2e3a; color: #f4ecd8; font-size: 12px; cursor: pointer; white-space: nowrap; }
+.farm-btn--pri { background: #f08a3c; color: #1a0e05; font-weight: 600; }
+.farm-btn:disabled { opacity: .45; cursor: default; }
+.farm-note { color: #8f897d; font-size: 12px; line-height: 1.5; margin: 6px 0 10px; }
+.farm-big { font-size: 15px; color: #f4ecd8; margin: 4px 0 8px; }
+.farm-friend-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0; }
+.farm-fcell { aspect-ratio: 1; border-radius: 10px; background: #3b2a18; display: flex; align-items: center; justify-content: center; font-size: 26px; cursor: default; position: relative; }
+.farm-fcell.is-ripe { cursor: pointer; box-shadow: 0 0 0 2px #ffd66b inset; }
+.farm-fcell.is-stolen::after { content: '✋'; position: absolute; font-size: 14px; right: 4px; bottom: 2px; }
+.farm-bar { height: 6px; border-radius: 4px; background: rgba(255,255,255,.08); overflow: hidden; margin-top: 4px; }
+.farm-bar > i { display: block; height: 100%; background: linear-gradient(90deg, #7bd36a, #ffd66b); }
+.farm-switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; }
+.farm-row--wrap { flex-wrap: wrap; }
+
+.farm-stage { overflow: hidden; }
+.farm-hud, .farm-tools { position: relative; z-index: 5; }
+.farm-tool--cam { margin-left: 2px; }
+.farm-tools .farm-tool--cam:first-of-type { margin-left: auto; }
+#farmCanvas { cursor: grab; }
+.farm-name-input { flex: 1 1 auto; min-width: 0; }
+
+.farm-hud, .farm-tools { z-index: 2000; }
+.farm-subtabs .farm-tool { font-size: 12px; padding: 4px 8px; }
+.farm-couple-head { background: linear-gradient(135deg, rgba(255,120,170,.16), rgba(255,180,120,.08)); border: 1px solid rgba(255,140,180,.25); border-radius: 12px; padding: 8px 10px; margin-bottom: 8px; }
+.farm-couple-head .sub { color: #d9a7b8; font-size: 12px; margin-bottom: 4px; }
+.farm-room { position: relative; height: 210px; border-radius: 14px; overflow: hidden; margin: 6px 0 10px; background: #3a2a2a; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+.farm-room-wall { position: absolute; left: 0; right: 0; top: 0; height: 45%; background: linear-gradient(180deg, #f5d9c6, #e9bfa6); }
+.farm-room-wall::after { content: '💗'; position: absolute; left: 50%; top: 18%; transform: translateX(-50%); font-size: 18px; opacity: .8; }
+.farm-room-floor { position: absolute; left: 0; right: 0; bottom: 0; height: 55%; background: repeating-linear-gradient(90deg, #b07a4a 0 26px, #a06d40 26px 52px); box-shadow: inset 0 10px 18px rgba(0,0,0,.25); }
+.farm-room-item { position: absolute; transform: translate(-50%, -50%); font-size: 30px; filter: drop-shadow(0 4px 3px rgba(0,0,0,.35)); }
+.farm-room-gift { position: absolute; left: 50%; top: 58%; transform: translate(-50%, -50%); font-size: 34px; background: none; border: 0; cursor: pointer; animation: giftbob 1s ease-in-out infinite; z-index: 6; }
+@keyframes giftbob { 0%,100% { transform: translate(-50%,-50%) } 50% { transform: translate(-50%,-62%) rotate(6deg) } }
+.farm-room-pets { position: absolute; inset: 0; pointer-events: none; }
+.farm-album { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.farm-album-item { background: #fff; padding: 5px 5px 4px; border-radius: 6px; box-shadow: 0 3px 8px rgba(0,0,0,.35); transform: rotate(-1.5deg); }
+.farm-album-item:nth-child(2n) { transform: rotate(1.5deg); }
+.farm-album-item img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; border-radius: 3px; background: #ddd; }
+.farm-album-item .sub { color: #6b5a4a; font-size: 11px; text-align: center; margin-top: 3px; }
