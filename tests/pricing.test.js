@@ -7,7 +7,6 @@ const catalog = require('../src/shared/catalog.js');
 
 const ME = 'https://paypal.me/pinggu80/';
 const EXPECT = {
-  'zh-CN': { text: ['¥68', '¥25', '¥198', '¥268'], pay: ['9.99USD', '3.99USD', '29.99USD', '39.99USD'] },
   'ja-JP': { text: ['¥1,480', '¥480', '¥2,980', '¥3,980'], pay: ['1480JPY', '480JPY', '2980JPY', '3980JPY'] },
   'ko-KR': { text: ['₩12,800', '₩4,900', '₩29,800', '₩39,800'], pay: ['9.99USD', '3.99USD', '29.99USD', '39.99USD'] },
   'en-US': { text: ['$9.99', '$3.99', '$29.99', '$39.99'], pay: ['9.99USD', '3.99USD', '29.99USD', '39.99USD'] },
@@ -31,6 +30,20 @@ for (const [locale, exp] of Object.entries(EXPECT)) {
     });
   });
 }
+
+test('mainland China pays by WeChat / Alipay QR (no PayPal link), RMB prices', () => {
+  ['zh-CN', 'CN'].forEach((loc) => {
+    SKUS.forEach((sku, i) => {
+      const p = P.skuPrice(sku, loc);
+      assert.equal(p.text, ['¥68', '¥25', '¥198', '¥268'][i]);
+      assert.equal(p.chargeText, ['¥68', '¥25', '¥198', '¥268'][i]);
+      assert.equal(p.payMethod, 'cn_qr');
+      assert.equal(p.payUrl, '');
+      assert.equal(P.payUrl(sku, loc), '');
+    });
+  });
+  assert.equal(P.skuPrice('base', 'en-US').payMethod, 'paypal');
+});
 
 test('manual region ids work', () => {
   assert.equal(P.skuPrice('base', 'EU').payUrl, ME + '9.99EUR');

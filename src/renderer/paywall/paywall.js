@@ -1,7 +1,8 @@
 /**
  * v2.9.2 购买 / 激活页（正式版）
  *
- * 付款方式：PayPal.me 固定金额链接（价格见 shared/offer-config.js）。
+ * v2.9.4：中国大陆地区改为微信 / 支付宝个人收款码（金额需手动输入，备注写邮箱 + 设备 ID），不再显示 PayPal。
+ * 其它地区付款方式：PayPal.me 固定金额链接（价格见 shared/offer-config.js）。
  *   1. 选地区 + 套餐 → 在系统浏览器打开 https://paypal.me/pinggu80/<金额><币种>
  *   2. 用户在 PayPal 备注里写邮箱 + 设备 ID
  *   3. 开发者确认到账后手动发激活码（CUBB-XXXX-XXXX-XXXX-XXXX）
@@ -94,15 +95,7 @@
       sel.appendChild(o);
     }
     sel.value = region;
-    $('copyNoteBtn').textContent = T.copyNote;
     $('stepsTitle').textContent = T.stepsTitle;
-    const ol = $('steps');
-    ol.innerHTML = '';
-    for (const s of T.steps) {
-      const li = document.createElement('li');
-      li.textContent = s;
-      ol.appendChild(li);
-    }
     $('deviceLabel').textContent = T.deviceLabel;
     $('copyDeviceBtn').textContent = T.copy;
     $('keyTitle').textContent = T.keyTitle;
@@ -158,13 +151,46 @@
       host.appendChild(card);
     }
     const cur = P.skuPrice(sku, region);
-    $('buyBtn').textContent = fill(T.buy, { price: cur.text });
-    $('chargeNote').textContent = cur.chargeCurrency !== cur.currency
-      ? fill(T.chargeDiff, { display: cur.text, charge: cur.chargeText })
-      : fill(T.chargeSame, { charge: cur.chargeText });
+    const qr = isQr(cur);
+    $('sub').textContent = qr ? (T.subCN || T.sub) : T.sub;
+    $('buyBtn').classList.toggle('hidden', qr);
+    $('qrSection').classList.toggle('hidden', !qr);
+    $('copyNoteBtn').textContent = qr ? (T.copyNoteCN || T.copyNote) : T.copyNote;
+    if (qr) {
+      const vars = { price: cur.text, plan: T.plans[sku].name };
+      $('qrAmount').textContent = fill(T.qrAmount, vars);
+      $('qrWechatCap').textContent = fill(T.qrWechat, vars);
+      $('qrAlipayCap').textContent = fill(T.qrAlipay, vars);
+      $('qrTip').textContent = fill(T.qrTip, { email: String(cfg.supportEmail || 'yongping163@qq.com') });
+      $('chargeNote').textContent = fill(T.chargeCN, vars);
+    } else {
+      $('buyBtn').textContent = fill(T.buy, { price: cur.text });
+      $('chargeNote').textContent = cur.chargeCurrency !== cur.currency
+        ? fill(T.chargeDiff, { display: cur.text, charge: cur.chargeText })
+        : fill(T.chargeSame, { charge: cur.chargeText });
+    }
+    renderSteps(qr);
+  }
+
+  function isQr(p) { return !!p && p.payMethod === 'cn_qr'; }
+
+  function renderSteps(qr) {
+    const ol = $('steps');
+    ol.innerHTML = '';
+    const email = String(cfg.supportEmail || 'yongping163@qq.com');
+    for (const s of (qr && T.stepsCN) || T.steps) {
+      const li = document.createElement('li');
+      li.textContent = fill(s, { email });
+      ol.appendChild(li);
+    }
   }
 
   function noteText() {
+    if (isQr(P.skuPrice(sku, region))) {
+      // 微信 / 支付宝备注：中文，尽量短（备注有长度限制，写不下时可发邮件补充）
+      const zh = I.STRINGS.zh.plans[sku].name;
+      return `方块仔${zh} 邮箱:____ 设备:${deviceId || '-'}`;
+    }
     const plan = I.NOTE_PLAN[sku] || sku;
     return `Cubbit ${plan} | email: ____ | device: ${deviceId || '-'}`;
   }
@@ -213,7 +239,7 @@
 
   async function onBuy() {
     const p = P.skuPrice(sku, region);
-    if (!p || !p.payUrl) return;
+    if (!p || isQr(p) || !p.payUrl) return;
     const ok = await openUrl(p.payUrl);
     if (ok) {
       setStatus(T.opened);
