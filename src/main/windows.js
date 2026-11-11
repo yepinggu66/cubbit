@@ -35,6 +35,8 @@ const PANEL_SIZES = {
   ledger: { dir: 'ledger', width: 960, height: 780, minWidth: 780, minHeight: 620, title: '方块仔 · 人生账本' },
   photo: { dir: 'photo', width: 940, height: 780, minWidth: 760, minHeight: 620, title: '方块仔 · 拍一只' },
   mate: { dir: 'mate', width: 1040, height: 800, minWidth: 820, minHeight: 640, title: '方块仔 · 相亲角' },
+  // 「神秘探险」入口（右键菜单 / 托盘 / 设置）打开现有的农场探险面板
+  farm: { dir: 'farm', width: 1000, height: 760, minWidth: 780, minHeight: 600, title: '方块仔 · 神秘探险' },
 };
 
 class WindowManager {

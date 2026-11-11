@@ -155,6 +155,11 @@ class AppRuntime {
     this.mate.on('single', () => this.sendPetEvent('say', { text: '又回到我们俩了。' }));
     this.updater = new UpdateChecker(this.settings, {
       apiBase: () => this.apiBase,
+      // v2.9.3：版本信息放在官网下载目录（https://pingguye.cn/cubbit/dl/app-latest.json）
+      latestUrl: () => {
+        const custom = String(this.settings.get('updateFeedUrl') || '').trim().replace(/\/+$/, '');
+        return `${custom || UPDATE_FEED_URL}/app-latest.json`;
+      },
       currentVersion: app.getVersion(),
       openExternal: (url) => shell.openExternal(url),
     });
@@ -268,7 +273,8 @@ class AppRuntime {
    * 构建期注入的 package.json → cubbit.devUnlock，以及开发态的环境变量。
    */
   isDeveloper() {
-    return isDeveloperAuthorized({ env: process.env, pkg: APP_PKG });
+    // v2.9.3：环境变量解锁只在开发态（未打包）生效；正式安装包里设置 CUBBIT_DEV_UNLOCK 不再解锁付费内容。
+    return isDeveloperAuthorized({ env: app.isPackaged ? {} : process.env, pkg: APP_PKG });
   }
 
   /** 是否拥有「完整版」权益（买断 / 试用 / 任意付费订阅都算） */
@@ -1902,13 +1908,18 @@ class AppRuntime {
       });
     }
 
-    // 自动更新（打包版 + electron-updater；未签名/开发态回退为手动下载）
-    this._initAutoUpdater();
+    // 自动更新：v2.9.3 起统一走「检查 app-latest.json → 提示 → 打开官网下载」（安装包未签名，不做静默安装）。
+    // electron-updater 暂不挂载；签名就绪后再调用 this._initAutoUpdater()。
 
     // 更新检查（默认静默检查，失败不打扰；设置里可关）
     if (this.updater) {
       this.updater.on('available', (latest) => {
         this.sendPetEvent('update-available', { version: latest.version });
+        try {
+          const lang = this.settings.get('language') || 'zh-CN';
+          const text = I18N.tr(lang, `有新版本 v${latest.version} 啦！右键我 → 设置 → 关于 → 检查更新`);
+          setTimeout(() => this.sendPetEvent('say', { text, emoji: '⬆️', durationMs: 12000 }), 1500);
+        } catch { /* 提示失败不影响检查 */ }
         this.commit();
       });
       setTimeout(() => {

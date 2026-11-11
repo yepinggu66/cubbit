@@ -52,13 +52,17 @@ function trimSlash(v) {
 const API_BASE = trimSlash(envValue('CUBBIT_API_BASE') || bakedValue('apiBase') || DEFAULT_API_BASE) || DEFAULT_API_BASE;
 
 /** 自动更新源（generic provider 的目录，存放 latest.yml 与安装包） */
+// v2.9.3：默认指向官网下载目录（latest.yml、app-latest.json、安装包都在这里）。
+// 旧版 2.9.2 用的是 `${API_BASE}/updates` 与 `${API_BASE}/api/app/latest`，服务器上也保留了这两个地址的兼容响应。
+const DEFAULT_UPDATE_FEED_URL = 'https://pingguye.cn/cubbit/dl';
 const UPDATE_FEED_URL =
-  trimSlash(envValue('CUBBIT_UPDATE_FEED_URL') || bakedValue('updateFeedUrl')) || `${API_BASE}/updates`;
+  trimSlash(envValue('CUBBIT_UPDATE_FEED_URL') || bakedValue('updateFeedUrl')) || DEFAULT_UPDATE_FEED_URL;
 
 module.exports = {
   DEFAULT_API_BASE,
   API_BASE,
   UPDATE_FEED_URL,
+  DEFAULT_UPDATE_FEED_URL,
   envValue,
   bakedValue,
 };

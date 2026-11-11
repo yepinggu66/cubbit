@@ -116,20 +116,27 @@
   // ------------------------------------------------------------ 渲染层 DOM 翻译
   let current = 'zh-CN';
   let observer = null;
-  const DONE = typeof WeakMap !== 'undefined' ? new WeakMap() : { get() {}, set() {} };
-  const ADONE = typeof WeakMap !== 'undefined' ? new WeakMap() : { get() {}, set() {} };
+  // DONE / ADONE：上一次写回的译文；ORIG / AORIG：中文原文。切换语言时从原文重新翻译（含切回中文）。
+  const WM = () => (typeof WeakMap !== 'undefined' ? new WeakMap() : { get() {}, set() {} });
+  const DONE = WM();
+  const ADONE = WM();
+  const ORIG = WM();
+  const AORIG = WM();
   const ATTRS = ['placeholder', 'title', 'aria-label', 'alt'];
   function translateNode(node) {
-    if (short(current) === 'zh') return;
     if (node.nodeType === 3) {
       const pe = node.parentElement;
       if (pe && pe.closest && pe.closest('[data-no-i18n]')) return;
       const v = node.nodeValue;
-      if (v && CJK.test(v) && DONE.get(node) !== v) {
-        const t = tr(current, v);
-        DONE.set(node, t);
-        if (t !== v) node.nodeValue = t;
-      }
+      if (!v) return;
+      // 当前值不是我们写回的译文 → 被页面脚本改过，以它为新的原文
+      let orig = DONE.get(node) === v ? ORIG.get(node) : v;
+      if (orig === undefined) orig = v;
+      if (orig !== ORIG.get(node)) ORIG.set(node, orig);
+      if (!CJK.test(orig)) { DONE.set(node, v); return; }
+      const t = tr(current, orig);
+      DONE.set(node, t);
+      if (t !== v) node.nodeValue = t;
       return;
     }
     if (node.nodeType !== 1) return;
@@ -137,21 +144,41 @@
     if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'TEXTAREA' || (node.dataset && node.dataset.noI18n !== undefined) || (node.closest && node.closest('[data-no-i18n]'))) return;
     for (const a of ATTRS) {
       const v = node.getAttribute && node.getAttribute(a);
-      if (v && CJK.test(v) && (ADONE.get(node) || {})[a] !== v) {
-        const t = tr(current, v);
-        { const o = ADONE.get(node) || {}; o[a] = t; ADONE.set(node, o); }
-        if (t !== v) node.setAttribute(a, t);
+      if (!v) continue;
+      const done = ADONE.get(node) || {};
+      const origs = AORIG.get(node) || {};
+      const orig = done[a] === v && origs[a] !== undefined ? origs[a] : v;
+      if (!CJK.test(orig)) continue;
+      origs[a] = orig; AORIG.set(node, origs);
+      const t = tr(current, orig);
+      done[a] = t; ADONE.set(node, done);
+      if (t !== v) node.setAttribute(a, t);
+    }
+    if (tag === 'INPUT' && (node.type === 'button' || node.type === 'submit')) {
+      const v = node.value;
+      const done = ADONE.get(node) || {};
+      const origs = AORIG.get(node) || {};
+      const orig = done.value === v && origs.value !== undefined ? origs.value : v;
+      if (CJK.test(orig)) {
+        origs.value = orig; AORIG.set(node, origs);
+        const t = tr(current, orig);
+        done.value = t; ADONE.set(node, done);
+        if (t !== v) node.value = t;
       }
     }
-    if (tag === 'INPUT' && (node.type === 'button' || node.type === 'submit') && CJK.test(node.value)) node.value = tr(current, node.value);
     for (const ch of node.childNodes) translateNode(ch);
   }
+  let titleOrig = null;
+  let titleDone = null;
   function translateDom(rootEl) {
     if (typeof document === 'undefined') return;
     const r = rootEl || document.body;
     if (!r) return;
     translateNode(r);
-    if (typeof document.title === 'string' && CJK.test(document.title)) document.title = tr(current, document.title);
+    if (typeof document.title === 'string') {
+      if (titleOrig === null || document.title !== titleDone) titleOrig = document.title;
+      if (CJK.test(titleOrig)) { titleDone = tr(current, titleOrig); document.title = titleDone; }
+    }
   }
   function observe() {
     if (typeof MutationObserver === 'undefined' || observer || !document.body) return;

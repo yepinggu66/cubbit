@@ -2299,7 +2299,7 @@
     });
     links.appendChild(mailLink);
     legalFoot.appendChild(links);
-    R.legalCopy = el('div', { class: 'legal-foot__copy', text: '© 2026 Cubbit Studio' });
+    R.legalCopy = el('div', { class: 'legal-foot__copy', text: '© 2026 方块仔 · 个人开发者 叶永平' });
     legalFoot.appendChild(R.legalCopy);
 
     panel.appendChild(el('div', { class: 'lic-layout' }, left, right));
@@ -2417,7 +2417,7 @@
     );
 
     // 底部版权
-    if (R.legalCopy) R.legalCopy.textContent = `${product.zhName || '方块仔'} ${product.version || ''} · © 2026 Cubbit Studio`;
+    if (R.legalCopy) R.legalCopy.textContent = `${product.zhName || '方块仔'} ${product.version || ''} · © 2026 个人开发者 叶永平`;
   }
 
   async function activateKey() {

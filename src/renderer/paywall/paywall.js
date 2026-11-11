@@ -169,6 +169,16 @@
     return `Cubbit ${plan} | email: ____ | device: ${deviceId || '-'}`;
   }
 
+  /** 套餐名按界面语言显示（服务器给的 planName 是中文，按 planId 映射到本页的多语言套餐名） */
+  const PLAN_SKU = { base: 'base', ai_month: 'month', ai_year: 'year', couple_year: 'couple' };
+  function planLabel(lic) {
+    const sku = PLAN_SKU[String(lic.planId || '')];
+    const p = sku && T.plans && T.plans[sku];
+    if (p && p.name) return p.name;
+    const tr = window.CubbitI18N && window.CubbitI18N.tr;
+    return tr ? tr(LANG, lic.planName || lic.planId || '') : (lic.planName || lic.planId || '');
+  }
+
   function renderState(state) {
     const lic = (state && state.license) || {};
     deviceId = String(lic.deviceId || deviceId || '');
@@ -176,7 +186,7 @@
     const line = $('licenseLine');
     const isPro = lic.state === 'pro';
     line.classList.toggle('is-pro', isPro);
-    if (isPro) line.textContent = fill(T.statusPro, { plan: lic.planName || lic.planId || '' });
+    if (isPro) line.textContent = fill(T.statusPro, { plan: planLabel(lic) });
     else if (lic.state === 'trial' && lic.trialDaysLeft > 0) line.textContent = fill(T.statusTrial, { n: lic.trialDaysLeft });
     else if (lic.state === 'expired') line.textContent = T.statusExpired;
     else line.textContent = T.statusFree;

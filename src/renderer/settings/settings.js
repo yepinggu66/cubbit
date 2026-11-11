@@ -3451,11 +3451,36 @@
     R.eulaBtn = mkLink('许可协议', 'receipt', () => UI.legalModal('eula'));
     R.privacyBtn = mkLink('隐私政策', 'shield', () => UI.legalModal('privacy'));
     R.refundBtn = mkLink('退款政策', 'rotate-ccw', () => UI.legalModal('refund'));
-    R.updateBtn = mkLink('检查更新', 'download', () => {
-      const version = (app.state && app.state.product && app.state.product.version) || '1.0.0';
+    R.updateBtn = mkLink('检查更新', 'download', async () => {
+      const version = (app.state && app.state.product && app.state.product.version) || '';
+      let st = null;
+      try { st = await app.invoke(IPC.UPDATE_CHECK, { manual: true }); } catch { st = null; }
+      if (st && st.available && st.latest) {
+        const url = st.latest.url || 'https://pingguye.cn/cubbit/dl/windows/latest';
+        const m = modal({
+          title: `发现新版本 v${st.latest.version}`,
+          desc: `当前版本 v${version}。点「下载新版」会用浏览器下载安装包，下载后双击安装即可（设置和数据会保留）。`,
+          iconName: 'download',
+          actions: [
+            { label: '稍后', kind: 'ghost', value: false },
+            { label: '下载新版', kind: 'primary', value: true, autofocus: true },
+          ],
+        });
+        if (m && m.result && (await m.result)) app.openExternal(url);
+        return;
+      }
+      if (!st || st.error) {
+        modal({
+          title: '暂时无法检查更新',
+          desc: `当前版本 v${version}。请稍后再试，或到官网 pingguye.cn/cubbit 查看最新版本。`,
+          iconName: 'warning',
+          actions: [{ label: '知道了', kind: 'primary', value: true, autofocus: true }],
+        });
+        return;
+      }
       modal({
         title: '已经是最新版本',
-        desc: `当前版本 ${version}，你正在使用最新的 方块仔。正式版将提供后台自动更新。`,
+        desc: `当前版本 v${version}，你正在使用最新的 方块仔。`,
         iconName: 'check-circle',
         actions: [{ label: '知道了', kind: 'primary', value: true, autofocus: true }],
       });
@@ -3472,7 +3497,7 @@
       ),
     );
 
-    R.aboutFoot = el('div', { class: 'small dim center mt-16', text: '© 2026 Cubbit Studio · 用 ♥ 在 Windows 上做的桌面小伙伴' });
+    R.aboutFoot = el('div', { class: 'small dim center mt-16', text: '© 2026 方块仔 · 个人开发者 叶永平' });
     sec.appendChild(R.aboutFoot);
 
     updateAbout = function (state) {
