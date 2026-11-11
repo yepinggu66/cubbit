@@ -15,8 +15,8 @@ const PRODUCT = {
   tagline: '一只住在你桌面上的小方块',
   taglineEn: 'A tiny cube that lives on your desktop.',
   website: 'https://pingguye.cn/cubbit/',
-  // 暂无公开客服邮箱：联系方式为 PayPal 付款备注（paypal.me/pinggu80）/ 激活码邮件回复
-  supportEmail: '',
+  // 客服邮箱（也可 PayPal 付款备注留言 paypal.me/pinggu80 / 回复激活码邮件）
+  supportEmail: 'yongping163@qq.com',
   paypalMe: 'https://paypal.me/pinggu80',
   // 试用天数（首次启动自动开始，无需注册）
   trialDays: 3, // 黄金 72 小时全功能深度体验期，新鲜感峰值触发转化
