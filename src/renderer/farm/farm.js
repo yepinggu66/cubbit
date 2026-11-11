@@ -146,10 +146,8 @@
     }
     P.appendChild(el('div', { class: 'farm-big', text: v.skinUnlocked ? '🎉 「田园小农夫」皮肤已解锁，可在 设置 → 外观 换上' : `🧩 碎片 ${v.shards} / ${v.shardsNeeded}` }));
     P.appendChild(el('div', { class: 'farm-h', text: '农场点数 💎' }));
-    P.appendChild(el('div', { class: 'farm-note', text: '点数只能买时间（加速）、扩建土地、稀有种子/动物和装饰，不能换金币，也不会提高产量。会员每月赠送 100 点。' }));
-    const pp = window.CubbitPricing ? window.CubbitPricing.skuPrice('farmpoints', UI.priceLocale ? UI.priceLocale() : 'zh-CN') : null;
-    P.appendChild(row('💎', `${S.cat.POINT_PACK} 点数包`, pp ? pp.text : '', btn('购买', async () => { const r = await call('buyPoints'); if (r.ok) toast(r.sandbox ? `沙盒：已发放 ${r.n} 点（不扣款）` : '购买成功'); })));
-    P.appendChild(row('👑', 'AI 陪伴会员 · 探险特权', '每月白送 100 💎 晶石 + 每日首次采集双倍 + 送角色定制', btn('领 85 折开通', () => app.openPanel('store'), true)));
+    P.appendChild(el('div', { class: 'farm-note', text: '点数只能买时间（加速）、扩建土地、稀有种子/动物和装饰，不能换金币，也不会提高产量。会员每月赠送 100 点（点数不单独出售）。' }));
+    P.appendChild(row('👑', 'AI 陪伴会员 · 探险特权', '每月白送 100 💎 点数 + 每日首次采集双倍', btn('开通会员', () => app.openPanel('store'), true)));
     P.appendChild(el('div', { class: 'farm-h', text: '装饰' }));
     for (const [id, it] of Object.entries(D)) {
       P.appendChild(row(it.emoji, NAMES[id], '', v.decor.includes(id) ? el('span', { class: 'sub', text: '已摆放' }) : btn(`${it.points} 💎`, () => call('buyDecor', { item: id }))));

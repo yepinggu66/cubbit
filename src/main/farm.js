@@ -273,11 +273,12 @@ class Farm {
     this.state.points -= it.points; this.state.decor.push(item);
     return this._ok();
   }
-  /** 买点数包：真实扣款需正式支付服务器；开发/QA 授权下走沙盒发放，方便测试 */
+  /**
+   * 点数包已停售（v2.9.3）：付费权益只走许可证（会员每月赠送点数）。
+   * 旧版这里在「开发者授权」下会本地免费发放点数，属于绕过付款的通道，已彻底移除。
+   */
   buyPoints() {
-    if (!this._dev()) return { ok: false, code: 'NEEDS_SERVER', needsServer: true, pack: POINT_PACK };
-    this.state.points += POINT_PACK; this.state.pointsSandbox += POINT_PACK;
-    return this._ok({ sandbox: true, n: POINT_PACK });
+    return { ok: false, code: 'NOT_FOR_SALE', notForSale: true };
   }
 
   // ---------- 打工 ----------

@@ -134,10 +134,11 @@
       );
     }
     // 口径要和页脚一致：能走时说的是"下一步"，走完了就报"已完成"
-    R.step.innerHTML =
+    // 整句放进一个文本节点，切换语言时才能整句翻译（原来拆在 <b> 里会漏翻）
+    R.step.textContent =
       state.canPlay === false
-        ? `已完成 <b>${state.turn}</b> / ${state.total} 步`
-        : `下一步 <b>第 ${state.turn + 1}</b> / ${state.total} 步`;
+        ? `已完成 ${state.turn} / ${state.total} 步`
+        : `下一步：第 ${state.turn + 1} / ${state.total} 步`;
     R.insight.textContent = state.insight || '';
   }
 
@@ -1395,7 +1396,7 @@
             style: 'white-space:nowrap;padding:6px 12px;font-size:12px',
             onclick: () => invoke('app:panel:open', { name: 'store' }),
           },
-          document.createTextNode('🎁 领 85 折券开通会员'),
+          document.createTextNode('👑 开通会员'),
         ),
       ),
     );

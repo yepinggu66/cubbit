@@ -151,7 +151,7 @@
       el('div', { class: 'plus-acts' }, btn('云同步', async () => { const r = await call('member', 'sync'); if (r && r.needsService) toast(r.message, 'warn'); else done(r); }))));
     R.plans = el('div', { class: 'paid-plans' });
     R.addons = el('div', { class: 'paid-plans' });
-    sec.appendChild(card('订阅与买断', '在商店完成付款（当前为沙盒/本地许可服务器）', R.plans));
+    sec.appendChild(card('订阅与买断', '在「购买 / 激活」页用 PayPal 付款，收到激活码后输入即可', R.plans));
     sec.appendChild(card('单独购买', '', R.addons));
   }
 

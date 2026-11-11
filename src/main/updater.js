@@ -50,6 +50,8 @@ class UpdateChecker extends EventEmitter {
     super();
     this.settings = settings;
     this.apiBase = typeof opts.apiBase === 'function' ? opts.apiBase : () => opts.apiBase || '';
+    // v2.9.3：版本信息 JSON 的完整地址（优先于旧的 {apiBase}/api/app/latest）
+    this.latestUrl = typeof opts.latestUrl === 'function' ? opts.latestUrl : () => opts.latestUrl || '';
     this.currentVersion = opts.currentVersion || '0.0.0';
     this.fetchImpl = opts.fetchImpl || (typeof globalThis.fetch === 'function' ? globalThis.fetch.bind(globalThis) : null);
     this.openExternal = typeof opts.openExternal === 'function' ? opts.openExternal : () => {};
@@ -194,6 +196,8 @@ class UpdateChecker extends EventEmitter {
   }
 
   _feedUrl() {
+    const direct = String(this.latestUrl() || '').trim();
+    if (direct) return direct;
     const base = String(this.apiBase() || '').replace(/\/+$/, '');
     return base ? `${base}/api/app/latest` : '';
   }

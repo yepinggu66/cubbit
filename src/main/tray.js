@@ -69,7 +69,7 @@ function buildMenu(rt) {
       { type: 'separator' },
       {
         label: license.state === 'pro'
-          ? L(`完整版 · ${license.planName || ''}`, `Full version · ${license.planName || ''}`)
+          ? `${I18N.tr(lang, '已激活')} · ${I18N.tr(lang, license.planName || '完整版')}`
           : license.state === 'trial'
             ? L(`免费试用 · 剩 ${license.trialDaysLeft} 天`, `Free trial · ${license.trialDaysLeft} days left`)
             : L('未授权', 'Not activated'),
