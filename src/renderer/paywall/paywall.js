@@ -112,6 +112,24 @@
     $('termsLink').textContent = T.terms;
     $('privacyLink').textContent = T.privacy;
     $('refundLink').textContent = T.refund;
+    renderContact();
+  }
+
+  function renderContact() {
+    const host = $('contactLine');
+    if (!host) return;
+    const email = String(cfg.supportEmail || 'yongping163@qq.com');
+    const tpl = String(T.contact || 'Support: {email}');
+    const i = tpl.indexOf('{email}');
+    host.textContent = '';
+    host.append(document.createTextNode(i >= 0 ? tpl.slice(0, i) : tpl + ' '));
+    const a = document.createElement('a');
+    a.textContent = email;
+    a.href = '#';
+    a.title = email;
+    a.addEventListener('click', (e) => { e.preventDefault(); copy(email); });
+    host.append(a);
+    if (i >= 0) host.append(document.createTextNode(tpl.slice(i + '{email}'.length)));
   }
 
   function renderPlans() {

@@ -25,8 +25,8 @@
     refundUrl: 'https://pingguye.cn/cubbit/refund',
     // 邀请落地页：带 code 参数，页面上有「打开方块仔并配对」+ 下载按钮（服务端 landing.js）
     joinBase: 'https://pingguye.cn/cubbit/join',
-    // 联系方式：PayPal 付款备注（暂无公开客服邮箱）
-    supportEmail: '',
+    // 联系方式：客服邮箱（也可 PayPal 付款备注留言）
+    supportEmail: 'yongping163@qq.com',
 
     // 付费墙文案（英文优先，中文只作回退）
     bullets: [
