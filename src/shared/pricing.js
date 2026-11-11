@@ -73,6 +73,7 @@
     if (!SKUS.includes(s)) return '';
     const r = regionFor(localeOrRegion);
     const p = REGION_PRICES[r.region];
+    if (OFFERS.payMethodOf(r.region) !== 'paypal') return ''; // 中国大陆：扫码付款，没有链接
     return `${OFFERS.PAYPAL_ME}/${paypalAmount(p.charge[s], p.chargeCurrency)}`;
   }
 
@@ -91,7 +92,8 @@
       text: format(amount, r.currency),
       chargeAmount,
       chargeText: format(chargeAmount, p.chargeCurrency) + (p.chargeCurrency !== r.currency || p.chargeCurrency === 'USD' ? ` ${p.chargeCurrency}` : ''),
-      payUrl: `${OFFERS.PAYPAL_ME}/${paypalAmount(chargeAmount, p.chargeCurrency)}`,
+      payMethod: OFFERS.payMethodOf(r.region),
+      payUrl: OFFERS.payMethodOf(r.region) === 'paypal' ? `${OFFERS.PAYPAL_ME}/${paypalAmount(chargeAmount, p.chargeCurrency)}` : '',
     };
   }
 

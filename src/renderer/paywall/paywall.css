@@ -51,3 +51,14 @@ body { display: flex; flex-direction: column; }
   .pay__plans { grid-template-columns: repeat(2, 1fr); }
   .pay__top { flex-direction: column; }
 }
+
+/* v2.9.4 中国大陆：微信 / 支付宝个人收款码 */
+.pay__qr { margin: 4px 0 12px; padding: 12px 14px; border: 1px solid var(--pay-line); border-radius: 14px; background: var(--pay-card); }
+.pay__qr-amount { font-size: 15px; font-weight: 800; margin-bottom: 10px; color: #ffd27a; }
+.pay__qr-row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+.pay__qr-card { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px; border-radius: 12px; background: #fff; width: 190px; }
+.pay__qr-card img { width: 170px; height: 170px; image-rendering: pixelated; display: block; }
+.pay__qr-card figcaption { font-size: 12.5px; font-weight: 700; color: #1b1f27; text-align: center; line-height: 1.4; }
+.pay__qr-card--wx { box-shadow: 0 0 0 3px #07c160; }
+.pay__qr-card--ali { box-shadow: 0 0 0 3px #1677ff; }
+.pay__qr-tip { margin-top: 10px; font-size: 12px; color: var(--pay-muted); line-height: 1.6; }

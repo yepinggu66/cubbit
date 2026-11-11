@@ -1,7 +1,7 @@
 {
   "name": "cubbit",
   "productName": "Cubbit",
-  "version": "2.9.3",
+  "version": "2.9.4",
   "description": "Cubbit 方块仔 — a tiny desktop cube that walks and ground-crawls with context-aware expression scenes.",
   "main": "src/main/main.js",
   "author": {

@@ -38,7 +38,7 @@
     <tr><td>AI 对话文本</td><td>转给大模型生成回复</td><td>服务器不落盘；本机保存最近 12 轮</td></tr>
     <tr><td>语音播报文本</td><td>转成语音（TTS）</td><td>服务器缓存音频片段，7 天</td></tr>
     <tr><td>激活信息（激活码的哈希、套餐、绑定的设备编号、激活与到期时间）</td><td>校验授权、防止激活码被滥用</td><td>许可服务器，退款或作废后标记失效</td></tr>
-    <tr><td>你在 PayPal 付款备注里留下的邮箱</td><td>发送激活码、处理退款</td><td>开发者的 PayPal 记录与邮箱，你可以要求删除</td></tr>
+    <tr><td>你在付款备注（PayPal / 微信 / 支付宝）或邮件里留下的邮箱和设备 ID</td><td>发送激活码、处理退款</td><td>开发者的 PayPal / 微信 / 支付宝收款记录与邮箱，你可以要求删除</td></tr>
     <tr><td>崩溃与运行日志</td><td>排查问题</td><td><b>只在本机</b>，需你手动导出才会发给我们</td></tr>
   </table>
 
@@ -56,7 +56,8 @@
     <tr><td>DeepSeek（深度求索）</td><td>AI 对话</td><td>你输入的那句话 + 最近几轮上下文</td></tr>
     <tr><td>Microsoft Edge 语音合成</td><td>把文字读出来</td><td>要朗读的那一句文本</td></tr>
     <tr><td>PubNub</td><td>实时互动（戳一下、比心）</td><td>互动类型与双方 UID</td></tr>
-    <tr><td>PayPal</td><td>付款与退款</td><td>付款金额、你的 PayPal 账号信息与备注（由 PayPal 按其隐私政策处理，开发者看不到你的银行卡信息）</td></tr>
+    <tr><td>PayPal</td><td>付款与退款（中国大陆以外）</td><td>付款金额、你的 PayPal 账号信息与备注（由 PayPal 按其隐私政策处理，开发者看不到你的银行卡信息）</td></tr>
+    <tr><td>微信支付 / 支付宝</td><td>付款与退款（中国大陆）</td><td>付款金额、付款人昵称与备注（由腾讯 / 支付宝按其隐私政策处理，开发者看不到你的银行卡信息）</td></tr>
     <tr><td>腾讯云</td><td>服务器托管</td><td>不接触具体内容，仅提供机器</td></tr>
   </table>
 
@@ -65,7 +66,7 @@
     <li><b>导出</b>：托盘右键「导出使用数据（本地）」，可拿到本机运行记录；</li>
     <li><b>删除</b>：手机端「重新配对 → 注销账号」，或发邮件到 <a href="mailto:yongping163@qq.com">yongping163@qq.com</a> 联系开发者，会删除账号、配对关系、消息与语音；</li>
     <li><b>撤回</b>：关闭语音播报 / 关闭 AI / 移除悬浮窗权限，随时生效；</li>
-    <li><b>联系</b>：客服邮箱 <a href="mailto:yongping163@qq.com">yongping163@qq.com</a>；也可以在 <a href="https://paypal.me/pinggu80">paypal.me/pinggu80</a> 付款备注里留言，或回复收到激活码的那封邮件。</li>
+    <li><b>联系</b>：客服邮箱 <a href="mailto:yongping163@qq.com">yongping163@qq.com</a>；也可以在付款备注里留言，或回复收到激活码的那封邮件。</li>
   </ul>
 
   <h2>五、未成年人</h2>

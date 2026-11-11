@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>方块仔 Cubbit · 住在桌面上的小方块</title>
-    <meta name="description" content="方块仔 Cubbit：一只住在 Windows 桌面上的小方块。免费下载，完整版与会员通过 PayPal 购买。" />
+    <meta name="description" content="方块仔 Cubbit：一只住在 Windows 桌面上的小方块。免费下载，完整版与会员在中国大陆用微信 / 支付宝扫码购买，其他地区用 PayPal 购买。" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='6' y='6' width='52' height='52' rx='16' fill='%23ff6a2b'/%3E%3Ccircle cx='24' cy='30' r='5' fill='%232a1610'/%3E%3Ccircle cx='42' cy='30' r='5' fill='%232a1610'/%3E%3C/svg%3E" />
     <style>
       :root {
@@ -79,6 +79,16 @@
       .price small { display: block; color: var(--dim); font-size: 12px; font-weight: 400; }
       .price td a { font-weight: 800; font-size: 18px; color: #ffb37a; text-decoration: none; }
       .price td a:hover { text-decoration: underline; }
+      .cn-pay { margin-top: 18px; padding: 18px 20px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); }
+      .cn-pay h3 { margin: 0 0 8px; }
+      .cn-pay p { margin: 0 0 14px; color: var(--dim); font-size: 14px; line-height: 1.7; }
+      .cn-pay p b { color: var(--text); }
+      .cn-pay__codes { display: flex; gap: 18px; flex-wrap: wrap; }
+      .cn-pay__card { margin: 0; padding: 12px; background: #fff; border-radius: 14px; text-align: center; }
+      .cn-pay__card img { display: block; width: 200px; height: 200px; image-rendering: pixelated; }
+      .cn-pay__card figcaption { margin-top: 8px; color: #1b1f27; font-weight: 700; font-size: 13px; }
+      .cn-pay__card--wx { box-shadow: 0 0 0 3px #07c160; }
+      .cn-pay__card--ali { box-shadow: 0 0 0 3px #1677ff; }
       .warn a { color: #ffd7b0; }
 
       footer { padding: 40px 0 60px; color: #6f6977; font-size: 13.5px; display: flex; gap: 18px; flex-wrap: wrap; align-items: center; border-top: 1px solid var(--line); }
@@ -100,7 +110,7 @@
         <div class="logo" aria-hidden="true"></div>
         <div class="brand">方块仔<span>Cubbit</span></div>
         <div class="spacer"></div>
-        <div class="pill">正式版 2.9.3 · Windows 10/11</div>
+        <div class="pill">正式版 2.9.4 · Windows 10/11</div>
       </header>
 
       <div class="hero">
@@ -145,14 +155,14 @@
 
       <section id="pricing">
         <h2>价格</h2>
-        <p class="sub">免费版可以一直用。想要全部皮肤、情侣模式和更多 AI，再选一个就行。按你所在地区付款，点价格直接打开金额已写好的 PayPal 付款页。</p>
+        <p class="sub">免费版可以一直用。想要全部皮肤、情侣模式和更多 AI，再选一个就行。中国大陆用微信 / 支付宝扫码付款（见下方收款码）；其他地区点价格直接打开金额已写好的 PayPal 付款页。</p>
         <div class="price-wrap">
           <table class="price">
             <thead>
               <tr><th>地区</th><th>完整版<small>一次买断</small></th><th>会员 · 月<small>30 天</small></th><th>会员 · 年<small>365 天</small></th><th>情侣年卡<small>两人 · 365 天</small></th></tr>
             </thead>
             <tbody>
-              <tr><td>中国<small>PayPal 按美元收款</small></td><td><a href="https://paypal.me/pinggu80/9.99USD" data-track="pay_click" data-track-position="CN-base">¥68</a><small>实付 $9.99</small></td><td><a href="https://paypal.me/pinggu80/3.99USD" data-track="pay_click" data-track-position="CN-month">¥25</a><small>实付 $3.99</small></td><td><a href="https://paypal.me/pinggu80/29.99USD" data-track="pay_click" data-track-position="CN-year">¥198</a><small>实付 $29.99</small></td><td><a href="https://paypal.me/pinggu80/39.99USD" data-track="pay_click" data-track-position="CN-couple">¥268</a><small>实付 $39.99</small></td></tr>
+              <tr><td>中国大陆<small>微信 / 支付宝扫码 · 人民币</small></td><td><a href="#cn-pay" data-track="pay_click" data-track-position="CN-base">¥68</a><small>扫码手动输入 ¥68</small></td><td><a href="#cn-pay" data-track="pay_click" data-track-position="CN-month">¥25</a><small>扫码手动输入 ¥25</small></td><td><a href="#cn-pay" data-track="pay_click" data-track-position="CN-year">¥198</a><small>扫码手动输入 ¥198</small></td><td><a href="#cn-pay" data-track="pay_click" data-track-position="CN-couple">¥268</a><small>扫码手动输入 ¥268</small></td></tr>
               <tr><td>日本<small>日元</small></td><td><a href="https://paypal.me/pinggu80/1480JPY" data-track="pay_click" data-track-position="JP-base">¥1,480</a></td><td><a href="https://paypal.me/pinggu80/480JPY" data-track="pay_click" data-track-position="JP-month">¥480</a></td><td><a href="https://paypal.me/pinggu80/2980JPY" data-track="pay_click" data-track-position="JP-year">¥2,980</a></td><td><a href="https://paypal.me/pinggu80/3980JPY" data-track="pay_click" data-track-position="JP-couple">¥3,980</a></td></tr>
               <tr><td>韩国<small>PayPal 按美元收款</small></td><td><a href="https://paypal.me/pinggu80/9.99USD" data-track="pay_click" data-track-position="KR-base">₩12,800</a><small>实付 $9.99</small></td><td><a href="https://paypal.me/pinggu80/3.99USD" data-track="pay_click" data-track-position="KR-month">₩4,900</a><small>实付 $3.99</small></td><td><a href="https://paypal.me/pinggu80/29.99USD" data-track="pay_click" data-track-position="KR-year">₩29,800</a><small>实付 $29.99</small></td><td><a href="https://paypal.me/pinggu80/39.99USD" data-track="pay_click" data-track-position="KR-couple">₩39,800</a><small>实付 $39.99</small></td></tr>
               <tr><td>美国和其他地区<small>US &amp; other regions · USD</small></td><td><a href="https://paypal.me/pinggu80/9.99USD" data-track="pay_click" data-track-position="US-base">$9.99</a></td><td><a href="https://paypal.me/pinggu80/3.99USD" data-track="pay_click" data-track-position="US-month">$3.99</a></td><td><a href="https://paypal.me/pinggu80/29.99USD" data-track="pay_click" data-track-position="US-year">$29.99</a></td><td><a href="https://paypal.me/pinggu80/39.99USD" data-track="pay_click" data-track-position="US-couple">$39.99</a></td></tr>
@@ -161,14 +171,22 @@
             </tbody>
           </table>
         </div>
+        <div class="cn-pay" id="cn-pay">
+          <h3>中国大陆：微信 / 支付宝扫码付款</h3>
+          <p>这是个人收款码，金额需要自己输入：<b>完整版 ¥68 · 会员月 ¥25 · 会员年 ¥198 · 情侣年卡 ¥268</b>。付款时在「添加备注 / 付款说明」里写上<b>邮箱 + 设备 ID</b>（设备 ID 在应用「购买 / 激活」页）；备注写不下的话，付款后把付款截图和设备 ID 发到 <a href="mailto:yongping163@qq.com">yongping163@qq.com</a> 也可以。</p>
+          <div class="cn-pay__codes">
+            <figure class="cn-pay__card cn-pay__card--wx"><img src="pay-wechat.png" alt="微信支付收款码" width="200" height="200" /><figcaption>微信支付 · 请输入套餐金额</figcaption></figure>
+            <figure class="cn-pay__card cn-pay__card--ali"><img src="pay-alipay.png" alt="支付宝收款码" width="200" height="200" /><figcaption>支付宝 · 请输入套餐金额</figcaption></figure>
+          </div>
+        </div>
         <p class="sub" style="margin-top:14px;font-size:14px">完整版：全部皮肤、情侣模式、智慧生命、每天 50 轮 AI。会员：含完整版 + 无限 AI 与长期记忆，到期不自动续费。情侣年卡：两个完整版名额 + 情侣进阶。</p>
         <h3 style="margin:28px 0 12px">怎么买（How to buy）</h3>
         <div class="steps">
-          <div class="step"><h3>用 PayPal 付款</h3><p>点上表里你所在地区的价格，PayPal 页面会自动填好金额。也可以在应用里右键方块仔 →「💳 购买 / 激活」。</p></div>
-          <div class="step"><h3>备注里写邮箱</h3><p>付款时在备注（Add a note）里写上你的邮箱，最好附上应用「购买 / 激活」页显示的设备 ID。Write your email (and device ID) in the PayPal note.</p></div>
+          <div class="step"><h3>付款</h3><p>中国大陆：用微信或支付宝扫上面的收款码，手动输入套餐金额。其他地区：点上表里你所在地区的价格，PayPal 页面会自动填好金额。也可以在应用里右键方块仔 →「💳 购买 / 激活」。</p></div>
+          <div class="step"><h3>备注里写邮箱</h3><p>付款时在备注（微信「添加备注」/ 支付宝「付款说明」/ PayPal「Add a note」）里写上你的邮箱和应用「购买 / 激活」页显示的设备 ID；写不下就把付款截图和设备 ID 发到 yongping163@qq.com。Write your email (and device ID) in the PayPal note.</p></div>
           <div class="step"><h3>收激活码并激活</h3><p>开发者确认到账后会把激活码（CUBB-XXXX-XXXX-XXXX-XXXX）发到你的邮箱。在应用「购买 / 激活」页输入即可，一个激活码最多 2 台电脑。</p></div>
         </div>
-        <div class="warn">付款由 PayPal 处理，我们看不到你的银行卡信息。激活码是开发者人工发送的，不是秒到，请留意邮箱（包括垃圾邮件）。退款规则见 <a href="https://pingguye.cn/cubbit/refund">退款政策</a>。<br/>联系 / 客服邮箱（Contact）：<a href="mailto:yongping163@qq.com">yongping163@qq.com</a> ｜ PayPal：<a href="https://paypal.me/pinggu80">paypal.me/pinggu80</a></div>
+        <div class="warn">付款由微信支付、支付宝或 PayPal 处理，我们看不到你的银行卡信息。激活码是开发者人工发送的，不是秒到，请留意邮箱（包括垃圾邮件）。退款规则见 <a href="https://pingguye.cn/cubbit/refund">退款政策</a>。<br/>联系 / 客服邮箱（Contact）：<a href="mailto:yongping163@qq.com">yongping163@qq.com</a> ｜ 中国大陆：<a href="#cn-pay">微信 / 支付宝扫码</a> ｜ 其他地区 PayPal：<a href="https://paypal.me/pinggu80">paypal.me/pinggu80</a></div>
       </section>
 
       <section id="how">
@@ -216,11 +234,12 @@
         <a href="https://pingguye.cn/cubbit/eula">用户协议</a>
         <span>·</span>
         <a href="mailto:yongping163@qq.com">客服邮箱：yongping163@qq.com</a>
-        <a href="https://paypal.me/pinggu80">付款：paypal.me/pinggu80</a>
+        <a href="#cn-pay">中国大陆付款：微信 / 支付宝</a>
+        <a href="https://paypal.me/pinggu80">其他地区付款：paypal.me/pinggu80</a>
         <span>·</span>
         <a href="https://pingguye.cn/cubbit/dl/windows/latest" data-track="download_click" data-track-download data-track-position="footer">下载</a>
         <span class="spacer"></span>
-        <span>© 2026 方块仔 · 个人开发者 叶永平 · 正式版 2.9.3</span>
+        <span>© 2026 方块仔 · 个人开发者 叶永平 · 正式版 2.9.4</span>
       </footer>
     </div>
     <script src="analytics.js"></script>

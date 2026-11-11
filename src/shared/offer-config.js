@@ -42,8 +42,9 @@
 
   const REGION_IDS = ['CN', 'JP', 'KR', 'US', 'EU', 'GB'];
   const REGION_PRICES = {
+    // v2.9.4：中国大陆改用微信 / 支付宝个人收款码（人民币原价，不再走 PayPal）
     CN: { currency: 'CNY', display: { base: 6800, month: 2500, year: 19800, couple: 26800 },
-          chargeCurrency: 'USD', charge: { base: 999, month: 399, year: 2999, couple: 3999 } },
+          chargeCurrency: 'CNY', charge: { base: 6800, month: 2500, year: 19800, couple: 26800 } },
     JP: { currency: 'JPY', display: { base: 1480, month: 480, year: 2980, couple: 3980 },
           chargeCurrency: 'JPY', charge: { base: 1480, month: 480, year: 2980, couple: 3980 } },
     KR: { currency: 'KRW', display: { base: 12800, month: 4900, year: 29800, couple: 39800 },
@@ -55,6 +56,10 @@
     GB: { currency: 'GBP', display: { base: 799, month: 399, year: 2499, couple: 3499 },
           chargeCurrency: 'GBP', charge: { base: 799, month: 399, year: 2499, couple: 3499 } },
   };
+
+  /** 各地区付款方式：cn_qr = 微信 / 支付宝个人收款码（金额需用户手动输入）；其余地区 PayPal.me 固定金额链接 */
+  const PAY_METHODS = { CN: 'cn_qr', JP: 'paypal', KR: 'paypal', US: 'paypal', EU: 'paypal', GB: 'paypal' };
+  function payMethodOf(region) { return PAY_METHODS[String(region || '').toUpperCase()] || 'paypal'; }
 
   /** 国家 → 地区（未列出的国家一律按「美国和其他地区」USD） */
   const EURO_COUNTRIES = 'AT BE HR CY EE FI FR DE GR IE IT LV LT LU MT NL PT SK SI ES'.split(' ');
@@ -100,7 +105,7 @@
     return errs;
   }
   return {
-    FLAGS, PAYPAL_ME, OFFERS, SKU_PLAN, SELL_SKUS, REGION_IDS, REGION_PRICES, EURO_COUNTRIES, REGIONS,
+    FLAGS, PAYPAL_ME, PAY_METHODS, payMethodOf, OFFERS, SKU_PLAN, SELL_SKUS, REGION_IDS, REGION_PRICES, EURO_COUNTRIES, REGIONS,
     regionOfCountry, isVisible, visibleOffers, legacyPlanVisible, coupleUnlocked, validate,
   };
 });

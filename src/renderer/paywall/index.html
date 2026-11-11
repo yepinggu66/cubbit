@@ -26,6 +26,21 @@
         <div class="pay__plans" id="plans" role="radiogroup"></div>
         <div class="pay__charge" id="chargeNote"></div>
 
+        <section class="pay__qr hidden" id="qrSection" aria-live="polite">
+          <div class="pay__qr-amount" id="qrAmount"></div>
+          <div class="pay__qr-row">
+            <figure class="pay__qr-card pay__qr-card--wx">
+              <img src="qr-wechat.png" alt="WeChat Pay" id="qrWechat" />
+              <figcaption id="qrWechatCap"></figcaption>
+            </figure>
+            <figure class="pay__qr-card pay__qr-card--ali">
+              <img src="qr-alipay.png" alt="Alipay" id="qrAlipay" />
+              <figcaption id="qrAlipayCap"></figcaption>
+            </figure>
+          </div>
+          <div class="pay__qr-tip" id="qrTip"></div>
+        </section>
+
         <div class="pay__actions">
           <button class="btn btn--primary btn--lg" type="button" id="buyBtn"></button>
           <button class="btn btn--ghost" type="button" id="copyNoteBtn"></button>
