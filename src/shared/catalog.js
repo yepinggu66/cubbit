@@ -14,8 +14,10 @@ const PRODUCT = {
   version: '2.1.0',
   tagline: '一只住在你桌面上的小方块',
   taglineEn: 'A tiny cube that lives on your desktop.',
-  website: 'https://cubbit.app',
-  supportEmail: 'support@cubbit.app',
+  website: 'https://pingguye.cn/cubbit/',
+  // 暂无公开客服邮箱：联系方式为 PayPal 付款备注（paypal.me/pinggu80）/ 激活码邮件回复
+  supportEmail: '',
+  paypalMe: 'https://paypal.me/pinggu80',
   // 试用天数（首次启动自动开始，无需注册）
   trialDays: 3, // 黄金 72 小时全功能深度体验期，新鲜感峰值触发转化
   // 免费版默认皮肤
@@ -35,7 +37,7 @@ const FEATURES = {
   multi_pet: { pro: true, name: '多宠物同屏', desc: '最多 3 只方块仔一起陪你' },
   custom_colors: { pro: true, name: '自定义配色', desc: '自己调配方块的主色、光泽与眼睛' },
   reminders: { pro: true, name: '桌面提醒', desc: '让方块仔替你记住喝水、起身、开会' },
-  no_watermark: { pro: true, name: '去除体验版角标', desc: '体验期内窗口右下角会显示体验标' },
+  no_watermark: { pro: true, name: '去除试用角标', desc: '试用期内窗口右下角会显示试用标识' },
   couple_mode: { pro: true, name: '情侣模式', desc: '两只方块仔配对、说情话、聊天并举行婚礼' },
   cinema_mode: { pro: false, name: '观影模式', desc: '看剧时只留一双发光的眼睛，不打扰你' },
   presence_reactions: { pro: false, name: '主人状态感知', desc: '根据你在工作/看剧/开会/离开自动做出反应' },
@@ -60,7 +62,7 @@ const FREE_TIER = {
   desc: '免费体验桌面陪伴：2 套皮肤、观影模式、状态感知、每天 10 轮 AI 对话',
   watermark: true,
   permanentBadge: false,
-  watermarkNote: '免费版默认不显示永久角标（仅体验版显示剩余天数）',
+  watermarkNote: '免费版默认不显示永久角标（仅试用期显示剩余天数）',
   missing: ['全部 20 套皮肤', '情侣模式', '智慧生命完整版', '无限 AI 对话'],
 };
 
@@ -112,7 +114,7 @@ const DLC = [
     badge: '季节限定',
     desc: '圣诞老方 + 福崽两套节日皮肤，免费版也能单独拥有',
     requires: null,
-    available: true,
+    available: false, // v2.9.2：PayPal 手动发码阶段只售 4 档（完整版 / 会员月 / 会员年 / 情侣年卡）
     kind: 'skin_pack',
   },
   {
@@ -124,7 +126,7 @@ const DLC = [
     badge: '单独购买',
     desc: '上传照片或一句话描述，生成你的专属方块仔皮肤；录几句话设置专属声音',
     requires: null,
-    available: true,
+    available: false, // v2.9.2：同上，暂停单独售卖（会员年卡仍赠送角色定制）
     kind: 'feature',
     feature: 'custom_character',
   },
@@ -138,11 +140,11 @@ const PLANS = [
     name: 'AI 陪伴会员 · 年付',
     nameEn: 'Membership Yearly',
     price: 19800,
-    priceUsd: 5999,
+    priceUsd: 2999,
     period: 'year',
     durationDays: 365,
-    badge: '最受欢迎 · 省 34%',
-    desc: '折合每天仅 ¥0.54：含完整版 + 无限 AI 长期记忆 + 免费送照片定制宠物 + 每月 100 探险晶石',
+    badge: '最受欢迎',
+    desc: '含完整版 + 无限 AI 长期记忆 + 免费送照片定制宠物 + 每月 100 探险晶石',
     perks: [
       '包含完整版全部 20 套皮肤与 12 种萌宠形象',
       '无限 AI 陪伴对话 + 长期记忆不限条数',
@@ -158,27 +160,27 @@ const PLANS = [
     name: 'AI 陪伴会员 · 月付',
     nameEn: 'Membership Monthly',
     price: 2500,
-    priceUsd: 799,
+    priceUsd: 399,
     period: 'month',
     durationDays: 30,
     badge: '灵活尝鲜',
-    desc: '一杯奶茶钱解锁整月：含完整版 + 无限 AI 对话 + 长期记忆 + 每月 100 探险晶石，随时可取消',
+    desc: '解锁整月：含完整版 + 无限 AI 对话 + 长期记忆 + 每月 100 探险晶石，到期不自动续费',
     perks: [
       '包含完整版全部 20 套皮肤与 12 种萌宠形象',
       '无限 AI 陪伴对话 + 长期记忆不限条数',
       '💎 每月赠送 100 探险晶石 + 每日首次采集双倍',
       '🩺 21 天专属健康方案桌面智能督促',
-      '支持多设备云同步，随时可取消',
+      '支持多设备云同步，到期不自动续费',
     ],
     highlight: false,
     grants: { base: true, aiUnlimited: true },
   },
   {
     id: 'couple_year',
-    name: '情侣双人版',
-    nameEn: 'Couple',
+    name: '情侣年卡',
+    nameEn: 'Couple Year Pass',
     price: 26800,
-    priceUsd: 7999,
+    priceUsd: 3999,
     period: 'year',
     durationDays: 365,
     badge: '双人优惠',
@@ -194,7 +196,7 @@ const PLANS = [
     name: '完整版 · 买断',
     nameEn: 'Full Buyout',
     price: 6800,
-    priceUsd: 1999,
+    priceUsd: 999,
     period: 'once',
     durationDays: 0,
     badge: '一次买断',
@@ -451,13 +453,13 @@ SKINS.push(
 );
 
 const PRICING = require('./pricing');
-const SKU_OF_ITEM = { base: 'base', ai_month: 'month', ai_year: 'year', dlc_custom_char: 'custom' }; // couple_year 已停售：按旧 CNY 价近似展示
-/** 区域分级定价展示：locale 如 'en-US' / 'de-DE' / 'zh-CN'，未知地区回落 USD（Tier 1） */
+const SKU_OF_ITEM = { base: 'base', ai_month: 'month', ai_year: 'year', couple_year: 'couple' };
+/** 地区价展示：locale 如 'en-US' / 'de-DE' / 'zh-CN'，或地区 id（CN/JP/KR/US/EU/GB）；未知地区按 USD */
 function localizedPrice(item, locale) {
   if (!item) return '';
-  const sku = SKU_OF_ITEM[item.id] || (item.kind === 'skin_pack' || item.skinIds || /^dlc_/.test(item.id) ? 'skinpack' : null);
-  const p = sku ? PRICING.skuPrice(sku, locale || 'zh-CN') : PRICING.displayCny(item.price, locale || 'zh-CN');
-  return p.text;
+  const sku = SKU_OF_ITEM[item.id] || null;
+  const p = (sku && PRICING.skuPrice(sku, locale || 'zh-CN')) || PRICING.displayCny(item.price, locale || 'zh-CN');
+  return p ? p.text : '';
 }
 
 for (const skin of SKINS) Object.assign(skin, SKIN_EXTRAS[skin.id] || {});

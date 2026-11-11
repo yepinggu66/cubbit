@@ -30,7 +30,7 @@
   const STEP_LABELS = () => [T('欢迎', 'Welcome'), T('配对', 'Pair up'), T('玩法', 'How to play')];
   const NEXT_LABELS = () => [
     T('继续', 'Continue'),
-    T('继续（免费内测）', 'Continue (free test build)'),
+    T('继续', 'Continue'),
     T('开始使用', 'Start using Cubbit'),
   ];
 
@@ -277,7 +277,7 @@
       return;
     }
     if (S.step === 1) {
-      // 免费内测版：试用是本地自动开启的，这里只做一次兜底尝试。
+      // 试用是本地自动开启的，这里只做一次兜底尝试。
       // 即使服务端不可达，也必须能继续——绝不把用户卡在「开启失败」这一步。
       const lic = (app.state && app.state.license) || {};
       if (lic.state === 'pro') {
@@ -285,7 +285,7 @@
         return;
       }
       const begun = await startTrialQuietly();
-      if (!begun) toast(T('已按免费内测模式继续（不影响使用）', 'Continuing in free test mode'), 'warn', 3000);
+      if (!begun) toast(T('已继续（免费版功能不受影响）', 'Continuing — free features are not affected'), 'warn', 3000);
       goStep(2);
       return;
     }

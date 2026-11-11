@@ -246,7 +246,7 @@
     clear(R.sideLic);
     R.sideLic.dataset.state = lic.state || 'unlicensed';
     const paid = app.isPaid;
-    const title = lic.state === 'pro' ? lic.planName || 'Pro 会员' : lic.state === 'trial' ? '体验版' : lic.state === 'expired' ? '体验已结束' : '免费版';
+    const title = lic.state === 'pro' ? lic.planName || 'Pro 会员' : lic.state === 'trial' ? '免费试用' : lic.state === 'expired' ? '体验已结束' : '免费版';
     const titleIcon = lic.state === 'pro' ? 'crown' : lic.state === 'trial' ? 'sparkle' : 'lock';
     R.sideLic.appendChild(el('div', { class: 'side-lic__title' }, icon(titleIcon), el('span', { text: title })));
     let desc = '';
@@ -3438,13 +3438,15 @@
       return btn;
     };
     R.websiteBtn = mkLink('产品官网', 'globe', () => {
-      const url = (app.state && app.state.product && app.state.product.website) || 'https://cubbit.app';
+      const url = (app.state && app.state.product && app.state.product.website) || 'https://pingguye.cn/cubbit/';
       app.openExternal(url);
     });
     R.supportBtn = mkLink('联系支持', 'mail', async () => {
-      const email = (app.state && app.state.product && app.state.product.supportEmail) || 'support@cubbit.app';
-      const ok = await UI.copyText(email);
-      toast(ok ? `支持邮箱 ${email} 已复制` : `支持邮箱：${email}`, ok ? 'ok' : 'info', 3800);
+      const email = (app.state && app.state.product && app.state.product.supportEmail) || '';
+      const contact = email || 'https://paypal.me/pinggu80';
+      const ok = await UI.copyText(contact);
+      const what = email ? `支持邮箱 ${email}` : '联系方式（PayPal 付款备注留言）paypal.me/pinggu80';
+      toast(ok ? `${what} 已复制` : what, ok ? 'ok' : 'info', 3800);
     });
     R.eulaBtn = mkLink('许可协议', 'receipt', () => UI.legalModal('eula'));
     R.privacyBtn = mkLink('隐私政策', 'shield', () => UI.legalModal('privacy'));

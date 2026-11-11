@@ -1,12 +1,11 @@
 {
   "name": "cubbit",
   "productName": "Cubbit",
-  "version": "2.9.1-soft",
-  "description": "Cubbit — a tiny desktop cube that walks and ground-crawls with context-aware expression scenes. (free 2-week test build)",
+  "version": "2.9.2",
+  "description": "Cubbit 方块仔 — a tiny desktop cube that walks and ground-crawls with context-aware expression scenes.",
   "main": "src/main/main.js",
   "author": {
-    "name": "Cubbit Studio",
-    "email": "support@cubbit.app"
+    "name": "叶永平"
   },
   "license": "SEE LICENSE IN ../../docs/EULA.md",
   "private": true,
@@ -36,7 +35,7 @@
     ],
     "appId": "com.cubbit.desktop",
     "productName": "Cubbit",
-    "copyright": "Copyright © 2026 Cubbit Studio",
+    "copyright": "Copyright © 2026 叶永平（个人开发者）",
     "asar": true,
     "electronDist": "node_modules/electron/dist",
     "directories": {

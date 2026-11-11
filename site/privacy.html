@@ -21,7 +21,7 @@
 <body>
 <div class="wrap">
   <h1>隐私政策</h1>
-  <div class="meta">方块仔 / Cubbit ｜ 版本 1.0 ｜ 生效日期 2026-11-04</div>
+  <div class="meta">方块仔 / Cubbit ｜ 版本 1.1 ｜ 生效日期 2026-11-12 ｜ 开发者：叶永平（个人开发者）</div>
 
   <div class="note">
     一句话版本：我们只收集让方块仔能工作所必需的数据（设备编号、配对关系、你主动发的消息与语音、你主动输入的 AI 对话），
@@ -37,6 +37,8 @@
     <tr><td>文字悄悄话、语音留言（≤60 秒）</td><td>对方离线时暂存，上线后补发</td><td>服务器 30 天 / 每对最多 300 条</td></tr>
     <tr><td>AI 对话文本</td><td>转给大模型生成回复</td><td>服务器不落盘；本机保存最近 12 轮</td></tr>
     <tr><td>语音播报文本</td><td>转成语音（TTS）</td><td>服务器缓存音频片段，7 天</td></tr>
+    <tr><td>激活信息（激活码的哈希、套餐、绑定的设备编号、激活与到期时间）</td><td>校验授权、防止激活码被滥用</td><td>许可服务器，退款或作废后标记失效</td></tr>
+    <tr><td>你在 PayPal 付款备注里留下的邮箱</td><td>发送激活码、处理退款</td><td>开发者的 PayPal 记录与邮箱，你可以要求删除</td></tr>
     <tr><td>崩溃与运行日志</td><td>排查问题</td><td><b>只在本机</b>，需你手动导出才会发给我们</td></tr>
   </table>
 
@@ -54,15 +56,16 @@
     <tr><td>DeepSeek（深度求索）</td><td>AI 对话</td><td>你输入的那句话 + 最近几轮上下文</td></tr>
     <tr><td>Microsoft Edge 语音合成</td><td>把文字读出来</td><td>要朗读的那一句文本</td></tr>
     <tr><td>PubNub</td><td>实时互动（戳一下、比心）</td><td>互动类型与双方 UID</td></tr>
+    <tr><td>PayPal</td><td>付款与退款</td><td>付款金额、你的 PayPal 账号信息与备注（由 PayPal 按其隐私政策处理，开发者看不到你的银行卡信息）</td></tr>
     <tr><td>腾讯云</td><td>服务器托管</td><td>不接触具体内容，仅提供机器</td></tr>
   </table>
 
   <h2>四、你的权利</h2>
   <ul>
-    <li><b>导出</b>：托盘右键「导出内测数据」，可拿到本机运行记录；</li>
-    <li><b>删除</b>：手机端「重新配对 → 注销账号」或发邮件给我们，会删除账号、配对关系、消息与语音；</li>
+    <li><b>导出</b>：托盘右键「导出使用数据（本地）」，可拿到本机运行记录；</li>
+    <li><b>删除</b>：手机端「重新配对 → 注销账号」，或通过 PayPal 留言 / 回复激活码邮件联系开发者，会删除账号、配对关系、消息与语音；</li>
     <li><b>撤回</b>：关闭语音播报 / 关闭 AI / 移除悬浮窗权限，随时生效；</li>
-    <li><b>投诉</b>：support@cubbit.app，7 个工作日内回复。</li>
+    <li><b>联系</b>：在 <a href="https://paypal.me/pinggu80">paypal.me/pinggu80</a> 付款备注里留言，或回复收到激活码的那封邮件。</li>
   </ul>
 
   <h2>五、未成年人</h2>
@@ -71,7 +74,7 @@
   <h2>六、变更</h2>
   <p>本政策更新会在本页发布并标注版本号；重大变更会在软件内提示。</p>
 
-  <p style="margin-top:34px"><a href="/cubbit/eula">用户协议（EULA）</a> ｜ <a href="/cubbit/">返回首页</a></p>
+  <p style="margin-top:34px"><a href="/cubbit/terms">服务条款</a> ｜ <a href="/cubbit/refund">退款政策</a> ｜ <a href="/cubbit/">返回首页</a></p>
 </div>
 </body>
 </html>

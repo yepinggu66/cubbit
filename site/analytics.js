@@ -10,6 +10,8 @@
     'install_guide_click',
     'mobile_click',
     'android_download_click',
+    'pay_click',
+    'pricing_click',
   ]);
 
   function sessionId() {

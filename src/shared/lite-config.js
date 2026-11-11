@@ -2,31 +2,31 @@
  * Cubbit Lite 商业化配置（唯一真相源）
  *
  * 改动这里就能改付费墙、价格、购买链接，不需要碰 store.js / 许可服务端。
- * 正式上线时只需要替换两个值：CHECKOUT_URL、DOWNLOAD_URL。
+ * v2.9.2 起价格统一在 shared/offer-config.js，付款走 PayPal.me，这里只放链接和文案。
  */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
   else root.CubbitLiteConfig = factory();
 })(typeof self !== 'undefined' ? self : this, function () {
   const CONFIG = {
-    productName: 'Couple Pack',
-    productNameZh: '情侣包',
-    // 首发价与常规价（美元，用于展示；真实扣款由支付平台决定）
-    price: 19.99,
-    launchPrice: 14.99,
-    launchEndsAt: '2026-12-31',
-    currency: 'USD',
+    productName: 'Cubbit',
+    productNameZh: '方块仔',
 
-    // 支付平台结账页（Paddle / Lemon Squeezy 的 checkout link）
-    // 接好后替换成真实链接；未替换时点购买会打开占位页并提示"尚未开通"
-    checkoutUrl: 'https://cubbit.app/buy',
-    checkoutReady: false,
+    // v2.9.2 正式版：PayPal.me 付款 + 开发者手动发激活码（价格见 shared/offer-config.js）
+    paymentMethod: 'paypal_me',
+    paypalMe: 'https://paypal.me/pinggu80',
+    checkoutReady: true,
 
-    // 官网下载页（2 周内测：直接指向服务器上的安装包）
+    // 官网与下载
+    website: 'https://pingguye.cn/cubbit/',
     downloadUrl: 'https://pingguye.cn/cubbit/dl/windows/latest',
+    termsUrl: 'https://pingguye.cn/cubbit/terms',
+    privacyUrl: 'https://pingguye.cn/cubbit/privacy',
+    refundUrl: 'https://pingguye.cn/cubbit/refund',
     // 邀请落地页：带 code 参数，页面上有「打开方块仔并配对」+ 下载按钮（服务端 landing.js）
     joinBase: 'https://pingguye.cn/cubbit/join',
-    supportEmail: 'support@cubbit.app',
+    // 联系方式：PayPal 付款备注（暂无公开客服邮箱）
+    supportEmail: '',
 
     // 付费墙文案（英文优先，中文只作回退）
     bullets: [
@@ -42,17 +42,6 @@
       { en: 'Desktop wandering, petting, feeding', zh: '桌面闲逛、抚摸、投喂' },
       { en: '3 free skins + screenshot / GIF', zh: '3 套免费皮肤 + 截图 / GIF' },
     ],
-
-    isLaunchPrice(now = Date.now()) {
-      const end = Date.parse(this.launchEndsAt + 'T23:59:59Z');
-      return Number.isFinite(end) ? now <= end : false;
-    },
-    currentPrice(now = Date.now()) {
-      return this.isLaunchPrice(now) ? this.launchPrice : this.price;
-    },
-    formatPrice(value) {
-      return '$' + Number(value).toFixed(2).replace(/\.00$/, '');
-    },
   };
   return CONFIG;
 });
