@@ -1,55 +1,75 @@
 /**
- * 方块仔 售卖配置 —— 唯一需要改价格/开关的文件（v2.2 简化为 3 档 + 隐藏的 AI 订阅）。
+ * 方块仔 售卖配置 —— 唯一需要改价格/开关的文件（v2.9.2 正式版：PayPal.me 手动发码）。
  * UMD：主进程 require / 渲染进程 window.CubbitOffers。
  *
- * 档位：
- *   base     本体（一次性）：桌宠全部基础功能
- *   couple   情侣包（一次性）：一方购买，配对双方都解锁（权益挂在 couples/{id}.entitlement，tier=couple_pack）
- *   skinpack 皮肤包（一次性，可多次购买不同包）
- *   ai       AI 陪伴订阅（月/年）—— FLAGS.aiCompanion=false 时完全隐藏，AI 服务上线后再打开
+ * 售卖方式（2026-11-12 起）：
+ *   用户在应用 / 官网点「购买」→ 打开写好金额和币种的 PayPal.me 链接付款
+ *   → 付款备注里写邮箱（和设备 ID）→ 开发者确认到账后手动发激活码 → 应用里输入激活码激活。
+ *   没有自动收银台，也不在应用内处理任何银行卡信息。
  *
- * 价格：最小货币单位（分/美分；JPY/KRW 为整数元）。改价只改 PRICES。
- * 地区分级：t1 高收入 / t2 中等（含中国大陆 CNY）/ t3 新兴市场。国家归属见 REGIONS。
- * 注：以下数值为建议定价，上架前请与 Steam 区域定价建议核对。
+ * 档位（与许可服务端 planId 一一对应）：
+ *   base        完整版（买断）
+ *   ai_month    会员 · 月
+ *   ai_year     会员 · 年
+ *   couple_year 情侣年卡（2 个席位）
+ *
+ * 地区价（2026-11-12 用户确认）：
+ *   display = 页面上显示的价格；charge = PayPal 实际扣款（PayPal 不收 KRW，人民币也按美元收）。
+ *   金额单位：USD/EUR/GBP/CNY 为「分」，JPY/KRW 为整数元。
+ *   PayPal 无法按地区锁价，所以只有这一套价格，不设更低的地区档。
  */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
   else root.CubbitOffers = factory();
 })(typeof self !== 'undefined' ? self : this, function () {
   const FLAGS = {
-    aiCompanion: true, // 开启会员订阅（AI 陪伴月付/年付主推）
+    aiCompanion: true, // 会员（月/年）
   };
+
+  const PAYPAL_ME = 'https://paypal.me/pinggu80';
 
   const OFFERS = [
-    { id: 'ai', kind: 'subscription', name: '会员订阅 · AI 陪伴', nameEn: 'Membership · AI Companion', grants: ['ai_unlimited', 'member_perks'], flag: 'aiCompanion',
-      periods: ['year', 'month'], legacyPlanIds: ['ai_year', 'ai_month'], primary: true },
-    { id: 'couple', kind: 'one_time', name: '情侣包（两人共用）', nameEn: 'Couple Pack (for both of you)', grants: ['couple_mode', 'couple_premium'],
-      sharedWithPartner: true, entitlementTier: 'couple_pack', steamItem: 'DLC_COUPLE_PACK' },
-    { id: 'base', kind: 'one_time', name: '方块仔 完整版买断', nameEn: 'Cubbit Full Buyout', grants: ['base'], legacyPlanId: 'base', steamItem: 'APP' },
-    { id: 'skinpack', kind: 'one_time', name: '皮肤包', nameEn: 'Skin Pack', grants: ['skin_pack'], repeatable: true, steamItem: 'DLC_SKINPACK_*' },
+    { id: 'base', kind: 'one_time', planId: 'base', name: '方块仔 完整版（买断）', nameEn: 'Cubbit Full Version (one-time)', grants: ['base'], legacyPlanId: 'base' },
+    { id: 'ai', kind: 'subscription', name: '会员（AI 陪伴）', nameEn: 'Membership (AI Companion)', grants: ['ai_unlimited', 'member_perks'], flag: 'aiCompanion',
+      periods: ['month', 'year'], legacyPlanIds: ['ai_year', 'ai_month'], primary: true },
+    { id: 'couple', kind: 'one_time', planId: 'couple_year', name: '情侣年卡（两人共用）', nameEn: 'Couple Year Pass (for both of you)', grants: ['couple_mode', 'couple_premium'],
+      sharedWithPartner: true, entitlementTier: 'couple_pack', legacyPlanId: 'couple_year' },
   ];
 
-  // 列顺序固定：[base, couple, skinpack, ai_month, ai_year]
-  const PRICE_COLUMNS = ['base', 'couple', 'skinpack', 'ai_month', 'ai_year'];
-  const PRICES = {
-    t1: { USD: [1999, 7999, 499, 799, 5999], EUR: [1999, 7999, 499, 799, 5999], GBP: [1699, 6999, 449, 699, 4999],
-          JPY: [2980, 11800, 750, 1200, 8800], KRW: [26000, 99000, 6500, 10500, 78000] },
-    t2: { CNY: [6800, 26800, 1800, 2500, 19800], USD: [999, 3999, 299, 399, 2999] },
-    t3: { USD: [699, 2799, 199, 299, 1999] },
+  /** 售卖 SKU（顺序即付费墙展示顺序）→ 许可服务端 planId */
+  const SKU_PLAN = { base: 'base', month: 'ai_month', year: 'ai_year', couple: 'couple_year' };
+  const SELL_SKUS = ['base', 'month', 'year', 'couple'];
+
+  const REGION_IDS = ['CN', 'JP', 'KR', 'US', 'EU', 'GB'];
+  const REGION_PRICES = {
+    CN: { currency: 'CNY', display: { base: 6800, month: 2500, year: 19800, couple: 26800 },
+          chargeCurrency: 'USD', charge: { base: 999, month: 399, year: 2999, couple: 3999 } },
+    JP: { currency: 'JPY', display: { base: 1480, month: 480, year: 2980, couple: 3980 },
+          chargeCurrency: 'JPY', charge: { base: 1480, month: 480, year: 2980, couple: 3980 } },
+    KR: { currency: 'KRW', display: { base: 12800, month: 4900, year: 29800, couple: 39800 },
+          chargeCurrency: 'USD', charge: { base: 999, month: 399, year: 2999, couple: 3999 } },
+    US: { currency: 'USD', display: { base: 999, month: 399, year: 2999, couple: 3999 },
+          chargeCurrency: 'USD', charge: { base: 999, month: 399, year: 2999, couple: 3999 } },
+    EU: { currency: 'EUR', display: { base: 999, month: 399, year: 2999, couple: 3999 },
+          chargeCurrency: 'EUR', charge: { base: 999, month: 399, year: 2999, couple: 3999 } },
+    GB: { currency: 'GBP', display: { base: 799, month: 399, year: 2499, couple: 3499 },
+          chargeCurrency: 'GBP', charge: { base: 799, month: 399, year: 2499, couple: 3499 } },
   };
 
-  // 老版本 SKU（已停售，仅用于历史订单/农场点数展示，不进入商店）
-  const LEGACY_PRICES = {
-    custom:     { t1: { USD: 999, EUR: 999, GBP: 899, JPY: 1500, KRW: 13000 }, t2: { CNY: 2800, USD: 599 }, t3: { USD: 399 } },
-    farmpoints: { t1: { USD: 299, EUR: 299, GBP: 249, JPY: 450, KRW: 3900 }, t2: { CNY: 1200, USD: 199 }, t3: { USD: 129 } },
-  };
+  /** 国家 → 地区（未列出的国家一律按「美国和其他地区」USD） */
+  const EURO_COUNTRIES = 'AT BE HR CY EE FI FR DE GR IE IT LV LT LU MT NL PT SK SI ES'.split(' ');
+  function regionOfCountry(country) {
+    const c = String(country || '').toUpperCase();
+    if (c === 'CN') return 'CN';
+    if (c === 'JP') return 'JP';
+    if (c === 'KR') return 'KR';
+    if (c === 'GB' || c === 'UK') return 'GB';
+    if (EURO_COUNTRIES.includes(c)) return 'EU';
+    return 'US';
+  }
 
-  const REGIONS = {
-    euro: 'DE FR IT ES NL BE AT IE FI PT LU GR'.split(' '),
-    t1: 'US CA GB UK AU NZ DE FR IT ES NL BE AT IE LU SE NO DK FI IS CH JP KR SG'.split(' '),
-    t2: 'CN TW HK MO PL CZ SK HU RO BG HR SI EE LV LT RS UA BY RU AE SA QA KW BH OM IL JO LB'.split(' '),
-    t3: 'TH VN ID MY PH MM KH LA MX BR AR CL CO PE UY EC BO PY VE IN PK BD LK NP TR EG NG KE ZA MA GH ET TZ DZ TN'.split(' '),
-  };
+  // 兼容旧调用方（REGIONS.euro 等）
+  const REGIONS = { euro: EURO_COUNTRIES, t1: [], t2: [], t3: [] };
 
   function isVisible(offer, flags) {
     const f = Object.assign({}, FLAGS, flags || {});
@@ -67,12 +87,20 @@
   }
   function validate() {
     const errs = [];
-    for (const [tier, byCur] of Object.entries(PRICES)) for (const [cur, row] of Object.entries(byCur)) {
-      if (row.length !== PRICE_COLUMNS.length) errs.push(`${tier}.${cur} 列数应为 ${PRICE_COLUMNS.length}`);
-      row.forEach((v, i) => { if (!Number.isInteger(v) || v <= 0) errs.push(`${tier}.${cur}.${PRICE_COLUMNS[i]} 必须是正整数`); });
+    for (const id of REGION_IDS) {
+      const r = REGION_PRICES[id];
+      if (!r) { errs.push(`缺少地区 ${id}`); continue; }
+      for (const sku of SELL_SKUS) {
+        for (const k of ['display', 'charge']) {
+          const v = r[k][sku];
+          if (!Number.isInteger(v) || v <= 0) errs.push(`${id}.${k}.${sku} 必须是正整数`);
+        }
+      }
     }
-    if (OFFERS.filter((o) => o.kind === 'one_time').length !== 3) errs.push('一次性档位应为 3 个');
     return errs;
   }
-  return { FLAGS, OFFERS, PRICE_COLUMNS, PRICES, LEGACY_PRICES, REGIONS, isVisible, visibleOffers, legacyPlanVisible, coupleUnlocked, validate };
+  return {
+    FLAGS, PAYPAL_ME, OFFERS, SKU_PLAN, SELL_SKUS, REGION_IDS, REGION_PRICES, EURO_COUNTRIES, REGIONS,
+    regionOfCountry, isVisible, visibleOffers, legacyPlanVisible, coupleUnlocked, validate,
+  };
 });

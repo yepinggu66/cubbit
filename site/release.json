@@ -1,30 +1,29 @@
 {
   "product": "方块仔 Cubbit",
-  "version": "2.9.1-soft",
-  "channel": "beta",
-  "status": "internal-beta",
-  "officiallyLaunched": false,
-  "releaseDate": "2026-11-11",
-  "experimentId": "softlaunch-2026-11",
+  "version": "2.9.2",
+  "channel": "stable",
+  "status": "official",
+  "officiallyLaunched": true,
+  "releaseDate": "2026-11-12",
   "stableWindowsUrl": "https://pingguye.cn/cubbit/dl/windows/latest",
   "downloadDeployment": {
     "status": "deployed",
-    "deployedAt": "2026-11-11",
+    "deployedAt": "2026-11-12",
     "host": "pingguye.cn",
-    "note": "Windows 安装包已上传到 /cubbit/dl/（版本文件 + Cubbit-Setup-latest.exe）；本版本不提供便携版"
+    "note": "正式版 2.9.2：/cubbit/dl/Cubbit-Setup-2.9.2.exe，Cubbit-Setup-latest.exe 为同一文件"
   },
   "artifacts": [
     {
       "kind": "nsis",
-      "url": "https://pingguye.cn/cubbit/dl/Cubbit-Setup-2.9.1-soft.exe",
-      "size": 126372733,
-      "sha256": "1D9F722FD2D1B67B12ED0DB0E87265B92687DB933F28F1805F20347180E0EE08"
+      "url": "https://pingguye.cn/cubbit/dl/Cubbit-Setup-2.9.2.exe",
+      "size": 126382272,
+      "sha256": "26372A98239B5B6970E4B8819816212E41F39E7E95B56B12C4F509DA0A5AABCF"
     }
   ],
   "metricsSchemaVersion": 2,
   "cohorts": {
     "couple": {
-      "label": "情侣双人测试",
+      "label": "情侣双人",
       "assignmentSource": "onboarding_or_invite_link",
       "primaryMetrics": [
         "pair_completion_rate",
@@ -34,7 +33,7 @@
       ]
     },
     "solo": {
-      "label": "单人体验测试",
+      "label": "单人",
       "assignmentSource": "onboarding_or_skip",
       "primaryMetrics": [
         "solo_activation_rate",
@@ -43,16 +42,9 @@
       ]
     }
   },
-  "gate": {
-    "dualMachineAcceptance": {
-      "status": "pending",
-      "completedAt": null,
-      "operator": null,
-      "evidence": []
-    },
-    "recruitment": {
-      "status": "blocked",
-      "reason": "双机验收尚未完成，禁止发起下一批招募"
-    }
+  "payment": {
+    "method": "paypal_me",
+    "url": "https://paypal.me/pinggu80",
+    "fulfilment": "manual_activation_code_by_email"
   }
 }

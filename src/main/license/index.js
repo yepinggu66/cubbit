@@ -936,7 +936,7 @@ class LicenseManager extends EventEmitter {
       if (token) message = '授权凭据无效，请重新激活';
       if (trialActive) {
         state = 'trial';
-        planName = '体验版（完整版 7 天）';
+        planName = '免费试用（完整版）';
         features = this._baseFeatures();
         message = message || `体验期剩余 ${trialDaysLeft} 天`;
       } else if (trialEndsAt > 0) {

@@ -25,7 +25,7 @@ function dlog(...args) { if (DEBUG_INTERACTIONS) console.log('[interaction]', ..
 
 const PANEL_SIZES = {
   settings: { width: 900, height: 720, minWidth: 780, minHeight: 600, title: '方块仔 设置' },
-  paywall: { width: 900, height: 760, minWidth: 760, minHeight: 620, title: 'Cubbit · Couple Pack' },
+  paywall: { width: 920, height: 780, minWidth: 760, minHeight: 620, title: '方块仔 · 购买 / 激活' },
   store: { width: 1040, height: 760, minWidth: 880, minHeight: 640, title: '方块仔 商店' },
   onboarding: { width: 860, height: 600, minWidth: 760, minHeight: 540, title: '欢迎来到 方块仔' },
   coupleRoom: { dir: 'couple-room', width: 1000, height: 700, minWidth: 860, minHeight: 620, title: '方块仔 情侣空间' },

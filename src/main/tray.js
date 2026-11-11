@@ -10,6 +10,7 @@ const path = require('node:path');
 const { Tray, Menu, nativeImage } = require('electron');
 const { SKINS, PRODUCT } = require('../shared/catalog');
 const I18N = require('../shared/i18n');
+const APP_VERSION = (() => { try { return require('electron').app.getVersion(); } catch { return PRODUCT.version; } })();
 
 let tray = null;
 
@@ -63,18 +64,19 @@ function buildMenu(rt) {
         label: state.ui.cinemaMode ? L('退出观影模式', 'Exit cinema mode') : L('观影模式（只留眼睛）', 'Cinema mode (eyes only)'),
         click: () => rt.toggleCinema(),
       },
-      { label: L('📤 导出内测数据', '📤 Export test data'), click: () => rt.exportBetaData && rt.exportBetaData() },
+      { label: L('📤 导出使用数据（本地）', '📤 Export usage data (local)'), click: () => rt.exportBetaData && rt.exportBetaData() },
       { label: L('设置', 'Settings'), accelerator: 'Control+,', click: () => rt.openPanel('settings') },
       { type: 'separator' },
       {
         label: license.state === 'pro'
           ? L(`完整版 · ${license.planName || ''}`, `Full version · ${license.planName || ''}`)
           : license.state === 'trial'
-            ? L(`内测版 · 剩 ${license.trialDaysLeft} 天`, `Test build · ${license.trialDaysLeft} days left`)
+            ? L(`免费试用 · 剩 ${license.trialDaysLeft} 天`, `Free trial · ${license.trialDaysLeft} days left`)
             : L('未授权', 'Not activated'),
         enabled: false,
       },
-      { label: L(`关于 方块仔 ${PRODUCT.version}`, `About Cubbit ${PRODUCT.version}`), click: () => rt.openPanel('settings') },
+      { label: L('💳 购买 / 激活', '💳 Buy / Activate'), click: () => rt.openPanel('paywall') },
+      { label: L(`关于 方块仔 ${APP_VERSION}`, `About Cubbit ${APP_VERSION}`), click: () => rt.openPanel('settings') },
       { type: 'separator' },
       { label: L('退出', 'Quit'), click: () => rt.quit() },
     ]),

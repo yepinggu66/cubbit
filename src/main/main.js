@@ -298,13 +298,13 @@ class AppRuntime {
       const path = require('node:path');
       const src = this.beta && typeof this.beta.filePath === 'function' ? this.beta.filePath() : '';
       if (!src || !fs.existsSync(src)) {
-        this.sendPetEvent('say', { text: '还没有内测数据，用完这一天再导出～', emoji: '📤' });
+        this.sendPetEvent('say', { text: '还没有使用数据，用完这一天再导出～', emoji: '📤' });
         return { ok: false, code: 'NO_DATA' };
       }
       const d = new Date();
       const stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
       const dev = String((this.license.getStatus() || {}).deviceId || '').slice(0, 6);
-      const name = `Cubbit-内测数据-${stamp}${dev ? '-' + dev : ''}.jsonl`;
+      const name = `Cubbit-使用数据-${stamp}${dev ? '-' + dev : ''}.jsonl`;
       const dest = path.join(app.getPath('desktop'), name);
       fs.copyFileSync(src, dest);
       shell.showItemInFolder(dest);
@@ -1506,8 +1506,8 @@ class AppRuntime {
 
   // ---------------------------------------------------------------- 面板
   openPanel(name) {
-    // Lite：所有"商店"入口统一指向付费墙（只卖 Couple Pack，不再展示一堆套餐）
-    if (LITE_MODE && name === 'store') name = 'paywall';
+    // v2.9.2 正式版：所有「商店 / 升级」入口统一指向购买 / 激活页（PayPal.me 付款 + 激活码）
+    if (name === 'store') name = 'paywall';
     const win = this.windows.openPanel(name);
     if (win) {
       win.webContents.once('did-finish-load', () => {
@@ -1557,8 +1557,7 @@ class AppRuntime {
         click: () => this.openPanel('couple'),
       },
       { type: 'separator' },
-      // 免费内测版：不出现「解锁/购买」入口，避免点进未开通的收银台
-      { label: L('💞 免费内测版', '💞 Free test build'), enabled: false },
+      { label: L('💳 购买 / 激活', '💳 Buy / Activate'), click: () => this.openPanel('paywall') },
       { label: L('设置', 'Settings'), click: () => this.openPanel('settings') },
       { label: L('隐藏', 'Hide'), click: () => this.windows.hidePet() },
       { type: 'separator' },

@@ -567,7 +567,7 @@
   function tierTitle() {
     const lic = S.license || {};
     const flags = ownedFlags();
-    if (lic.state === 'trial') return '体验版 · 剩余 ' + (lic.trialDaysLeft || 0) + ' 天';
+    if (lic.state === 'trial') return '免费试用 · 剩余 ' + (lic.trialDaysLeft || 0) + ' 天';
     if (lic.state === 'pro') return lic.planName && !/^[a-z_]+$/.test(lic.planName) ? lic.planName : '完整版';
     if (flags.ai) return lic.planName || 'AI 陪伴';
     if (flags.couple) return lic.planName || '情侣双人版';
@@ -2291,9 +2291,11 @@
     links.appendChild(mkLink('退款政策', 'refund', 'rotate-ccw'));
     const mailLink = el('button', { class: 'btn btn--link', type: 'button' }, icon('mail'), el('span', { text: '联系支持' }));
     mailLink.addEventListener('click', async () => {
-      const email = (app.state && app.state.product && app.state.product.supportEmail) || 'support@cubbit.app';
-      const ok = await UI.copyText(email);
-      toast(ok ? `支持邮箱 ${email} 已复制` : `支持邮箱：${email}`, ok ? 'ok' : 'info', 3600);
+      const email = (app.state && app.state.product && app.state.product.supportEmail) || '';
+      const contact = email || 'https://paypal.me/pinggu80';
+      const ok = await UI.copyText(contact);
+      const what = email ? `支持邮箱 ${email}` : '联系方式（PayPal 付款备注留言）paypal.me/pinggu80';
+      toast(ok ? `${what} 已复制` : what, ok ? 'ok' : 'info', 3800);
     });
     links.appendChild(mailLink);
     legalFoot.appendChild(links);
@@ -2354,7 +2356,7 @@
       const days = lic.trialDaysLeft || 0;
       R.licIconTile.appendChild(icon('sparkle'));
       R.licIconTile.className = 'ico-tile ico-tile--teal';
-      R.licName.appendChild(el('span', { text: '体验版' }));
+      R.licName.appendChild(el('span', { text: '免费试用' }));
       R.licDesc.textContent = `全部 Pro 功能体验中，还剩 ${days} 天。到期后会回到免费版，升级 Pro 可继续使用全部功能。`;
       R.licDaysNum.textContent = String(days);
       R.licDaysUnit.textContent = '天剩余';

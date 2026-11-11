@@ -1,8 +1,12 @@
 /**
- * v2.4.1 Lite 付费墙
+ * v2.9.2 购买 / 激活页（正式版）
  *
- * 只做三件事：展示 Couple Pack 价格 → 打开支付平台结账页 → 激活码激活。
- * 支付平台（Paddle / Lemon Squeezy）只负责扣款与发码，客户端不碰卡号。
+ * 付款方式：PayPal.me 固定金额链接（价格见 shared/offer-config.js）。
+ *   1. 选地区 + 套餐 → 在系统浏览器打开 https://paypal.me/pinggu80/<金额><币种>
+ *   2. 用户在 PayPal 备注里写邮箱 + 设备 ID
+ *   3. 开发者确认到账后手动发激活码（CUBB-XXXX-XXXX-XXXX-XXXX）
+ *   4. 在这里输入激活码 → 许可服务器换取本机签名授权
+ * 客户端不处理任何银行卡信息。
  */
 (function () {
   'use strict';
@@ -10,13 +14,20 @@
   const UI = window.CubbitUI;
   const app = UI.createApp();
   const IPC = UI.IPC;
+  const P = window.CubbitPricing;
+  const I = window.CubbitPaywallI18N;
   const cfg = window.CubbitLiteConfig || {};
+  const REGION_KEY = 'cubbit.region';
+  const PLAN_KEY = 'cubbit.payPlan';
 
-  let LANG = 'en-US';
-  const isZh = () => String(LANG).toLowerCase().startsWith('zh');
-  const T = (en, zh) => (isZh() ? zh : en);
+  let LANG = 'zh';
+  let T = I.STRINGS.zh;
+  let region = 'US';
+  let sku = 'base';
+  let deviceId = '';
 
   const $ = (id) => document.getElementById(id);
+  const fill = (s, vars) => String(s || '').replace(/\{(\w+)\}/g, (_, k) => (vars && vars[k] != null ? vars[k] : ''));
 
   document.addEventListener('DOMContentLoaded', init);
 
@@ -24,104 +35,134 @@
     bind();
     try {
       await app.boot({});
-      LANG = (app.state && app.state.settings && app.state.settings.language) || navigator.language || 'en-US';
     } catch (err) {
       console.warn('[paywall] boot failed', err && err.message);
     }
+    const settings = (app.state && app.state.settings) || {};
+    LANG = I.pick(settings.language || navigator.language || 'zh-CN');
+    T = I.STRINGS[LANG] || I.STRINGS.en;
     document.documentElement.lang = LANG;
+    try {
+      const { bar } = UI.mountTitlebar(app, { page: T.title.split(' / ')[0] });
+      $('titlebar-host').appendChild(bar);
+    } catch (err) { console.warn('[paywall] titlebar', err && err.message); }
+
+    region = initialRegion();
+    try { const saved = localStorage.getItem(PLAN_KEY); if (P.SKUS.includes(saved)) sku = saved; } catch { /* ignore */ }
     renderStatic();
+    renderPlans();
     renderState(app.state);
     app.onState((state) => renderState(state));
   }
 
+  /** 默认地区：手动选过的 > 界面语言 + 系统地区（与其它面板 UI.priceLocale 一致） */
+  function initialRegion() {
+    let loc = '';
+    try { loc = UI.priceLocale ? UI.priceLocale() : ''; } catch { /* ignore */ }
+    if (!loc) loc = navigator.language || 'en-US';
+    return P.regionFor(loc).region;
+  }
+
   function bind() {
     $('buyBtn').addEventListener('click', onBuy);
-    $('keyToggle').addEventListener('click', () => {
-      const box = $('keyBox');
-      box.classList.toggle('hidden');
-      if (!box.classList.contains('hidden')) $('keyInput').focus();
-    });
+    $('copyNoteBtn').addEventListener('click', () => copy(noteText()));
+    $('copyDeviceBtn').addEventListener('click', () => copy(deviceId));
     $('activateBtn').addEventListener('click', onActivate);
     $('keyInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') onActivate(); });
     $('restoreBtn').addEventListener('click', onRestore);
+    $('unbindBtn').addEventListener('click', onUnbind);
+    $('regionSelect').addEventListener('change', (e) => {
+      region = e.target.value;
+      try { localStorage.setItem(REGION_KEY, region); } catch { /* ignore */ }
+      renderPlans();
+    });
+    $('termsLink').addEventListener('click', () => openUrl(cfg.termsUrl || 'https://pingguye.cn/cubbit/terms'));
+    $('privacyLink').addEventListener('click', () => openUrl(cfg.privacyUrl || 'https://pingguye.cn/cubbit/privacy'));
+    $('refundLink').addEventListener('click', () => openUrl(cfg.refundUrl || 'https://pingguye.cn/cubbit/refund'));
   }
 
   function renderStatic() {
-    const today = Date.now();
-    const price = typeof cfg.currentPrice === 'function' ? cfg.currentPrice(today) : cfg.price || 19.99;
-    const isLaunch = typeof cfg.isLaunchPrice === 'function' ? cfg.isLaunchPrice(today) : false;
-    const fmt = typeof cfg.formatPrice === 'function' ? cfg.formatPrice : (v) => '$' + Number(v).toFixed(2);
-
-    $('amount').textContent = fmt(price);
-    if (isLaunch) {
-      $('was').textContent = fmt(cfg.price || 19.99);
-      $('was').classList.remove('hidden');
-      $('priceNote').textContent = T('launch price', '首发价');
-      $('priceNote').classList.remove('hidden');
-    } else {
-      $('was').textContent = '';
-      $('was').classList.add('hidden');
-      $('priceNote').textContent = T('one-time · no subscription', '一次性 · 不是订阅');
+    $('title').textContent = T.title;
+    $('sub').textContent = T.sub;
+    $('regionLabel').textContent = T.region;
+    const sel = $('regionSelect');
+    sel.innerHTML = '';
+    for (const r of P.regionOptions()) {
+      const o = document.createElement('option');
+      o.value = r.id;
+      o.textContent = `${T.regions[r.id]} · ${r.currency}`;
+      sel.appendChild(o);
     }
-
-    $('title').textContent = T('Both desktops, one purchase.', '两台电脑，一份授权。');
-    $('sub').textContent = T(
-      'Unlock everything you need to play together — one payment, no subscription.',
-      '解锁你们俩一起玩需要的全部功能——一次买断，不是订阅。',
-    );
-    $('buyBtn').textContent = T('Get Couple Pack', '购买情侣包');
-    $('keyToggle').textContent = T('I already have a key', '我已有激活码');
-    $('activateBtn').textContent = T('Activate', '激活');
-    $('restoreBtn').textContent = T('Restore purchase', '恢复购买');
-    $('freeTitle').textContent = T('Free version includes', '免费版已包含');
-
-    const bullets = Array.isArray(cfg.bullets) ? cfg.bullets : [];
-    const ul = $('bullets');
-    ul.innerHTML = '';
-    for (const b of bullets) {
+    sel.value = region;
+    $('copyNoteBtn').textContent = T.copyNote;
+    $('stepsTitle').textContent = T.stepsTitle;
+    const ol = $('steps');
+    ol.innerHTML = '';
+    for (const s of T.steps) {
       const li = document.createElement('li');
-      li.textContent = isZh() ? b.zh : b.en;
-      ul.appendChild(li);
+      li.textContent = s;
+      ol.appendChild(li);
     }
+    $('deviceLabel').textContent = T.deviceLabel;
+    $('copyDeviceBtn').textContent = T.copy;
+    $('keyTitle').textContent = T.keyTitle;
+    $('activateBtn').textContent = T.activate;
+    $('restoreBtn').textContent = T.restore;
+    $('unbindBtn').textContent = T.unbind;
+    $('termsLink').textContent = T.terms;
+    $('privacyLink').textContent = T.privacy;
+    $('refundLink').textContent = T.refund;
+  }
 
-    const freeUl = $('freeList');
-    freeUl.innerHTML = '';
-    for (const b of (cfg.freeIncludes || [])) {
-      const li = document.createElement('li');
-      li.textContent = isZh() ? b.zh : b.en;
-      freeUl.appendChild(li);
+  function renderPlans() {
+    const host = $('plans');
+    host.innerHTML = '';
+    for (const id of ['base', 'month', 'year', 'couple']) {
+      const p = P.skuPrice(id, region);
+      const meta = T.plans[id];
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'plan-card' + (id === sku ? ' is-selected' : '');
+      card.setAttribute('role', 'radio');
+      card.setAttribute('aria-checked', id === sku ? 'true' : 'false');
+      card.dataset.sku = id;
+      card.innerHTML = '';
+      const name = document.createElement('div'); name.className = 'plan-card__name'; name.textContent = meta.name;
+      const price = document.createElement('div'); price.className = 'plan-card__price'; price.textContent = p.text;
+      const period = document.createElement('div'); period.className = 'plan-card__period'; period.textContent = meta.period;
+      const desc = document.createElement('div'); desc.className = 'plan-card__desc'; desc.textContent = meta.desc;
+      card.append(name, price, period, desc);
+      card.addEventListener('click', () => {
+        sku = id;
+        try { localStorage.setItem(PLAN_KEY, sku); } catch { /* ignore */ }
+        renderPlans();
+      });
+      host.appendChild(card);
     }
+    const cur = P.skuPrice(sku, region);
+    $('buyBtn').textContent = fill(T.buy, { price: cur.text });
+    $('chargeNote').textContent = cur.chargeCurrency !== cur.currency
+      ? fill(T.chargeDiff, { display: cur.text, charge: cur.chargeText })
+      : fill(T.chargeSame, { charge: cur.chargeText });
+  }
+
+  function noteText() {
+    const plan = I.NOTE_PLAN[sku] || sku;
+    return `Cubbit ${plan} | email: ____ | device: ${deviceId || '-'}`;
   }
 
   function renderState(state) {
     const lic = (state && state.license) || {};
+    deviceId = String(lic.deviceId || deviceId || '');
+    $('deviceId').textContent = deviceId || '—';
     const line = $('licenseLine');
-    const buy = $('buyBtn');
     const isPro = lic.state === 'pro';
-
-    if (isPro) {
-      $('title').textContent = T("You're all set.", '已经解锁了。');
-      $('sub').textContent = T('Couple Pack is active on this computer.', '这台电脑已激活情侣包。');
-      buy.disabled = true;
-      buy.textContent = T('Unlocked', '已解锁');
-      $('amount').textContent = '✓';
-      $('was').classList.add('hidden');
-      $('priceNote').classList.add('hidden');
-      $('keyToggle').classList.add('hidden');
-      line.textContent = T(`Full version · ${lic.planName || ''}`, `完整版 · ${lic.planName || ''}`);
-      return;
-    }
-
-    if (lic.state === 'trial' && lic.trialDaysLeft > 0) {
-      line.textContent = T(
-        `Free trial · ${lic.trialDaysLeft} days left · no card`,
-        `免费体验 · 还剩 ${lic.trialDaysLeft} 天 · 不绑卡`,
-      );
-    } else if (lic.state === 'expired') {
-      line.textContent = T('Trial ended — Couple Pack keeps everything on.', '体验已结束——购买情侣包可继续使用。');
-    } else {
-      line.textContent = T('30-day free trial · no card', '30 天免费体验 · 不绑卡');
-    }
+    line.classList.toggle('is-pro', isPro);
+    if (isPro) line.textContent = fill(T.statusPro, { plan: lic.planName || lic.planId || '' });
+    else if (lic.state === 'trial' && lic.trialDaysLeft > 0) line.textContent = fill(T.statusTrial, { n: lic.trialDaysLeft });
+    else if (lic.state === 'expired') line.textContent = T.statusExpired;
+    else line.textContent = T.statusFree;
+    $('unbindBtn').classList.toggle('hidden', !isPro);
   }
 
   function setStatus(text, kind) {
@@ -130,54 +171,72 @@
     el.className = 'pay__status' + (kind ? ' ' + kind : '');
   }
 
+  async function copy(text) {
+    let ok = false;
+    try { ok = await UI.copyText(String(text || '')); } catch { ok = false; }
+    UI.toast(ok ? T.copied : T.copyFail, ok ? 'ok' : 'err', 2200);
+  }
+
+  async function openUrl(url) {
+    const res = await app.invoke(IPC.APP_OPEN_EXTERNAL, { url }, { gate: false });
+    if (!res || !res.ok) setStatus(fill(T.openFail, { url }), 'err');
+    return res && res.ok;
+  }
+
   async function onBuy() {
-    if (!cfg.checkoutReady) {
-      setStatus(T(
-        `Checkout isn't live yet. Email ${cfg.supportEmail || 'support@cubbit.app'} and we'll send a key.`,
-        `购买页尚未开通。发邮件到 ${cfg.supportEmail || 'support@cubbit.app'}，我们会直接给你发激活码。`,
-      ), 'err');
-      $('keyBox').classList.remove('hidden');
-      return;
+    const p = P.skuPrice(sku, region);
+    if (!p || !p.payUrl) return;
+    const ok = await openUrl(p.payUrl);
+    if (ok) {
+      setStatus(T.opened);
+      $('keyInput').focus();
     }
-    const res = await app.invoke(IPC.APP_OPEN_EXTERNAL, { url: cfg.checkoutUrl });
-    if (!res || !res.ok) {
-      setStatus(T('Could not open the checkout page.', '打不开购买页，请检查网络。'), 'err');
-      return;
-    }
-    setStatus(T('After paying, your key arrives by email — paste it below.', '付款后激活码会发到邮箱，填在下面即可。'));
-    $('keyBox').classList.remove('hidden');
-    $('keyInput').focus();
   }
 
   async function onActivate() {
     const key = String($('keyInput').value || '').trim();
-    if (key.length < 8) {
-      setStatus(T('That key looks too short.', '激活码太短了。'), 'err');
+    const normalized = key.toUpperCase().replace(/[^0-9A-Z]/g, '');
+    if (!/^CUBB[0-9A-Z]{16}$/.test(normalized)) {
+      setStatus(T.keyShort, 'err');
       return;
     }
     $('activateBtn').disabled = true;
-    setStatus(T('Activating…', '正在激活…'));
-    const res = await app.invoke(IPC.LICENSE_ACTIVATE, { key });
+    setStatus(T.activating);
+    const res = await app.invoke(IPC.LICENSE_ACTIVATE, { key }, { gate: false });
     $('activateBtn').disabled = false;
     if (res && res.ok) {
-      setStatus(T('Activated. Thanks for supporting a tiny studio.', '激活成功，谢谢支持。'), 'ok');
+      setStatus(T.activated, 'ok');
+      $('keyInput').value = '';
       try { await app.refresh(); } catch { /* ignore */ }
       renderState(app.state);
-      setTimeout(() => { try { if (app.panel && app.panel.close) app.panel.close(); } catch { /* ignore */ } }, 1400);
     } else {
-      setStatus((res && res.message) || T('Activation failed.', '激活失败，请检查激活码。'), 'err');
+      setStatus((res && res.message) || T.activateFail, 'err');
     }
   }
 
   async function onRestore() {
-    setStatus(T('Checking…', '正在检查…'));
-    const res = await app.invoke(IPC.LICENSE_RESTORE, {});
+    setStatus(T.restoring);
+    const res = await app.invoke(IPC.LICENSE_RESTORE, {}, { gate: false });
     if (res && res.ok) {
-      setStatus(T('Restored.', '已恢复。'), 'ok');
+      setStatus(T.restored, 'ok');
       try { await app.refresh(); } catch { /* ignore */ }
       renderState(app.state);
     } else {
-      setStatus((res && res.message) || T('Nothing to restore on this computer.', '这台电脑上没有可恢复的授权。'), 'err');
+      setStatus((res && res.message) || T.nothing, 'err');
+    }
+  }
+
+  async function onUnbind() {
+    let yes = false;
+    try { yes = await UI.confirm({ title: T.unbind, desc: T.unbindConfirm, danger: true, confirmLabel: T.unbind }); } catch { yes = false; }
+    if (!yes) return;
+    const res = await app.invoke(IPC.LICENSE_DEACTIVATE, {}, { gate: false });
+    if (res && res.ok) {
+      setStatus(T.unbound, 'ok');
+      try { await app.refresh(); } catch { /* ignore */ }
+      renderState(app.state);
+    } else {
+      setStatus((res && res.message) || T.activateFail, 'err');
     }
   }
 })();

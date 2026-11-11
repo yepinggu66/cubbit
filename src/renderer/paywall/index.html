@@ -1,50 +1,67 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Unlock Couple Pack · Cubbit</title>
+    <title>方块仔 · 购买 / 激活</title>
     <link rel="stylesheet" href="../ui/ui.css" />
     <link rel="stylesheet" href="paywall.css" />
   </head>
   <body>
+    <div id="titlebar-host"></div>
     <div class="pay">
-      <div class="pay__art" aria-hidden="true">
-        <div class="pay__cube"><span class="eye eye--l"></span><span class="eye eye--r"></span><span class="blush blush--l"></span><span class="blush blush--r"></span></div>
-      </div>
-
       <main class="pay__main">
-        <div class="pay__eyebrow" id="eyebrow">COUPLE PACK</div>
-        <h1 class="pay__title" id="title">Both desktops, one purchase.</h1>
-        <p class="pay__sub" id="sub">Unlock everything you need to play together — no subscription.</p>
-
-        <div class="pay__price">
-          <span class="pay__amount" id="amount">$14.99</span>
-          <span class="pay__was" id="was">$19.99</span>
-          <span class="pay__note" id="priceNote">launch price</span>
+        <div class="pay__top">
+          <div>
+            <div class="pay__eyebrow">CUBBIT · 方块仔</div>
+            <h1 class="pay__title" id="title"></h1>
+            <p class="pay__sub" id="sub"></p>
+          </div>
+          <label class="pay__region">
+            <span id="regionLabel"></span>
+            <select id="regionSelect"></select>
+          </label>
         </div>
 
-        <ul class="pay__bullets" id="bullets"></ul>
+        <div class="pay__plans" id="plans" role="radiogroup"></div>
+        <div class="pay__charge" id="chargeNote"></div>
 
         <div class="pay__actions">
-          <button class="btn btn--primary btn--lg" type="button" id="buyBtn">Get Couple Pack</button>
-          <button class="btn btn--link" type="button" id="keyToggle">I already have a key</button>
+          <button class="btn btn--primary btn--lg" type="button" id="buyBtn"></button>
+          <button class="btn btn--ghost" type="button" id="copyNoteBtn"></button>
         </div>
 
-        <div class="pay__key hidden" id="keyBox">
-          <input class="pay__input" id="keyInput" type="text" placeholder="CUBBIT-XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false" />
-          <button class="btn" type="button" id="activateBtn">Activate</button>
+        <section class="pay__steps">
+          <div class="pay__steps-title" id="stepsTitle"></div>
+          <ol id="steps"></ol>
+          <div class="pay__device">
+            <span id="deviceLabel"></span>
+            <code id="deviceId">—</code>
+            <button class="btn btn--link" type="button" id="copyDeviceBtn"></button>
+          </div>
+        </section>
+
+        <section class="pay__key" id="keySection">
+          <div class="pay__steps-title" id="keyTitle"></div>
+          <div class="pay__key-row">
+            <input class="pay__input" id="keyInput" type="text" placeholder="CUBB-XXXX-XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false" />
+            <button class="btn btn--primary" type="button" id="activateBtn"></button>
+          </div>
           <div class="pay__status" id="keyStatus"></div>
-        </div>
+        </section>
 
-        <div class="pay__free" id="freeBox">
-          <div class="pay__free-title" id="freeTitle">Free version includes</div>
-          <ul id="freeList"></ul>
-        </div>
+        <div class="pay__license" id="licenseLine"></div>
 
         <div class="pay__foot">
-          <span id="licenseLine">30-day free trial · no card</span>
-          <button class="btn btn--link" type="button" id="restoreBtn">Restore purchase</button>
+          <div class="pay__links">
+            <button class="btn btn--link" type="button" id="termsLink"></button>
+            <button class="btn btn--link" type="button" id="privacyLink"></button>
+            <button class="btn btn--link" type="button" id="refundLink"></button>
+          </div>
+          <div class="pay__links">
+            <button class="btn btn--link" type="button" id="restoreBtn"></button>
+            <button class="btn btn--link hidden" type="button" id="unbindBtn"></button>
+          </div>
         </div>
       </main>
     </div>
@@ -52,8 +69,11 @@
     <script src="../ui/mock.js"></script>
     <script src="../../shared/i18n-dict.js"></script>
     <script src="../../shared/i18n.js"></script>
+    <script src="../../shared/offer-config.js"></script>
+    <script src="../../shared/pricing.js"></script>
     <script src="../../shared/lite-config.js"></script>
     <script src="../ui/ui.js"></script>
+    <script src="paywall-i18n.js"></script>
     <script src="paywall.js"></script>
   </body>
 </html>
