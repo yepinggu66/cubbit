@@ -3,7 +3,13 @@
 > A tiny cube on both your desktops. Poke it, your partner feels it.
 > 两只桌面上的小方块：戳一下，对方会有感觉。
 
-This repository is the open-source source snapshot of **Cubbit v2.9.1-soft** (soft-launch / internal beta build), published from `softlaunch-2.5`. Earlier history keeps the previous `v2.6.3-soft` snapshot. Windows installers are attached to GitHub Releases, not committed to the repo. Live payments are not enabled in this build.
+This repository is the open-source source snapshot of **Cubbit v2.9.5**, the current Windows release (2026-11-12), published from `softlaunch-2.5`. Earlier history keeps the previous `v2.9.1-soft` and `v2.6.3-soft` snapshots. Windows installers are attached to GitHub Releases, not committed to the repo.
+
+- **Download (always latest):** https://pingguye.cn/cubbit/dl/windows/latest
+- **Release notes:** https://github.com/yepinggu66/cubbit/releases
+- **Website:** https://pingguye.cn/cubbit/
+
+Payments happen outside the app (PayPal.me for most regions, WeChat / Alipay QR codes in mainland China) and activation codes are issued manually by the developer; no automated checkout is built in.
 
 ## What is Cubbit?
 
