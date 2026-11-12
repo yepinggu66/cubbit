@@ -1,6 +1,6 @@
 {
   "product": "方块仔 Cubbit",
-  "version": "2.9.4",
+  "version": "2.9.5",
   "channel": "stable",
   "status": "official",
   "officiallyLaunched": true,
@@ -10,14 +10,14 @@
     "status": "deployed",
     "deployedAt": "2026-11-12",
     "host": "pingguye.cn",
-    "note": "正式版 2.9.4：/cubbit/dl/Cubbit-Setup-2.9.4.exe，Cubbit-Setup-latest.exe 为同一文件"
+    "note": "正式版 2.9.5：/cubbit/dl/Cubbit-Setup-2.9.5.exe，Cubbit-Setup-latest.exe 为同一文件"
   },
   "artifacts": [
     {
       "kind": "nsis",
-      "url": "https://pingguye.cn/cubbit/dl/Cubbit-Setup-2.9.4.exe",
-      "size": 126485376,
-      "sha256": "46C2D3A63AA8F27BA44102DC52C4A7DF339F9526453556459AEDF70D2E38AB00"
+      "url": "https://pingguye.cn/cubbit/dl/Cubbit-Setup-2.9.5.exe",
+      "size": 126761119,
+      "sha256": "A99259511FE3A615AD728BBA916EDFF7BA99278EC93997F0842B30573097E979"
     }
   ],
   "metricsSchemaVersion": 2,
