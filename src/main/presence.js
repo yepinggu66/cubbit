@@ -11,7 +11,13 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { EventEmitter } = require('node:events');
-const { powerMonitor, app } = require('electron');
+let powerMonitor = null;
+let app = null;
+try {
+  ({ powerMonitor, app } = require('electron'));
+} catch {
+  /* 纯 Node 单测环境：只用到纯函数 */
+}
 
 const VIDEO_APPS = [
   'potplayer', 'potplayermini64', 'potplayermini', 'vlc', 'mpv', 'mpc-hc', 'mpc-hc64', 'mpc-be',
@@ -40,6 +46,10 @@ const CODING_APPS = [
 
 const BROWSERS = ['chrome', 'msedge', 'firefox', 'brave', 'opera', 'vivaldi', 'iexplore', '360se', 'qqbrowser', 'sogouexplorer'];
 
+// 探针只上报「原始事实」（物理像素的窗口矩形 + 所在显示器矩形 + 窗口类名 / 样式 / 是否最大化），
+// 是否「全屏」由下面的 isFullscreenRaw() 在 JS 里判定，便于单测。
+// v2.9.5 修复：旧版拿 GetWindowRect（物理像素，进程已 DPI aware）去比 WinForms VirtualScreen（逻辑像素，
+// 125% 缩放下是 1536x864），导致任何最大化窗口、甚至点一下桌面都被当成「全屏游戏」而自动隐身。
 const PROBE_SCRIPT = String.raw`
 $ErrorActionPreference = 'SilentlyContinue'
 $out = $env:CUBBIT_PRESENCE_OUT
@@ -47,35 +57,56 @@ Add-Type @"
 using System;
 using System.Text;
 using System.Runtime.InteropServices;
-public class CbFg {
+public class CbFg295 {
   [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
-  [DllImport("user32.dll")] public static extern int GetWindowText(IntPtr h, StringBuilder s, int n);
+  [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern int GetWindowText(IntPtr h, StringBuilder s, int n);
+  [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern int GetClassName(IntPtr h, StringBuilder s, int n);
   [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr h, out RECT r);
   [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
+  [DllImport("user32.dll")] public static extern bool IsZoomed(IntPtr h);
+  [DllImport("user32.dll")] public static extern int GetWindowLong(IntPtr h, int idx);
+  [DllImport("user32.dll")] public static extern IntPtr MonitorFromWindow(IntPtr h, uint flags);
+  [DllImport("user32.dll")] public static extern bool GetMonitorInfo(IntPtr m, ref MONITORINFO mi);
   [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
-  public struct RECT { public int Left, Top, Right, Bottom; }
+  [DllImport("user32.dll")] public static extern bool SetProcessDpiAwarenessContext(IntPtr ctx);
+  [StructLayout(LayoutKind.Sequential)] public struct RECT { public int Left, Top, Right, Bottom; }
+  [StructLayout(LayoutKind.Sequential)] public struct MONITORINFO { public int cbSize; public RECT rcMonitor; public RECT rcWork; public uint dwFlags; }
 }
 "@
-[void][CbFg]::SetProcessDPIAware()
-Add-Type -AssemblyName System.Windows.Forms
-$mon = [System.Windows.Forms.SystemInformation]::VirtualScreen
+# 每显示器 DPI 感知（V2 = -4），失败再退回系统 DPI 感知；这样窗口矩形和显示器矩形都是物理像素
+$dpiOk = $false
+try { $dpiOk = [CbFg295]::SetProcessDpiAwarenessContext([IntPtr](-4)) } catch { $dpiOk = $false }
+if (-not $dpiOk) { [void][CbFg295]::SetProcessDPIAware() }
 while ($true) {
-  $h = [CbFg]::GetForegroundWindow()
+  $h = [CbFg295]::GetForegroundWindow()
   $t = New-Object System.Text.StringBuilder 512
-  [void][CbFg]::GetWindowText($h, $t, 512)
-  $r = New-Object CbFg+RECT
-  [void][CbFg]::GetWindowRect($h, [ref]$r)
+  [void][CbFg295]::GetWindowText($h, $t, 512)
+  $c = New-Object System.Text.StringBuilder 256
+  [void][CbFg295]::GetClassName($h, $c, 256)
+  $r = New-Object CbFg295+RECT
+  [void][CbFg295]::GetWindowRect($h, [ref]$r)
+  $mi = New-Object CbFg295+MONITORINFO
+  $mi.cbSize = [System.Runtime.InteropServices.Marshal]::SizeOf([type][CbFg295+MONITORINFO])
+  $hm = [CbFg295]::MonitorFromWindow($h, 2)
+  $monOk = [CbFg295]::GetMonitorInfo($hm, [ref]$mi)
   $wpid = 0
-  [void][CbFg]::GetWindowThreadProcessId($h, [ref]$wpid)
+  [void][CbFg295]::GetWindowThreadProcessId($h, [ref]$wpid)
   $proc = Get-Process -Id $wpid -ErrorAction SilentlyContinue
   $pname = ''
   if ($proc) { $pname = $proc.ProcessName }
-  $full = (($r.Left -le ($mon.Left + 2)) -and ($r.Top -le ($mon.Top + 2)) -and ($r.Right -ge ($mon.Right - 2)) -and ($r.Bottom -ge ($mon.Bottom - 2)))
+  $style = [CbFg295]::GetWindowLong($h, -16)
   $o = [ordered]@{
+    v = 2;
     title = $t.ToString();
+    className = $c.ToString();
     process = $pname;
     pid = $wpid;
-    fullscreen = [bool]$full;
+    zoomed = [bool][CbFg295]::IsZoomed($h);
+    style = ([int64]$style) -band 0xFFFFFFFFL;
+    rect = @([int]$r.Left, [int]$r.Top, [int]$r.Right, [int]$r.Bottom);
+    monitor = @([int]$mi.rcMonitor.Left, [int]$mi.rcMonitor.Top, [int]$mi.rcMonitor.Right, [int]$mi.rcMonitor.Bottom);
+    work = @([int]$mi.rcWork.Left, [int]$mi.rcWork.Top, [int]$mi.rcWork.Right, [int]$mi.rcWork.Bottom);
+    monOk = [bool]$monOk;
     width = [int]($r.Right - $r.Left);
     height = [int]($r.Bottom - $r.Top);
   }
@@ -84,6 +115,99 @@ while ($true) {
   Start-Sleep -Milliseconds 1200
 }
 `;
+
+// 桌面 / 任务栏 / 开始菜单 / 任务视图 / 锁屏等系统外壳窗口：铺满屏幕也绝不算「全屏」
+const SHELL_CLASSES = [
+  'progman', 'workerw', 'shell_traywnd', 'shell_secondarytraywnd', 'notifyiconoverflowwindow',
+  'multitaskingviewframe', 'xamlexplorerhostislandwindow', 'foregroundstaging', 'windows.ui.core.corewindow',
+  'lockscreenbackstopframe',
+];
+const SHELL_PROCESSES = [
+  'startmenuexperiencehost', 'searchhost', 'searchapp', 'searchui', 'shellexperiencehost', 'lockapp',
+  'textinputhost', 'logonui',
+];
+const WS_CAPTION = 0x00c00000;
+
+function rectOf(a) {
+  if (!Array.isArray(a) || a.length < 4) return null;
+  const [l, t, r, b] = a.map((n) => Number(n));
+  if (![l, t, r, b].every(Number.isFinite) || r <= l || b <= t) return null;
+  return { l, t, r, b };
+}
+
+/** 是不是桌面 / 任务栏 / 开始菜单这类系统外壳窗口 */
+function isShellWindow(raw) {
+  const cls = String((raw && raw.className) || '').toLowerCase();
+  const proc = String((raw && raw.process) || '').toLowerCase();
+  if (SHELL_CLASSES.includes(cls)) return true;
+  if (SHELL_PROCESSES.includes(proc)) return true;
+  // 资源管理器里没有标题的前台窗口基本就是桌面 / 任务栏
+  if (proc === 'explorer' && !String((raw && raw.title) || '').trim()) return true;
+  return false;
+}
+
+/**
+ * 判断前台窗口是否「真正全屏」（全屏游戏 / 全屏视频 / 全屏演示）。
+ * 规则：
+ *   1) 窗口矩形与它所在显示器矩形用同一单位（物理像素）比较，必须盖住整块显示器（含任务栏），容差 2px；
+ *   2) 最大化的普通窗口不算（IsZoomed，或带标题栏且没盖住任务栏）；
+ *   3) 桌面 / 任务栏 / 开始菜单等系统外壳窗口不算；
+ *   4) 旧探针（没有 monitor 字段）一律不算，宁可不隐身也不要乱隐身。
+ */
+function isFullscreenRaw(raw, opts = {}) {
+  if (!raw || typeof raw !== 'object') return false;
+  if (opts.selfPid && Number(raw.pid) === Number(opts.selfPid)) return false;
+  if (isShellWindow(raw)) return false;
+  const win = rectOf(raw.rect);
+  const mon = rectOf(raw.monitor);
+  if (!win || !mon) return false;
+  if (raw.zoomed) return false;
+  const tol = 2;
+  const covers = win.l <= mon.l + tol && win.t <= mon.t + tol && win.r >= mon.r - tol && win.b >= mon.b - tol;
+  if (!covers) return false;
+  // 带标题栏的窗口哪怕被拉到盖满屏幕，也只是一个很大的普通窗口
+  const style = Number(raw.style) || 0;
+  if (style && (style & WS_CAPTION) === WS_CAPTION) return false;
+  return true;
+}
+
+/** 纯函数：探针原始数据 → 状态分类（便于单测） */
+function classifyPresence(raw, ctx = {}) {
+  raw = raw || {};
+  const idle = Number(ctx.idle) || 0;
+  const hour = Number.isFinite(ctx.hour) ? ctx.hour : new Date().getHours();
+  const proc = String(raw.process || '').toLowerCase();
+  const title = String(raw.title || '');
+  const titleLower = title.toLowerCase();
+  const full = isFullscreenRaw(raw, { selfPid: ctx.selfPid });
+
+  if (idle >= 300) {
+    return { kind: 'away', app: proc, title, fullscreen: full };
+  }
+  if (proc && MEETING_APPS.includes(proc)) {
+    return { kind: 'meeting', app: proc, title, fullscreen: full };
+  }
+  if (proc && VIDEO_APPS.includes(proc)) {
+    return { kind: 'video', app: proc, title, fullscreen: full };
+  }
+  if (full && proc && BROWSERS.includes(proc)) {
+    // 浏览器全屏基本只有两种情况：看视频/电影、全屏演示。都按「需要安静」处理。
+    return { kind: 'video', app: proc, title, fullscreen: full };
+  }
+  if (full && proc && !BROWSERS.includes(proc) && !CODING_APPS.includes(proc)) {
+    return { kind: 'game', app: proc, title, fullscreen: full };
+  }
+  if (VIDEO_TITLE_HINTS.some((k) => titleLower.includes(k)) && !VIDEO_APPS.includes(proc)) {
+    return { kind: 'video', app: proc, title, fullscreen: full };
+  }
+  if (proc && CODING_APPS.includes(proc)) {
+    return { kind: 'coding', app: proc, title, fullscreen: full };
+  }
+  if (hour >= 23 || hour < 6) {
+    return { kind: 'night', app: proc, title, fullscreen: full };
+  }
+  return { kind: 'working', app: proc, title, fullscreen: full };
+}
 
 function pad(n) {
   return String(n).padStart(2, '0');
@@ -207,40 +331,7 @@ class PresenceWatcher extends EventEmitter {
   }
 
   _classify() {
-    const idle = this._idleSeconds();
-    const hour = new Date().getHours();
-    const raw = this.raw || {};
-    const proc = String(raw.process || '').toLowerCase();
-    const title = String(raw.title || '');
-    const titleLower = title.toLowerCase();
-    const full = !!raw.fullscreen;
-
-    if (idle >= 300) {
-      return { kind: 'away', app: proc, title, fullscreen: full };
-    }
-    if (proc && MEETING_APPS.includes(proc)) {
-      return { kind: 'meeting', app: proc, title, fullscreen: full };
-    }
-    if (proc && VIDEO_APPS.includes(proc)) {
-      return { kind: 'video', app: proc, title, fullscreen: full };
-    }
-    if (full && proc && BROWSERS.includes(proc)) {
-      // 浏览器全屏基本只有两种情况：看视频/电影、全屏演示。都按「需要安静」处理。
-      return { kind: 'video', app: proc, title, fullscreen: full };
-    }
-    if (full && proc && !BROWSERS.includes(proc) && !CODING_APPS.includes(proc)) {
-      return { kind: 'game', app: proc, title, fullscreen: full };
-    }
-    if (VIDEO_TITLE_HINTS.some((k) => titleLower.includes(k)) && !VIDEO_APPS.includes(proc)) {
-      return { kind: 'video', app: proc, title, fullscreen: full };
-    }
-    if (proc && CODING_APPS.includes(proc)) {
-      return { kind: 'coding', app: proc, title, fullscreen: full };
-    }
-    if (hour >= 23 || hour < 6) {
-      return { kind: 'night', app: proc, title, fullscreen: full };
-    }
-    return { kind: 'working', app: proc, title, fullscreen: full };
+    return classifyPresence(this.raw || {}, { idle: this._idleSeconds(), hour: new Date().getHours(), selfPid: process.pid });
   }
 
   _idleSeconds() {
@@ -256,4 +347,4 @@ class PresenceWatcher extends EventEmitter {
   }
 }
 
-module.exports = { PresenceWatcher };
+module.exports = { PresenceWatcher, isFullscreenRaw, isShellWindow, classifyPresence };
