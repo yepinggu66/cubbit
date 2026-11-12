@@ -72,7 +72,7 @@ docs/            delivery / launch notes
 
 ## Status & scope
 
-- This is a **soft-launch snapshot**, not a production-hardened release.
+- This is the public source snapshot of the current Windows release (**2.9.5**); it is not a production-hardened or security-audited build.
 - The license verification public key is included (`src/main/license/public-key.pem`); the private signing key is **not** in this repository.
 - Analytics, payment and account backend endpoints are not included; they are external services.
 - No warranty; see LICENSE.
