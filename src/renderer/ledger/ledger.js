@@ -172,7 +172,13 @@
       if (!healthBrowse && FIND.sec !== 'all' && FIND.sec !== 'health' && String(c.sec) !== FIND.sec) return false;
       if (FIND.ev !== 'all' && c.ev !== FIND.ev) return false;
       if (!q) return true;
-      return `${c.title}${c.plain}${c.secName}`.includes(q);
+      const zh = `${c.title}${c.plain}${c.secName}`;
+      if (zh.includes(q)) return true;
+      // 界面切到外语时，也按译文搜（不分大小写）
+      const I = window.CubbitI18N;
+      if (!I || typeof I.t !== 'function') return false;
+      const ql = q.toLowerCase();
+      return [c.title, c.plain, c.secName].some((s) => String(I.t(s) || '').toLowerCase().includes(ql));
     });
   }
 
@@ -353,9 +359,17 @@
     x.fillStyle = '#ffb469';
     x.fillRect(48, 48, 6, H - 96);
 
+    // 分享图是画在 canvas 上的，DOM 翻译管不到，这里按当前界面语言自己翻
+    const T = (s) => {
+      const str = String(s == null ? '' : s);
+      const I = window.CubbitI18N;
+      return I && typeof I.t === 'function' ? I.t(str) : str;
+    };
     const wrap = (text, maxWidth, font, maxLines) => {
       x.font = font;
-      const chars = [...String(text || '')];
+      const str = String(text || '');
+      // 中日韩按字断行，拉丁文按词断行
+      const chars = /[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]/.test(str) ? [...str] : str.split(/(?<=\s)/);
       const lines = [];
       let line = '';
       for (const ch of chars) {
@@ -369,9 +383,9 @@
       }
       if (lines.length < maxLines && line) lines.push(line);
       if (lines.length === maxLines && chars.join('').length > lines.join('').length) {
-        lines[maxLines - 1] = lines[maxLines - 1].replace(/[，。；、]$/, '') + '…';
+        lines[maxLines - 1] = lines[maxLines - 1].replace(/[，。；、,.;\s]+$/, '') + '…';
       }
-      return lines;
+      return lines.map((l) => l.replace(/\s+$/, ''));
     };
 
     const isList = input.kind === 'list';
@@ -379,10 +393,10 @@
 
     x.fillStyle = '#8a93a6';
     x.font = '500 22px "Microsoft YaHei", sans-serif';
-    const kicker = isEnding ? '四十步走完一辈子' : isList ? `${(input.items || []).length} 条 · 附证据等级` : `${input.secName || '人生账本'} · 证据 ${input.ev || 'A'} 级`;
+    const kicker = T(isEnding ? '四十步走完一辈子' : isList ? `${(input.items || []).length} 条 · 附证据等级` : `${input.secName || '人生账本'} · 证据 ${input.ev || 'A'} 级`);
     x.fillText(kicker, 92, 148);
 
-    const title = isEnding ? `我的结局：${input.title || ''}` : isList ? input.head || '一份清单' : input.title || '';
+    const title = T(isEnding ? `我的结局：${input.title || ''}` : isList ? input.head || '一份清单' : input.title || '');
     const titleLines = wrap(title, W - 200, '700 46px "Microsoft YaHei", sans-serif', 2);
     x.fillStyle = '#f3f5fa';
     titleLines.forEach((line, i) => x.fillText(line, 92, 214 + i * 60));
@@ -392,7 +406,7 @@
     if (isList) {
       const items = (input.items || []).slice(0, 5);
       items.forEach((it, i) => {
-        const lines = wrap(`${i + 1}. ${it.title}`, W - 200, '400 24px "Microsoft YaHei", sans-serif', 1);
+        const lines = wrap(`${i + 1}. ${T(it.title)}`, W - 200, '400 24px "Microsoft YaHei", sans-serif', 1);
         x.fillStyle = '#ffb469';
         x.fillText(`${i + 1}`, 92, y);
         x.fillStyle = '#c3cad9';
@@ -414,7 +428,7 @@
       if (input.done != null) bits.push(`执行了 ${input.done} 条`);
       x.fillText(bits.join(' · '), 92, y);
     } else {
-      const lines = wrap(input.plain || '', W - 200, '400 25px "Microsoft YaHei", sans-serif', 5);
+      const lines = wrap(T(input.plain || ''), W - 200, '400 25px "Microsoft YaHei", sans-serif', 5);
       lines.forEach((line) => {
         x.fillText(line, 92, y);
         y += 40;
@@ -423,9 +437,13 @@
 
     x.fillStyle = 'rgba(255,255,255,0.45)';
     x.font = '400 20px "Microsoft YaHei", sans-serif';
-    x.fillText('方块仔 · 人生账本 —— 一天一步，四十步走完一辈子', 92, H - 88);
+    const foot = T('方块仔 · 人生账本 —— 一天一步，四十步走完一辈子');
+    const credit = T('内容来自《高性价比人生指南》CC BY 4.0');
+    // 外文更长：两行放不下就把署名挪到下一行，免得叠在一起
+    const tight = x.measureText(foot).width + x.measureText(credit).width + 40 > W - 184;
+    x.fillText(foot, 92, tight ? H - 118 : H - 88, W - 184);
     x.textAlign = 'right';
-    x.fillText('内容来自《高性价比人生指南》CC BY 4.0', W - 92, H - 88);
+    x.fillText(credit, W - 92, H - 88, W - 184);
     x.textAlign = 'left';
 
     return c;
